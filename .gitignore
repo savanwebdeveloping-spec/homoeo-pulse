@@ -1,0 +1,11 @@
+node_modules/
+.gradle/
+android/.gradle/
+build/
+android/app/build/
+android/build/
+.dart_tool/
+.idea/
+*.log
+uploads/
+

@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homoeo Pulse | Academic CMS & Admin Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #008744;
+      --primary-dark: #006D37;
+      --primary-light: #10B981;
+      --accent: #16A34A;
+      --amber: #D97706;
+      --coral: #DC2626;
+      --bg: #F4F7F6;
+      --surface: #FFFFFF;
+      --surface-card: #FFFFFF;
+      --border: #E2E8F0;
+      --text: #0F172A;
+      --text-muted: #64748B;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 16px;
+    }
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+      padding: 0 8px;
+    }
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(15, 118, 110, 0.2);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-light);
+      font-weight: 800;
+      font-size: 20px;
+      border: 1px solid var(--primary);
+    }
+    .logo-text { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
+    .logo-sub { font-size: 11px; color: var(--accent); font-weight: 600; }
+
+    .nav-menu { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .nav-item:hover, .nav-item.active {
+      background: rgba(15, 118, 110, 0.2);
+      color: #fff;
+    }
+    .nav-item.active { border-left: 3px solid var(--primary-light); }
+
+    /* Main Content */
+    .main-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .top-header {
+      height: 70px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+    }
+    .page-title { font-size: 20px; font-weight: 700; }
+    .admin-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(15, 118, 110, 0.15);
+      border: 1px solid var(--primary);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .content { padding: 32px; }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+    }
+    .stat-title { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; font-weight: 500; }
+    .stat-val { font-size: 26px; font-weight: 800; color: #fff; }
+    .stat-trend { font-size: 12px; color: var(--accent); margin-top: 6px; font-weight: 600; }
+
+    /* Upload Form Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 32px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .card-title { font-size: 18px; font-weight: 700; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 8px; }
+    .form-group.full { grid-column: span 2; }
+    label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+    input, select, textarea {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary-light); }
+
+    .dropzone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 30px;
+      text-align: center;
+      background: rgba(31, 41, 55, 0.4);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .dropzone:hover { border-color: var(--primary-light); background: rgba(15, 118, 110, 0.05); }
+
+    .btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+      align-self: flex-start;
+    }
+    .btn:hover { background: var(--primary-dark); }
+
+    /* Document Repository Table */
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 16px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .badge-year { background: rgba(45, 212, 191, 0.15); color: var(--accent); }
+    .badge-cat { background: rgba(245, 158, 11, 0.15); color: var(--amber); }
+
+    .action-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .action-btn.delete:hover { border-color: var(--coral); color: var(--coral); }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo-container">
+      <div class="logo-icon">HP</div>
+      <div>
+        <div class="logo-text">Homoeo Pulse</div>
+        <div class="logo-sub">ADMIN CMS PORTAL</div>
+      </div>
+    </div>
+
+    <nav class="nav-menu">
+      <div class="nav-item active">📚 Notes & Repositories</div>
+      <div class="nav-item">👥 BHMS Students (2,450)</div>
+      <div class="nav-item">🏛️ Colleges & Affiliations</div>
+      <div class="nav-item">🔔 Exam Push Notifications</div>
+      <div class="nav-item">📊 Usage & Analytics</div>
+    </nav>
+  </aside>
+
+  <!-- Main Content Wrapper -->
+  <main class="main-wrapper">
+    <header class="top-header">
+      <div class="page-title">Curriculum Study Material CMS</div>
+      <div class="admin-badge">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10B981;"></span>
+        Chief Academic Administrator
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- Live Metrics Overview -->
+      <section class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-title">Total Academic PDFs</div>
+          <div class="stat-val">348</div>
+          <div class="stat-trend">+14 uploaded this week</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">Active BHMS Scholars</div>
+          <div class="stat-val">2,480</div>
+          <div class="stat-trend">Across 54 Colleges</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">Encrypted Offline Downloads</div>
+          <div class="stat-val">18,920</div>
+          <div class="stat-trend">Anti-Piracy Sandbox Active</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">Cloud Storage Used</div>
+          <div class="stat-val">4.6 GB</div>
+          <div class="stat-trend">Out of 50 GB Tier</div>
+        </div>
+      </section>
+
+      <!-- Upload Study Material Section -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title">Upload & Tag New BHMS Study Material</div>
+        </div>
+
+        <form id="uploadForm" class="form-grid">
+          <div class="form-group">
+            <label>BHMS Academic Year</label>
+            <select id="yearSelect" onchange="updateSubjectOptions()">
+              <option value="1st Year">BHMS 1st Year</option>
+              <option value="2nd Year">BHMS 2nd Year</option>
+              <option value="3rd Year">BHMS 3rd Year</option>
+              <option value="4th Year">BHMS 4th Year</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Subject Curriculum</label>
+            <select id="subjectSelect">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Course Chapter Title</label>
+            <input type="text" id="chapterTitle" placeholder="e.g. Chapter 1: Upper Limb &amp; Pectoral Girdle" required>
+          </div>
+
+          <div class="form-group">
+            <label>Topic Title</label>
+            <input type="text" id="docTitle" placeholder="e.g. Brachial Plexus Formation &amp; Nerve Injuries" required>
+          </div>
+
+          <div class="form-group">
+            <label>Material Category</label>
+            <select id="categorySelect">
+              <option>Handwritten Notes</option>
+              <option>Standard Textbooks</option>
+              <option>University Past Papers</option>
+              <option>Important Rubrics &amp; Charts</option>
+              <option>Mnemonics &amp; Quick Revision</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Author / Professor / Faculty Name</label>
+            <input type="text" id="docAuthor" placeholder="e.g. Dr. Boericke & Editorial Board" required>
+          </div>
+
+          <div class="form-group">
+            <label>Search Tags (Comma-separated)</label>
+            <input type="text" id="docTags" placeholder="e.g. Lachesis, Naja, Crotalus, Exam, MUHS">
+          </div>
+
+          <div class="form-group full">
+            <label>Academic Summary / Overview</label>
+            <textarea id="docDesc" rows="3" placeholder="Brief outline of the contents, chapter numbers, and exam relevance..."></textarea>
+          </div>
+
+          <div class="form-group full">
+            <label>Select PDF Document</label>
+            <div class="dropzone" onclick="document.getElementById('fileInput').click()">
+              <div style="font-size:32px;margin-bottom:8px;">📄</div>
+              <div style="font-weight:700;">Click to select PDF or drag and drop here</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Supported: Max 75MB .pdf file (Automatic AES encryption applied)</div>
+              <input type="file" id="fileInput" accept=".pdf" style="display:none" onchange="handleFileSelect(event)">
+              <div id="selectedFileName" style="margin-top:10px;font-weight:600;color:var(--accent);"></div>
+            </div>
+          </div>
+
+          <div class="form-group full">
+            <button type="submit" class="btn">🚀 Upload & Publish to Student App</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Manage Existing Material Table -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title">Live Repository Documents</div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Title & Faculty</th>
+              <th>Year</th>
+              <th>Subject</th>
+              <th>Category</th>
+              <th>Downloads</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="materialTableBody">
+            <tr>
+              <td>
+                <div style="font-weight:700;">Organon Aphorisms 1-70 Practical Summary</div>
+                <div style="font-size:12px;color:var(--text-muted);">Dr. S. Hahnemann / Prof. Banerjee</div>
+              </td>
+              <td><span class="badge badge-year">1st Year</span></td>
+              <td>Organon of Medicine</td>
+              <td><span class="badge badge-cat">Handwritten Notes</span></td>
+              <td>842</td>
+              <td>
+                <button class="action-btn">Edit</button>
+                <button class="action-btn delete">Delete</button>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div style="font-weight:700;">MUHS Solved 10-Year Question Bank</div>
+                <div style="font-size:12px;color:var(--text-muted);">Academic Board</div>
+              </td>
+              <td><span class="badge badge-year">2nd Year</span></td>
+              <td>Pathology & Microbiology</td>
+              <td><span class="badge badge-cat">University Past Papers</span></td>
+              <td>1,240</td>
+              <td>
+                <button class="action-btn">Edit</button>
+                <button class="action-btn delete">Delete</button>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div style="font-weight:700;">Repertorisation Strategies in Acute Cases</div>
+                <div style="font-size:12px;color:var(--text-muted);">Dr. Kent & Associates</div>
+              </td>
+              <td><span class="badge badge-year">4th Year</span></td>
+              <td>Homoeopathic Repertory</td>
+              <td><span class="badge badge-cat">Important Rubrics & Charts</span></td>
+              <td>615</td>
+              <td>
+                <button class="action-btn">Edit</button>
+                <button class="action-btn delete">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const curriculumSubjects = {
+      '1st Year': [
+        'Anatomy',
+        'Physiology & Biochemistry',
+        'Pharmacy',
+        'Materia Medica',
+        'Organon of Medicine and Homeopathic Philosophy'
+      ],
+      '2nd Year': [
+        'Pathology & Microbiology',
+        'Forensic Medicine & Toxicology',
+        'Materia Medica',
+        'Organon of Medicine and Homeopathic Philosophy'
+      ],
+      '3rd Year': [
+        'Surgery',
+        'Obstetrics & Gynaecology',
+        'Materia Medica',
+        'Organon of Medicine and Homeopathic Philosophy'
+      ],
+      '4th Year': [
+        'Practice of Medicine',
+        'Repertory',
+        'Materia Medica',
+        'Organon of Medicine and Homeopathic Philosophy',
+        'Community Medicine'
+      ]
+    };
+
+    function updateSubjectOptions() {
+      const year = document.getElementById('yearSelect').value;
+      const subjectSelect = document.getElementById('subjectSelect');
+      const subjects = curriculumSubjects[year] || [];
+      subjectSelect.innerHTML = subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+    }
+
+    let cmsUploadFileBase64 = null;
+    let cmsUploadFileName = null;
+
+    function handleFileSelect(e) {
+      if (e.target.files.length > 0) {
+        const file = e.target.files[0];
+        cmsUploadFileName = file.name;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          const parts = evt.target.result.split(',');
+          cmsUploadFileBase64 = parts[1] || '';
+          document.getElementById('selectedFileName').innerText = `✓ Selected: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const title = document.getElementById('docTitle').value.trim();
+      const chapterTitle = document.getElementById('chapterTitle').value.trim();
+      const faculty = document.getElementById('docAuthor').value.trim();
+      const year = document.getElementById('yearSelect').value;
+      const subject = document.getElementById('subjectSelect').value;
+      const cat = document.getElementById('categorySelect').value;
+      const desc = document.getElementById('docDesc').value.trim();
+
+      let fileUrl = '/uploads/organon_of_medicine.pdf';
+      let sizeStr = '3.5 MB';
+
+      if (cmsUploadFileBase64 && cmsUploadFileName) {
+        try {
+          const upRes = await fetch('/api/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename: cmsUploadFileName, base64Data: cmsUploadFileBase64 })
+          });
+          if (upRes.ok) {
+            const upData = await upRes.json();
+            fileUrl = upData.fileUrl;
+            sizeStr = upData.size;
+          }
+        } catch (err) {}
+      }
+
+      try {
+        await fetch('/api/curriculum/topic', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            year,
+            subjectName: subject,
+            chapterTitle,
+            title,
+            pages: 14,
+            size: sizeStr,
+            fileUrl,
+            summary: desc || 'Clinical homoeopathic study reference topic.'
+          })
+        });
+      } catch (err) {}
+
+      // Append to table
+      const tbody = document.getElementById('materialTableBody');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div style="font-weight:700;">${title}</div>
+          <div style="font-size:12px;color:var(--text-muted);">${chapterTitle} • By ${faculty}</div>
+        </td>
+        <td><span class="badge badge-year">${year}</span></td>
+        <td>${subject}</td>
+        <td><span class="badge badge-cat">${cat}</span></td>
+        <td>1</td>
+        <td>
+          <button class="action-btn">Edit</button>
+          <button class="action-btn delete" onclick="this.closest('tr').remove()">Delete</button>
+        </td>
+      `;
+      tbody.prepend(tr);
+      alert(`Success! "${title}" published under ${chapterTitle} and synced across student apps.`);
+      this.reset();
+      cmsUploadFileBase64 = null;
+      cmsUploadFileName = null;
+      document.getElementById('selectedFileName').innerText = '';
+      updateSubjectOptions();
+    });
+
+    // Initialize subjects dropdown
+    updateSubjectOptions();
+  </script>
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homoeo Pulse | Portal Hub &amp; Launcher</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --brand-green: #008744;
+      --brand-green-dark: #006D37;
+      --brand-green-light: #10B981;
+      --brand-green-pale: #ECFDF5;
+      --bg: #F4F7F6;
+      --surface: #FFFFFF;
+      --border: #E2E8F0;
+      --text: #0F172A;
+      --text-muted: #64748B;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: radial-gradient(circle at top right, #E6F4EA 0%, #F1F5F9 50%, #ECFDF5 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .hub-container {
+      max-width: 900px;
+      width: 100%;
+      text-align: center;
+    }
+    .brand-header {
+      margin-bottom: 36px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-logo {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--brand-green);
+      box-shadow: 0 10px 25px rgba(0, 135, 68, 0.25);
+      background: #fff;
+    }
+    .brand-title {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .logo-h { color: var(--brand-green); }
+    .logo-p { color: var(--brand-green-light); }
+    .brand-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 600;
+      max-width: 500px;
+      line-height: 1.5;
+    }
+    .pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--brand-green-pale);
+      color: var(--brand-green);
+      border: 1px solid #A7F3D0;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .pill-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--brand-green);
+      border-radius: 50%;
+    }
+
+    /* Cards Grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+    @media (max-width: 720px) {
+      .cards-grid { grid-template-columns: 1fr; }
+    }
+
+    .portal-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 32px 24px;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .portal-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(0, 135, 68, 0.12);
+      border-color: var(--brand-green-light);
+    }
+    .portal-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, var(--brand-green), var(--brand-green-light));
+    }
+    .card-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+    .card-icon.app { background: var(--brand-green-pale); color: var(--brand-green); border: 1px solid #A7F3D0; }
+    .card-icon.admin { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
+
+    .card-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tag-scope {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .tag-scope.public { background: #ECFDF5; color: #065F46; }
+    .tag-scope.private { background: #FEF2F2; color: #DC2626; }
+
+    .card-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .card-features {
+      list-style: none;
+      margin-bottom: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 12px;
+      color: #334155;
+    }
+    .card-features li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-features li span {
+      color: var(--brand-green);
+      font-weight: 800;
+    }
+
+    .btn-launch {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    .btn-launch.primary {
+      background: linear-gradient(135deg, #008744 0%, #10B981 100%);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(0, 135, 68, 0.3);
+    }
+    .btn-launch.primary:hover {
+      box-shadow: 0 6px 20px rgba(0, 135, 68, 0.4);
+      transform: translateY(-1px);
+    }
+    .btn-launch.secondary {
+      background: #0F172A;
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.2);
+    }
+    .btn-launch.secondary:hover {
+      background: #1E293B;
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.3);
+      transform: translateY(-1px);
+    }
+
+    /* Quick Launch Bar */
+    .both-launch-box {
+      background: #FFFFFF;
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+      padding: 14px 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 13px;
+    }
+    .btn-both {
+      background: var(--brand-green-pale);
+      color: var(--brand-green);
+      border: 1px solid #A7F3D0;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-both:hover {
+      background: var(--brand-green);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hub-container">
+    <!-- Brand Crest & Header -->
+    <div class="brand-header">
+      <img src="logo.jpeg" alt="Homoeo Pulse Crest" class="brand-logo">
+      <div class="brand-title">
+        <span class="logo-h">Homoeo</span><span class="logo-p">Pulse</span> Portal Hub
+      </div>
+      <div class="pill-badge">
+        <span class="pill-dot"></span>
+        <span>AYUSH &amp; NCH FULLSTACK PLATFORM • LIVE</span>
+      </div>
+      <div class="brand-sub">
+        Single Launch Center: Open the Student Mobile App or the Faculty Admin Dashboard in their own separate clean windows.
+      </div>
+    </div>
+
+    <!-- 2 Independent Portals Grid -->
+    <div class="cards-grid">
+      <!-- Card 1: Student Mobile App -->
+      <div class="portal-card">
+        <div>
+          <div class="card-icon app">📱</div>
+          <div class="card-title">
+            <span>Student Mobile App</span>
+            <span class="tag-scope public">Public</span>
+          </div>
+          <div class="card-desc">
+            Clean, distraction-free mobile application for BHMS students. Contains curriculum, uploaded textbooks, lecture topics &amp; built-in DRM PDF reader.
+          </div>
+          <ul class="card-features">
+            <li><span>✓</span> Standard BHMS Syllabus &amp; Textbooks</li>
+            <li><span>✓</span> Built-in PDF.js Viewer with Watermark</li>
+            <li><span>✓</span> Study Vault (Offline &amp; Bookmarks)</li>
+            <li><span>✓</span> Real-Time Auto Sync with Admin Uploads</li>
+          </ul>
+        </div>
+        <a href="/" target="_blank" class="btn-launch primary" title="Open Student Mobile App in a separate window">
+          <span>Open Student Mobile App</span>
+          <span>↗</span>
+        </a>
+      </div>
+
+      <!-- Card 2: Faculty Admin CMS -->
+      <div class="portal-card">
+        <div>
+          <div class="card-icon admin">💻</div>
+          <div class="card-title">
+            <span>Faculty Admin Portal</span>
+            <span class="tag-scope private">Private</span>
+          </div>
+          <div class="card-desc">
+            Secure back-office management console for faculty &amp; administrators. Upload real PDF books, add chapter topics, and broadcast live alerts.
+          </div>
+          <ul class="card-features">
+            <li><span>✓</span> Real PDF Document Upload &amp; Encryption</li>
+            <li><span>✓</span> Year ➔ Subject ➔ Chapter Hierarchy Manager</li>
+            <li><span>✓</span> Push Notification Broadcast System</li>
+            <li><span>✓</span> Live Telemetry &amp; Student Analytics</li>
+          </ul>
+        </div>
+        <a href="/admin" target="_blank" class="btn-launch secondary" title="Open Faculty Admin Dashboard in a separate window">
+          <span>Open Admin Dashboard</span>
+          <span>↗</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Quick action to open both -->
+    <div class="both-launch-box">
+      <span>Want to preview both at once?</span>
+      <button class="btn-both" onclick="openBothPortals()">⚡ Open Both in Separate Windows</button>
+    </div>
+  </div>
+
+  <script>
+    function openBothPortals() {
+      window.open('/', '_blank');
+      setTimeout(() => {
+        window.open('/admin', '_blank');
+      }, 300);
+    }
+  </script>
+</body>
+</html>

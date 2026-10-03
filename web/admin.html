@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homoeo Pulse | Faculty & Admin CMS Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <style>
+    /* Fullscreen Dedicated Admin Layout */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: var(--bg-main);
+      overflow: hidden;
+    }
+    .admin-standalone-wrapper {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+    .admin-top-bar {
+      height: 64px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      flex-shrink: 0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+      z-index: 50;
+    }
+    .admin-top-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .admin-top-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .btn-preview-app {
+      background: var(--brand-green-pale);
+      color: var(--brand-green);
+      border: 1px solid #A7F3D0;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-preview-app:hover {
+      background: var(--brand-green);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(0, 135, 68, 0.2);
+    }
+    .admin-main-body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+    .admin-sidebar {
+      width: 270px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 20px 14px;
+      flex-shrink: 0;
+      overflow-y: auto;
+    }
+    .admin-content-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      background: var(--bg-main);
+      padding: 24px 32px;
+    }
+    /* Modal styles */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal-card {
+      background: #FFFFFF;
+      border-radius: 18px;
+      max-width: 620px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border);
+      padding: 24px;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+    }
+    .modal-header h3 {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="admin-standalone-wrapper">
+    <!-- Top Global Admin Bar -->
+    <header class="admin-top-bar">
+      <div class="admin-top-left">
+        <img src="logo.jpeg" alt="Homoeo Pulse Logo" class="brand-logo-img">
+        <div>
+          <div class="brand-name"><span class="logo-homoeo">Homoeo</span><span class="logo-pulse">Pulse</span> &nbsp;<span style="font-size:12px;background:var(--brand-green-pale);color:var(--brand-green);padding:2px 8px;border-radius:6px;font-weight:800;border:1px solid #A7F3D0;">FACULTY ADMIN PORTAL</span></div>
+          <div class="brand-sub">CENTRAL ACADEMIC REPOSITORY &amp; DRM VAULT MANAGEMENT</div>
+        </div>
+      </div>
+
+      <div class="admin-top-right">
+        <div class="platform-status" id="systemLiveStatus">
+          <span class="status-indicator"></span>
+          <span id="apiStatusText">REST BACKEND • CONNECTED</span>
+        </div>
+        <a href="/" target="_blank" class="btn-preview-app" title="Open the Student Mobile App in a separate window">
+          <span>📱</span>
+          <span>Open Student Mobile App</span>
+          <span style="font-size:10px;opacity:0.7;">↗</span>
+        </a>
+        <button onclick="adminLogout()" class="btn-logout" title="Lock and secure the admin console" style="background:#FEE2E2;color:#DC2626;border:1px solid #FECACA;padding:8px 14px;border-radius:10px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer;">
+          <span>🔒</span>
+          <span>Lock</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Body Area -->
+    <div class="admin-main-body">
+      <!-- Admin Sidebar -->
+      <aside class="admin-sidebar">
+        <div class="admin-profile" style="margin-bottom:20px;padding:12px;background:#F8FAFC;border-radius:12px;border:1px solid var(--border);">
+          <div class="admin-avatar" style="width:42px;height:42px;border-radius:50%;background:var(--brand-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;">AD</div>
+          <div class="admin-info" style="margin-left:12px;">
+            <div class="admin-name" style="font-weight:800;font-size:14px;">Dr. A. K. Banerjee</div>
+            <div class="admin-role" style="font-size:11px;color:var(--brand-green);font-weight:700;">Super Administrator</div>
+          </div>
+        </div>
+
+        <nav class="admin-nav">
+          <div class="nav-item active" onclick="showAdminTab('notes')" id="nav-notes">
+            <span class="nav-icon">📚</span>
+            <span>Notes &amp; Repositories</span>
+            <span class="nav-badge" id="badge-notes-count">0</span>
+          </div>
+          <div class="nav-item" onclick="showAdminTab('curriculum')" id="nav-curriculum">
+            <span class="nav-icon">📑</span>
+            <span>Curriculum &amp; Topics</span>
+          </div>
+          <div class="nav-item" onclick="showAdminTab('students')" id="nav-students">
+            <span class="nav-icon">👥</span>
+            <span>BHMS Students</span>
+          </div>
+          <div class="nav-item" onclick="showAdminTab('colleges')" id="nav-colleges">
+            <span class="nav-icon">🏛️</span>
+            <span>Colleges &amp; Affiliations</span>
+          </div>
+          <div class="nav-item" onclick="showAdminTab('notifications')" id="nav-notifications">
+            <span class="nav-icon">🔔</span>
+            <span>Exam Notifications</span>
+          </div>
+          <div class="nav-item" onclick="showAdminTab('analytics')" id="nav-analytics">
+            <span class="nav-icon">📊</span>
+            <span>Platform Analytics</span>
+          </div>
+        </nav>
+
+        <div class="admin-footer-status" style="margin-top:auto;padding-top:20px;">
+          <div style="font-size:11px;color:var(--text-muted);">Encrypted Storage Sandbox</div>
+          <div class="progress-bar-bg" style="margin:6px 0;height:6px;background:#E2E8F0;border-radius:4px;overflow:hidden;">
+            <div class="progress-bar-fill" id="storageBarFill" style="width: 12%;height:100%;background:var(--brand-green);"></div>
+          </div>
+          <div style="font-size:11px;color:var(--brand-green);font-weight:700;" id="storageText">Sandbox Live • Ready for Uploads</div>
+        </div>
+      </aside>
+
+      <!-- Admin Main Content Area -->
+      <main class="admin-content-area">
+
+        <!-- 1. Notes & Repositories Tab -->
+        <div class="admin-tab-view active" id="tab-notes">
+          <div class="tab-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <div>
+              <h2 class="tab-title" style="font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px;">Academic Notes &amp; Repositories</h2>
+              <p class="tab-subtitle" style="font-size:13px;color:var(--text-muted);">Upload, manage, and publish year-wise BHMS study documents directly to the student app</p>
+            </div>
+            <button class="btn btn-primary" onclick="openUploadModal()" style="background:var(--brand-gradient);color:#fff;border:none;padding:10px 20px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;">
+              <span>+</span>
+              <span>Upload Academic Material</span>
+            </button>
+          </div>
+
+          <!-- Notes Filter Bar -->
+          <div class="filter-bar" style="display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap;">
+            <input type="text" class="input-search" id="adminSearchNotes" placeholder="Search by title, subject, or author..." oninput="filterAdminNotes()" style="flex:1;min-width:240px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;">
+            <select class="select-filter" id="adminFilterType" onchange="filterAdminNotes()" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;">
+              <option value="All">All Types (Books &amp; Notes)</option>
+              <option value="book">📚 Standard Books</option>
+              <option value="note">📝 Academic Study Notes</option>
+            </select>
+            <select class="select-filter" id="adminFilterYear" onchange="filterAdminNotes()" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;">
+              <option value="All">All BHMS Years</option>
+              <option value="1st Year">1st Year</option>
+              <option value="2nd Year">2nd Year</option>
+              <option value="3rd Year">3rd Year</option>
+              <option value="4th Year">4th Year</option>
+            </select>
+            <select class="select-filter" id="adminFilterCat" onchange="filterAdminNotes()" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;">
+              <option value="All">All Categories</option>
+              <option value="Handwritten Notes">Handwritten Notes</option>
+              <option value="Standard Textbooks">Standard Textbooks</option>
+              <option value="University Past Papers">University Past Papers</option>
+              <option value="Important Rubrics & Charts">Rubrics &amp; Charts</option>
+            </select>
+          </div>
+
+          <!-- Notes Table -->
+          <div class="card table-card" style="background:#fff;border-radius:14px;border:1px solid var(--border);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+            <table class="data-table" style="width:100%;border-collapse:collapse;text-align:left;font-size:13px;">
+              <thead style="background:#F8FAFC;border-bottom:1px solid var(--border);">
+                <tr>
+                  <th style="padding:14px 16px;">Title &amp; Author</th>
+                  <th style="padding:14px 16px;">Type</th>
+                  <th style="padding:14px 16px;">Year</th>
+                  <th style="padding:14px 16px;">Subject</th>
+                  <th style="padding:14px 16px;">Category</th>
+                  <th style="padding:14px 16px;">Size / Pages</th>
+                  <th style="padding:14px 16px;">Reads</th>
+                  <th style="padding:14px 16px;text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="adminNotesTableBody">
+                <!-- Dynamically populated via admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 1b. Curriculum Hierarchy Tab -->
+        <div class="admin-tab-view" id="tab-curriculum" style="display:none;">
+          <div class="tab-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <div>
+              <h2 class="tab-title" style="font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px;">BHMS Curriculum &amp; Topic Hierarchy</h2>
+              <p class="tab-subtitle" style="font-size:13px;color:var(--text-muted);">Manage Year ➔ Subject ➔ Chapters ➔ Topics with Real PDF Attachment</p>
+            </div>
+            <button class="btn btn-primary" onclick="openUploadModalForTopic()" style="background:var(--brand-gradient);color:#fff;border:none;padding:10px 20px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;">
+              + Upload Topic PDF / Add Chapter
+            </button>
+          </div>
+
+          <div class="admin-curriculum-panel">
+            <!-- Year Selector Pills -->
+            <div class="admin-year-selector" id="adminCurriculumYearBar" style="display:flex;gap:8px;margin-bottom:20px;">
+              <button class="admin-year-btn active" onclick="switchAdminCurriculumYear('1st Year')">1st Year</button>
+              <button class="admin-year-btn" onclick="switchAdminCurriculumYear('2nd Year')">2nd Year</button>
+              <button class="admin-year-btn" onclick="switchAdminCurriculumYear('3rd Year')">3rd Year</button>
+              <button class="admin-year-btn" onclick="switchAdminCurriculumYear('4th Year')">4th Year</button>
+            </div>
+
+            <!-- Subject / Chapter Accordion Container -->
+            <div id="adminCurriculumTreeContainer">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Students Directory Tab -->
+        <div class="admin-tab-view" id="tab-students" style="display:none;">
+          <div class="tab-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <div>
+              <h2 class="tab-title" style="font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px;">BHMS Student Directory</h2>
+              <p class="tab-subtitle" style="font-size:13px;color:var(--text-muted);">Enrolled scholars, verification status, and academic years</p>
+            </div>
+            <div class="stats-pill" id="studentStatsPill" style="background:var(--brand-green-pale);color:var(--brand-green);padding:6px 14px;border-radius:20px;font-weight:700;font-size:12px;border:1px solid #A7F3D0;">
+              Enrolled Scholars Active
+            </div>
+          </div>
+
+          <div class="filter-bar" style="display:flex;gap:12px;margin-bottom:18px;">
+            <input type="text" class="input-search" id="studentSearchInput" placeholder="Search student name, roll number, or college..." oninput="filterStudents()" style="flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;">
+            <select class="select-filter" id="studentYearFilter" onchange="filterStudents()" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;">
+              <option value="All">All Years</option>
+              <option value="1st Year">1st Year</option>
+              <option value="2nd Year">2nd Year</option>
+              <option value="3rd Year">3rd Year</option>
+              <option value="4th Year">4th Year</option>
+            </select>
+          </div>
+
+          <div class="card table-card" style="background:#fff;border-radius:14px;border:1px solid var(--border);overflow:hidden;">
+            <table class="data-table" style="width:100%;border-collapse:collapse;font-size:13px;">
+              <thead style="background:#F8FAFC;border-bottom:1px solid var(--border);">
+                <tr>
+                  <th style="padding:14px 16px;">Student Name</th>
+                  <th style="padding:14px 16px;">Roll / Reg No.</th>
+                  <th style="padding:14px 16px;">BHMS Year</th>
+                  <th style="padding:14px 16px;">Homoeopathic College</th>
+                  <th style="padding:14px 16px;">Status</th>
+                  <th style="padding:14px 16px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="studentTableBody">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 3. Colleges Tab -->
+        <div class="admin-tab-view" id="tab-colleges" style="display:none;">
+          <div class="tab-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <div>
+              <h2 class="tab-title" style="font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px;">Colleges &amp; University Affiliations</h2>
+              <p class="tab-subtitle" style="font-size:13px;color:var(--text-muted);">Partner Homoeopathic Medical Colleges across AYUSH councils</p>
+            </div>
+            <button class="btn btn-primary" onclick="openAddCollegeModal()" style="background:var(--brand-gradient);color:#fff;border:none;padding:10px 20px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;">
+              + Add New College
+            </button>
+          </div>
+
+          <div class="colleges-grid" id="collegesGrid">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- 4. Push Notifications Tab -->
+        <div class="admin-tab-view" id="tab-notifications" style="display:none;">
+          <div class="tab-header" style="margin-bottom:20px;">
+            <h2 class="tab-title" style="font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px;">Exam &amp; Academic Push Notifications</h2>
+            <p class="tab-subtitle" style="font-size:13px;color:var(--text-muted);">Broadcast university timetables and notes alerts directly to student mobile devices in real-time</p>
+          </div>
+
+          <div class="grid-2-col" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+            <!-- Composer Form -->
+            <div class="card" style="background:#fff;padding:24px;border-radius:14px;border:1px solid var(--border);">
+              <h3 style="margin-bottom:16px;font-size:16px;font-weight:700;">📢 Dispatch New Push Alert</h3>
+              <form id="notificationForm" onsubmit="dispatchNotification(event)">
+                <div class="form-group" style="margin-bottom:14px;">
+                  <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Notification Headline / Title</label>
+                  <input type="text" id="notifTitle" required placeholder="e.g. MUHS Winter 2026 Examination Schedule Announced" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;">
+                </div>
+                <div class="form-group" style="margin-bottom:14px;">
+                  <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Target Audience (Academic Year)</label>
+                  <select id="notifTarget" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;">
+                    <option value="All Years">All BHMS Students (Universal Broadcast)</option>
+                    <option value="1st Year">1st Year Only</option>
+                    <option value="2nd Year">2nd Year Only</option>
+                    <option value="3rd Year">3rd Year Only</option>
+                    <option value="4th Year">4th Year Only</option>
+                  </select>
+                </div>
+                <div class="form-group" style="margin-bottom:14px;">
+                  <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Notification Type</label>
+                  <select id="notifType" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;">
+                    <option value="Exam Date Sheet">University Exam Schedule</option>
+                    <option value="High-Yield Notes">New High-Yield Notes Uploaded</option>
+                    <option value="Syllabus Update">AYUSH / NCH Curriculum Update</option>
+                    <option value="Solved Question Paper">Solved Question Bank Alert</option>
+                  </select>
+                </div>
+                <div class="form-group" style="margin-bottom:16px;">
+                  <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Detailed Message Body</label>
+                  <textarea id="notifBody" rows="3" required placeholder="Details and instructions for students..." style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%;padding:12px;background:var(--brand-gradient);color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer;">
+                  🚀 Dispatch Live Notification to Student Apps
+                </button>
+              </form>
+            </div>
+
+            <!-- Sent Notification History -->
+            <div class="card" style="background:#fff;padding:24px;border-radius:14px;border:1px solid var(--border);">
+              <h3 style="margin-bottom:16px;font-size:16px;font-weight:700;">📜 Broadcast History Log</h3>
+              <div class="notification-history-list" id="notifHistoryList">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Analytics Tab -->
+        <div class="admin-tab-view" id="tab-analytics" style="display:none;">
+          <div class="tab-header" style="margin-bottom:20px;">
+            <h2 class="tab-title" style="font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px;">Platform Telemetry &amp; Analytics</h2>
+            <p class="tab-subtitle" style="font-size:13px;color:var(--text-muted);">Real-time engagement across academic years and uploaded curriculum</p>
+          </div>
+
+          <div class="analytics-metrics-grid" style="display:grid;grid-template-columns:repeat(4, 1fr);gap:16px;margin-bottom:24px;">
+            <div class="stat-card" style="background:#fff;padding:18px;border-radius:14px;border:1px solid var(--border);display:flex;align-items:center;gap:14px;">
+              <div style="font-size:24px;background:var(--brand-green-pale);padding:10px;border-radius:12px;">📚</div>
+              <div>
+                <div style="font-size:11px;color:var(--text-muted);font-weight:700;">Total Uploaded Books</div>
+                <div style="font-size:20px;font-weight:800;" id="statTotalBooks">0</div>
+                <div style="font-size:11px;color:var(--brand-green);">Standard Textbooks</div>
+              </div>
+            </div>
+            <div class="stat-card" style="background:#fff;padding:18px;border-radius:14px;border:1px solid var(--border);display:flex;align-items:center;gap:14px;">
+              <div style="font-size:24px;background:#FEF3C7;padding:10px;border-radius:12px;">📝</div>
+              <div>
+                <div style="font-size:11px;color:var(--text-muted);font-weight:700;">Total Uploaded Notes</div>
+                <div style="font-size:20px;font-weight:800;" id="statTotalNotes">0</div>
+                <div style="font-size:11px;color:#B45309;">Chapter Study Notes</div>
+              </div>
+            </div>
+            <div class="stat-card" style="background:#fff;padding:18px;border-radius:14px;border:1px solid var(--border);display:flex;align-items:center;gap:14px;">
+              <div style="font-size:24px;background:var(--brand-green-pale);padding:10px;border-radius:12px;">👥</div>
+              <div>
+                <div style="font-size:11px;color:var(--text-muted);font-weight:700;">Active Scholars</div>
+                <div style="font-size:20px;font-weight:800;" id="statTotalStudents">10</div>
+                <div style="font-size:11px;color:var(--brand-green);">Enrolled Students</div>
+              </div>
+            </div>
+            <div class="stat-card" style="background:#fff;padding:18px;border-radius:14px;border:1px solid var(--border);display:flex;align-items:center;gap:14px;">
+              <div style="font-size:24px;background:rgba(244,63,94,0.15);padding:10px;border-radius:12px;">🛡️</div>
+              <div>
+                <div style="font-size:11px;color:var(--text-muted);font-weight:700;">DRM Security</div>
+                <div style="font-size:20px;font-weight:800;">100% AES-256</div>
+                <div style="font-size:11px;color:var(--coral);">Watermark Active</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODALS -->
+  <!-- ========================================== -->
+
+  <!-- Upload Document Modal -->
+  <div class="modal-overlay" id="uploadModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Upload New BHMS Academic Material</h3>
+        <button class="modal-close" onclick="closeUploadModal()">×</button>
+      </div>
+      <form id="modalUploadForm" onsubmit="handleModalUpload(event)">
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Document Title</label>
+          <input type="text" id="mDocTitle" required placeholder="e.g. Materia Medica - Snake Venoms Comparative Study" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;">
+        </div>
+
+        <div class="grid-2-col" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+          <div class="form-group">
+            <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">BHMS Academic Year</label>
+            <select id="mDocYear" onchange="updateModalSubjectDropdown()" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;">
+              <option value="1st Year">1st Year</option>
+              <option value="2nd Year">2nd Year</option>
+              <option value="3rd Year">3rd Year</option>
+              <option value="4th Year">4th Year</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Curriculum Subject</label>
+            <select id="mDocSubject" onchange="updateModalChapterDropdown()" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-2-col" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+          <div class="form-group">
+            <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Content Type (Section)</label>
+            <select id="mDocType" onchange="updateModalCategoryOptions()" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;">
+              <option value="note" selected>📝 Chapter Lecture Topic &amp; Notes</option>
+              <option value="book">📚 Standard Textbook / Reference</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Author / Faculty Name</label>
+            <input type="text" id="mDocAuthor" required placeholder="e.g. Dr. Boericke &amp; Faculty Team" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;">
+          </div>
+        </div>
+
+        <!-- Chapter Group for notes -->
+        <div id="mChapterGroup" class="form-group" style="margin-bottom:14px;">
+          <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Course Chapter</label>
+          <div style="display:flex;gap:8px;">
+            <select id="mDocChapter" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;" onchange="handleModalChapterSelectChange()">
+              <!-- Populated dynamically -->
+            </select>
+            <button type="button" class="btn btn-secondary" style="padding:6px 14px;font-size:12px;font-weight:700;border:1px solid var(--border);border-radius:8px;background:#F1F5F9;cursor:pointer;" onclick="toggleNewChapterInput()">+ New Chapter</button>
+          </div>
+          <input type="text" id="mDocNewChapterTitle" placeholder="Enter New Chapter Title (e.g. Chapter 1: General Principles)" style="display:none;margin-top:6px;width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;">
+        </div>
+
+        <div class="grid-2-col" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+          <div class="form-group">
+            <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Estimated Page Count</label>
+            <input type="number" id="mDocPages" value="14" min="1" max="2500" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;">
+          </div>
+          <div class="form-group">
+            <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Category Tag</label>
+            <select id="mDocCategory" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;">
+              <option value="Handwritten Notes">Handwritten Notes</option>
+              <option value="Standard Textbooks">Standard Textbooks</option>
+              <option value="University Past Papers">University Past Papers</option>
+              <option value="Important Rubrics & Charts">Important Rubrics &amp; Charts</option>
+              <option value="Mnemonics & Quick Revision">Mnemonics &amp; Quick Revision</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Summary / Syllabus Highlights</label>
+          <textarea id="mDocSummary" rows="2" placeholder="High-yield points, key remedies covered, exam rubrics..." style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;"></textarea>
+        </div>
+
+        <div class="form-group" style="margin-bottom:18px;">
+          <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Select Real PDF File</label>
+          <input type="file" accept=".pdf" id="mDocFile" required onchange="handleModalFileSelect(this)" style="width:100%;padding:8px;border:1px dashed var(--border);border-radius:8px;background:#F8FAFC;">
+          <div id="mFileSelectedInfo" style="font-size:12px;color:var(--brand-green);margin-top:6px;font-weight:700;"></div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeUploadModal()" style="padding:10px 18px;border:1px solid var(--border);background:#fff;border-radius:8px;cursor:pointer;">Cancel</button>
+          <button type="submit" id="btnUploadSubmit" class="btn btn-primary" style="padding:10px 22px;background:var(--brand-gradient);color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;">
+            Publish to Student Mobile App 🚀
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Chapter Modal -->
+  <div class="modal-overlay" id="addChapterModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Add New Curriculum Chapter</h3>
+        <button class="modal-close" onclick="closeAddChapterModal()">×</button>
+      </div>
+      <form id="chapterForm" onsubmit="handleChapterSubmit(event)">
+        <input type="hidden" id="chModalYear">
+        <input type="hidden" id="chModalSubject">
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Target Academic Year &amp; Subject</label>
+          <div id="chModalTargetDisplay" style="font-size:13px;font-weight:700;color:var(--brand-green);padding:10px;background:var(--brand-green-pale);border-radius:8px;"></div>
+        </div>
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Chapter Title</label>
+          <input type="text" id="chModalTitle" required placeholder="e.g. Chapter 1: Head, Brain &amp; Cranial Nerves" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;">
+        </div>
+        <div class="form-group" style="margin-bottom:16px;">
+          <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Chapter Description &amp; Scope</label>
+          <textarea id="chModalDesc" rows="3" placeholder="Syllabus overview, clinical topics and examination guidelines..." style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeAddChapterModal()" style="padding:10px 18px;border:1px solid var(--border);background:#fff;border-radius:8px;cursor:pointer;">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="padding:10px 22px;background:var(--brand-gradient);color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;">Create Chapter</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add College Modal -->
+  <div class="modal-overlay" id="collegeModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Add Homoeopathic Medical College</h3>
+        <button class="modal-close" onclick="closeAddCollegeModal()">×</button>
+      </div>
+      <form id="collegeForm" onsubmit="handleCollegeSubmit(event)">
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">College Full Name</label>
+          <input type="text" id="cName" required placeholder="e.g. National Institute of Homoeopathy" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;">
+        </div>
+        <div class="grid-2-col" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+          <div class="form-group">
+            <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">City &amp; State</label>
+            <input type="text" id="cCity" required placeholder="e.g. Kolkata, West Bengal" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;">
+          </div>
+          <div class="form-group">
+            <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Affiliated University</label>
+            <input type="text" id="cUniv" required placeholder="e.g. WBUHS / AYUSH" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeAddCollegeModal()" style="padding:10px 18px;border:1px solid var(--border);background:#fff;border-radius:8px;cursor:pointer;">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="padding:10px 22px;background:var(--brand-gradient);color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;">Save College</button>
+        </div>
+      </form>
+    </div>
+  <!-- Faculty & Admin Authentication Gate Modal -->
+  <div class="modal-overlay" id="adminAuthModal" style="display:none;background:rgba(15, 23, 42, 0.88);backdrop-filter:blur(10px);z-index:99999;">
+    <div class="modal-card" style="max-width:420px;text-align:center;padding:32px;border-radius:20px;box-shadow:0 25px 60px rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.1);">
+      <div style="width:68px;height:68px;background:#E6F4EA;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px auto;font-size:30px;">
+        🛡️
+      </div>
+      <h3 style="font-size:20px;font-weight:800;color:var(--text);margin-bottom:6px;">Faculty &amp; Admin Security</h3>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px;line-height:1.5;">
+        This portal allows publishing clinical notes and modifying academic curriculum. Please enter your administrator passcode.
+      </p>
+      <form id="adminAuthForm" onsubmit="handleAdminAuth(event)">
+        <div class="form-group" style="margin-bottom:16px;">
+          <input type="password" id="adminPasscodeInput" required placeholder="Security Passcode" autofocus style="width:100%;padding:12px 14px;font-size:14px;border:1px solid var(--border);border-radius:10px;text-align:center;letter-spacing:3px;">
+        </div>
+        <div id="adminAuthError" style="display:none;color:#DC2626;font-size:12px;font-weight:700;margin-bottom:14px;background:#FEE2E2;padding:8px;border-radius:8px;">
+          Incorrect passcode. Please try again.
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;padding:12px;background:var(--brand-gradient);color:#fff;border:none;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;">
+          Unlock Console 🔓
+        </button>
+        <div style="margin-top:14px;font-size:11px;color:var(--text-muted);">
+          Default Passcode: <code style="background:#F1F5F9;padding:2px 6px;border-radius:4px;color:var(--text);font-weight:700;">homoeopulse2025</code>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

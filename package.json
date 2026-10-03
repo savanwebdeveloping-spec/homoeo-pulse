@@ -1,0 +1,30 @@
+{
+  "name": "homoeo-pulse",
+  "version": "1.0.0",
+  "description": "Homoeo Pulse - AYUSH Academic & Clinical Companion for BHMS Medical Students",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "cap:sync": "cap sync",
+    "cap:build": "cap copy"
+  },
+  "keywords": [
+    "bhms",
+    "ayush",
+    "homoeopathy",
+    "medical",
+    "education"
+  ],
+  "author": "Homoeo Pulse",
+  "license": "ISC",
+  "devDependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2"
+  },
+  "dependencies": {
+    "@capacitor/app": "^8.1.1",
+    "mongodb": "^7.7.0"
+  }
+}

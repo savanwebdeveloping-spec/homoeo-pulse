@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Homoeo Pulse | Student Academic App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Offline Mozilla PDF.js Engine -->
+  <script src="pdf.min.js"></script>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    input, select, textarea {
+      user-select: auto !important;
+      -webkit-user-select: auto !important;
+    }
+    /* Mobile Viewport Lock */
+    html, body {
+      width: 100% !important;
+      max-width: 100% !important;
+      height: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      background: #FFFFFF;
+      overflow-x: hidden !important;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .student-app-viewport {
+      width: 100% !important;
+      max-width: 100% !important;
+      height: 100% !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden !important;
+      padding: 0;
+      margin: 0;
+    }
+    /* Centered Mobile Device Frame on Desktop */
+    .phone-frame {
+      width: 412px;
+      height: min(840px, 96vh);
+      max-height: 840px;
+      max-width: 100% !important;
+      background: #FFFFFF;
+      border-radius: 44px;
+      box-shadow: 0 25px 60px rgba(0, 135, 68, 0.2), 0 0 0 8px #1E293B, 0 0 0 11px #334155;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden !important;
+      overflow-x: hidden !important;
+      flex-shrink: 0;
+    }
+    /* Native Fullscreen on Real Mobile Screens and Capacitor */
+    @media (max-width: 900px), (display-mode: standalone) {
+      .student-app-viewport {
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+      }
+      .phone-frame {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        overflow-x: hidden !important;
+      }
+      .phone-notch {
+        display: none !important;
+      }
+    }
+    body.is-native-app .student-app-viewport {
+      padding: 0 !important;
+      margin: 0 !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      overflow-x: hidden !important;
+    }
+    body.is-native-app .phone-frame {
+      width: 100% !important;
+      max-width: 100% !important;
+      height: 100% !important;
+      max-height: 100% !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      border: none !important;
+      overflow-x: hidden !important;
+    }
+    body.is-native-app .phone-notch {
+      display: none !important;
+    }
+    .phone-screen {
+      width: 100% !important;
+      max-width: 100% !important;
+      height: 100% !important;
+      display: flex !important;
+      flex-direction: column !important;
+      overflow: hidden !important;
+      position: relative !important;
+    }
+    .app-screen {
+      display: none;
+      flex: 1 1 0% !important;
+      flex-direction: column;
+      width: 100% !important;
+      max-width: 100% !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      touch-action: pan-y !important; /* Disallows horizontal scroll gesture */
+    }
+    .app-screen.active {
+      display: flex !important;
+    }
+    .app-bottom-nav {
+      margin-top: auto !important;
+      height: 56px !important;
+      flex-shrink: 0 !important;
+      background: #FFFFFF !important;
+      border-top: 1px solid var(--border, #E2E8F0) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-around !important;
+      z-index: 50 !important;
+    }
+    /* Side-by-Side (Baju Baju Me) Subpart Buttons */
+    .subpart-toggle-bar {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: stretch !important;
+      justify-content: space-between !important;
+      gap: 8px !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      margin: 10px 0 14px 0 !important;
+      padding: 0 !important;
+    }
+    .subpart-btn {
+      flex: 1 1 50% !important;
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 6px !important;
+      padding: 10px 6px !important;
+      border-radius: 12px !important;
+      border: 1.5px solid #E2E8F0 !important;
+      background: #FFFFFF !important;
+      color: #334155 !important;
+      font-size: 11.5px !important;
+      font-weight: 700 !important;
+      cursor: pointer !important;
+      transition: all 0.2s ease !important;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+      white-space: nowrap !important;
+      text-align: center !important;
+    }
+    .subpart-btn.active {
+      background: linear-gradient(135deg, #008744 0%, #006D37 100%) !important;
+      color: #FFFFFF !important;
+      border-color: #008744 !important;
+      box-shadow: 0 4px 12px rgba(0, 135, 68, 0.25) !important;
+    }
+    .subpart-count-badge {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 2px 7px !important;
+      border-radius: 10px !important;
+      font-size: 10px !important;
+      font-weight: 800 !important;
+      background: rgba(0, 0, 0, 0.08) !important;
+      color: inherit !important;
+    }
+    .subpart-btn.active .subpart-count-badge {
+      background: rgba(255, 255, 255, 0.25) !important;
+      color: #FFFFFF !important;
+    }
+  </style>
+</head>
+<body oncontextmenu="return false;" onselectstart="return false;" ondragstart="return false;">
+
+  <div class="student-app-viewport">
+    <div class="phone-frame">
+      <!-- Phone Speaker & Camera Notch -->
+      <div class="phone-notch">
+        <div class="phone-camera"></div>
+        <div class="phone-speaker"></div>
+      </div>
+
+      <!-- Phone Screen Surface -->
+      <div class="phone-screen" id="phoneScreen">
+
+        <!-- Mobile App Splash Screen -->
+        <div class="app-splash-screen" id="appSplashScreen" onclick="dismissSplashScreen()">
+          <div class="splash-particles">
+            <div class="sp-dot sp-1"></div>
+            <div class="sp-dot sp-2"></div>
+            <div class="sp-dot sp-3"></div>
+          </div>
+
+          <div class="splash-content">
+            <!-- Animated Glowing Logo Ring -->
+            <div class="splash-logo-wrapper">
+              <div class="splash-pulse-ring ring-1"></div>
+              <div class="splash-pulse-ring ring-2"></div>
+              <img src="logo.jpeg" alt="Homoeo Pulse Crest" class="splash-logo-img">
+            </div>
+
+            <!-- Brand Name & Badges -->
+            <div class="splash-brand">
+              <div class="splash-title">
+                <span class="logo-homoeo">Homoeo</span><span class="logo-pulse">Pulse</span>
+              </div>
+              <div class="splash-ayush-pill">
+                <span class="sap-dot"></span>
+                <span>NCH &amp; AYUSH CANONICAL PLATFORM</span>
+              </div>
+              <div class="splash-tagline">Clinical &amp; Academic BHMS Repository</div>
+            </div>
+
+            <!-- Loading Indicator & Status -->
+            <div class="splash-footer">
+              <div class="splash-loader-bar">
+                <div class="splash-loader-fill" id="splashLoaderFill"></div>
+              </div>
+              <div class="splash-status-text" id="splashStatusText">Loading Medical Vault...</div>
+              <div class="splash-version">v2.5.0 • Official AYUSH Academic Edition</div>
+            </div>
+          </div>
+
+          <div class="splash-skip-hint">Tap anywhere to enter</div>
+        </div>
+
+        <!-- Incoming Push Notification Toast Pop-up -->
+        <div class="phone-notif-toast" id="phoneNotifToast" onclick="openNotifDetails()">
+          <div class="notif-toast-icon">🔔</div>
+          <div class="notif-toast-body">
+            <div class="notif-toast-title" id="toastTitle">Exam Alert</div>
+            <div class="notif-toast-msg" id="toastMsg">Winter Exam Time-table released!</div>
+          </div>
+        </div>
+
+        <!-- Mobile App Screen 1: Dashboard / Curriculum -->
+        <div class="app-screen active" id="appScreenDashboard">
+          <!-- App Top Header with Official Logo -->
+          <div class="app-header">
+            <div class="app-header-left">
+              <img src="logo.jpeg" alt="Homoeo Pulse Official Crest" class="app-phone-logo" style="cursor:pointer;" onclick="showSplashScreen()" title="Click to view Splash Screen">
+              <div class="app-header-info">
+                <div class="app-brand-text">
+                  <span class="logo-homoeo">Homoeo</span><span class="logo-pulse">Pulse</span>
+                  <span class="app-council-pill">NCH / AYUSH</span>
+                </div>
+                <h3 class="app-greeting" id="appGreetingName">Welcome, Scholar</h3>
+              </div>
+            </div>
+            <div class="app-avatar-btn" id="appTopAvatar" onclick="switchAppTab('profile')">HP</div>
+          </div>
+
+          <!-- In-App Search -->
+          <div class="app-search-box">
+            <span style="color:var(--text-muted);">🔍</span>
+            <input type="text" placeholder="Search remedies, aphorisms, topics..." id="appSearchInput" oninput="handleAppSearch()">
+          </div>
+
+          <!-- Pending Profile Setup Notice -->
+          <div id="dashPendingProfileNotice" style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:12px;padding:10px 12px;margin-bottom:12px;display:none;align-items:center;justify-content:space-between;gap:8px;">
+            <div style="min-width:0;">
+              <div style="font-size:11.5px;font-weight:800;color:#92400E;">⚠️ Profile Setup Pending</div>
+              <div style="font-size:10.5px;color:#78350F;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Tap to set up your Name &amp; College</div>
+            </div>
+            <button onclick="openEditProfileModal()" style="font-size:10.5px;padding:5px 10px;background:#D97706;border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;flex-shrink:0;">Setup</button>
+          </div>
+
+          <!-- Resume Study Card (hidden until a document is viewed/uploaded) -->
+          <div class="resume-card" id="appResumeCard" style="display:none;" onclick="openCurrentRecentPdf()">
+            <div class="resume-tag">
+              <span>⏱️ RESUME LAST STUDY</span>
+              <span id="resumePageBadge">Page 1 of 1</span>
+            </div>
+            <h4 class="resume-title" id="resumeTitle"></h4>
+            <p class="resume-sub" id="resumeSub"></p>
+            <div class="progress-bar-bg" style="margin-top:10px;height:5px;">
+              <div class="progress-bar-fill" id="resumeProgressBar" style="width:20%;"></div>
+            </div>
+          </div>
+
+          <!-- Academic Year Pill Selector: Segmented Control -->
+          <div class="year-selector-header">
+            <span class="year-selector-title">BHMS Academic Year</span>
+          </div>
+          <div class="app-year-pills" id="appYearPills">
+            <div class="year-pill active" data-year="1st Year" onclick="selectAppYear('1st Year')">
+              <span class="yp-num">1st</span>
+              <span class="yp-txt">Year</span>
+            </div>
+            <div class="year-pill" data-year="2nd Year" onclick="selectAppYear('2nd Year')">
+              <span class="yp-num">2nd</span>
+              <span class="yp-txt">Year</span>
+            </div>
+            <div class="year-pill" data-year="3rd Year" onclick="selectAppYear('3rd Year')">
+              <span class="yp-num">3rd</span>
+              <span class="yp-txt">Year</span>
+            </div>
+            <div class="year-pill" data-year="4th Year" onclick="selectAppYear('4th Year')">
+              <span class="yp-num">4th</span>
+              <span class="yp-txt">Year</span>
+            </div>
+          </div>
+
+          <!-- 2-Subpart Segmented Bar: Standard Books vs Academic Notes (Side by Side / Baju Baju Me) -->
+          <div class="subpart-toggle-bar">
+            <button class="subpart-btn active" id="btnSubpartBooks" onclick="switchYearSubpart('books')">
+              <span>📚 Standard Books</span>
+              <span class="subpart-count-badge" id="badgeBooksCount">0</span>
+            </button>
+            <button class="subpart-btn" id="btnSubpartNotes" onclick="switchYearSubpart('notes')">
+              <span>📝 Academic Notes</span>
+              <span class="subpart-count-badge" id="badgeNotesCount">0</span>
+            </button>
+          </div>
+
+          <!-- Section Heading -->
+          <div class="section-header-box">
+            <h4 class="section-title" id="appSubjectListTitle">1st Year • Standard Textbooks</h4>
+            <span class="subpart-badge-tag" id="appSubpartBadge">BOOKS CATALOG</span>
+          </div>
+
+          <!-- Subjects Dynamic List / Chapters Container -->
+          <div class="app-subjects-list" id="appSubjectsContainer">
+            <!-- Dynamically populated via student.js -->
+          </div>
+        </div>
+
+        <!-- Mobile App Screen 2: Subject Chapters Drill-down Screen -->
+        <div class="app-screen" id="appScreenChapters">
+          <div class="screen-back-header">
+            <button class="btn-screen-back" onclick="navigateBackFromChapters()">
+              <span>‹</span>
+              <span>Dashboard</span>
+            </button>
+            <div class="screen-back-title" id="chaptersSubjectTitle">Subject Chapters</div>
+            <span class="badge-tag year" id="chaptersSubjectCode">CODE</span>
+          </div>
+
+          <div class="chapters-intro-banner">
+            <div class="cib-icon" id="chaptersIntroIcon">📖</div>
+            <div>
+              <div class="cib-name" id="chaptersIntroName">Subject Name</div>
+              <div class="cib-desc" id="chaptersIntroDesc">Official AYUSH homoeopathic curriculum syllabus</div>
+            </div>
+          </div>
+
+          <div class="chapters-list-container" id="appChaptersContainer">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Mobile App Screen 3: Chapter Topics & PDF Lecture Notes -->
+        <div class="app-screen" id="appScreenTopics">
+          <div class="screen-back-header">
+            <button class="btn-screen-back" onclick="navigateBackFromTopics()">
+              <span>‹</span>
+              <span>Chapters</span>
+            </button>
+            <div class="screen-back-title" id="topicsHeaderTitle">Chapter Topics</div>
+            <span class="badge-tag cat">AYUSH</span>
+          </div>
+
+          <div class="topics-breadcrumb" id="topicsBreadcrumb">
+            Subject <span>›</span> Chapter
+          </div>
+
+          <div class="topics-hero-card">
+            <div class="th-title" id="topicsChapterTitle">Chapter Title</div>
+            <div class="th-sub" id="topicsChapterSub">Topics &amp; PDF Lecture Notes</div>
+            <div class="th-desc" id="topicsChapterDesc">High-yield examination topics and clinical correlations.</div>
+          </div>
+
+          <div class="topics-list-container" id="appTopicsContainer">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Mobile App Screen 4: Subject Notes List (Traditional Subpart View) -->
+        <div class="app-screen" id="appScreenNotesList">
+          <div class="app-header-compact">
+            <button class="btn-back-compact" onclick="navigateBackToDashboard()">‹</button>
+            <div>
+              <h3 class="app-page-title" id="subjectNotesTitle">Subject Notes</h3>
+              <div class="app-page-sub" id="subjectNotesSub">Syllabus</div>
+            </div>
+          </div>
+
+          <div class="subject-subpart-toggle">
+            <button class="subj-subpart-btn active" id="subjBtnBooks" onclick="switchSubjectSubpart('books')">
+              <span>Standard Textbooks</span>
+              <span class="badge-count" id="subjBooksCount">0</span>
+            </button>
+            <button class="subj-subpart-btn" id="subjBtnNotes" onclick="switchSubjectSubpart('notes')">
+              <span>Study Notes &amp; Topics</span>
+              <span class="badge-count" id="subjNotesCount">0</span>
+            </button>
+          </div>
+
+          <div class="cat-chips-scroll" id="appCatChips">
+            <button class="cat-chip active" onclick="filterAppDocsByCategory('All')">All Material</button>
+            <button class="cat-chip" onclick="filterAppDocsByCategory('Handwritten Notes')">Handwritten Notes</button>
+            <button class="cat-chip" onclick="filterAppDocsByCategory('University Past Papers')">Past Papers</button>
+            <button class="cat-chip" onclick="filterAppDocsByCategory('Important Rubrics & Charts')">Rubrics &amp; Charts</button>
+            <button class="cat-chip" onclick="filterAppDocsByCategory('Mnemonics & Quick Revision')">Mnemonics</button>
+          </div>
+
+          <div class="docs-scroll-container" id="appDocsContainer">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Mobile App Screen 5: Study Vault (Offline & Bookmarks) -->
+        <div class="app-screen" id="appScreenVault">
+          <div class="app-header-compact">
+            <div>
+              <h3 class="app-page-title">Offline Medical Vault</h3>
+              <div class="app-page-sub">Offline Storage &amp; Saved Bookmarks</div>
+            </div>
+            <div class="security-lock-icon">📥</div>
+          </div>
+
+          <div class="vault-tabs">
+            <button class="vault-tab-btn active" id="btnVaultBookmarks" onclick="switchVaultTab('bookmarks')">
+              ⭐ Saved Bookmarks (<span id="countVaultBookmarks">0</span>)
+            </button>
+            <button class="vault-tab-btn" id="btnVaultOffline" onclick="switchVaultTab('offline')">
+              📥 Offline Storage (<span id="countVaultOffline">0</span>)
+            </button>
+          </div>
+
+          <div class="vault-docs-list" id="appVaultContainer">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Mobile App Screen 6: Dedicated Admin & Founder Details (Dr. Hemraj Only) -->
+        <div class="app-screen" id="appScreenAdminDetails">
+          <div class="app-header">
+            <div class="app-header-left">
+              <img src="logo.jpeg" alt="Logo" class="app-phone-logo">
+              <div class="app-header-info">
+                <div class="app-brand-text">
+                  <span class="logo-homoeo">HOMOEO</span>
+                  <span class="logo-pulse">PULSE</span>
+                  <span class="app-council-pill">ADMIN</span>
+                </div>
+                <div class="app-greeting">Admin &amp; Faculty Details</div>
+                <div class="app-college-sub">Central Academic Incharge</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Verified Admin Profile Card (Dr. Hemraj) -->
+          <div style="background:linear-gradient(135deg, #008744 0%, #006D37 100%);border-radius:18px;padding:20px;color:#fff;text-align:center;box-shadow:0 8px 24px rgba(0,135,68,0.3);margin-bottom:16px;">
+            <div style="width:72px;height:72px;background:#fff;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:34px;border:3px solid #10B981;box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+              👨‍⚕️
+            </div>
+            <h3 style="font-size:18px;font-weight:800;margin:0 0 4px 0;letter-spacing:-0.2px;">Dr. Hemraj</h3>
+            <div style="display:inline-block;background:rgba(255,255,255,0.22);padding:4px 12px;border-radius:12px;font-size:11px;font-weight:700;margin-bottom:8px;">
+              ✓ Platform Founder &amp; Head Administrator
+            </div>
+            <p style="font-size:11.5px;color:#ECFDF5;margin:0;line-height:1.4;">
+              AYUSH &amp; BHMS Academic Incharge<br>Standard Textbooks, Clinical Notes &amp; Solved PYQ Repository
+            </p>
+          </div>
+
+          <!-- Credentials Section -->
+          <div class="profile-section">
+            <div class="profile-section-title">ADMINISTRATOR CREDENTIALS</div>
+            <div class="profile-item">
+              <span>Doctor Name</span>
+              <span class="profile-val" style="font-weight:800;color:var(--text);">Dr. Hemraj</span>
+            </div>
+            <div class="profile-item">
+              <span>Platform Role</span>
+              <span class="profile-val" style="color:var(--brand-green);font-weight:700;">Founder &amp; Central Admin</span>
+            </div>
+            <div class="profile-item">
+              <span>Medical Discipline</span>
+              <span class="profile-val">Homeopathic Medicine (BHMS)</span>
+            </div>
+            <div class="profile-item">
+              <span>Medical College</span>
+              <span class="profile-val">Homoeopathic Medical College</span>
+            </div>
+          </div>
+
+          <!-- Official Inquiries & Support Section -->
+          <div class="profile-section">
+            <div class="profile-section-title">OFFICIAL CONTACT &amp; SUPPORT</div>
+            <div class="profile-item">
+              <span>Official Email</span>
+              <span class="profile-val">hemraj@ayush.gov.in</span>
+            </div>
+            <div class="profile-item">
+              <span>Student Inquiries</span>
+              <span class="profile-val">support@homoeopulse.app</span>
+            </div>
+            <div class="profile-item">
+              <span>App Version</span>
+              <span class="profile-val">Homoeo Pulse v2.5.0 Official</span>
+            </div>
+          </div>
+
+          <!-- Note -->
+          <div style="background:#F0FDF4;border:1px solid #A7F3D0;border-radius:14px;padding:14px;margin-bottom:20px;text-align:center;">
+            <div style="font-size:16px;margin-bottom:4px;">🌿</div>
+            <div style="font-size:12px;font-weight:800;color:var(--brand-green-dark);margin-bottom:3px;">Exclusively Administered by Dr. Hemraj</div>
+            <p style="font-size:10.5px;color:#475569;margin:0;line-height:1.4;">
+              This digital academic companion is curated and maintained by Dr. Hemraj for BHMS medical scholars.
+            </p>
+          </div>
+        </div>
+
+        <!-- Mobile App Screen 7: Student Profile -->
+        <div class="app-screen" id="appScreenProfile">
+          <!-- Pending Profile Alert Banner -->
+          <div id="profilePendingAlert" style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:14px;padding:14px;margin-bottom:14px;display:none;align-items:center;justify-content:space-between;gap:10px;">
+            <div>
+              <div style="font-size:12px;font-weight:800;color:#92400E;">⚠️ Profile Setup Pending</div>
+              <div style="font-size:11px;color:#78350F;line-height:1.4;">Please tap below to enter your real scholar information.</div>
+            </div>
+            <button class="btn btn-primary" onclick="openEditProfileModal()" style="font-size:11px;padding:7px 12px;white-space:nowrap;background:#D97706;border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;">Complete</button>
+          </div>
+
+          <div class="profile-hero">
+            <div class="profile-avatar-big" id="profileAvatarBig">HP</div>
+            <h3 class="profile-name" id="profileStudentName">BHMS Scholar</h3>
+            <div class="profile-college" id="profileCollegeName">Homoeopathic Medical College</div>
+            <div class="profile-badge" id="profileBadgeRole">BHMS 1ST YEAR • ENROLLED SCHOLAR</div>
+            <button class="btn btn-secondary" style="font-size:11px;padding:6px 14px;border-radius:20px;margin-top:10px;" onclick="openEditProfileModal()">✏️ Edit Profile</button>
+          </div>
+
+          <div class="profile-section">
+            <div class="profile-section-title">Academic Credentials</div>
+            <div class="profile-item" onclick="openEditProfileModal()">
+              <span>Enrolled Year</span>
+              <span class="profile-val" id="profileActiveYear">1st Year (Tap to switch) ›</span>
+            </div>
+            <div class="profile-item">
+              <span>Council Registration</span>
+              <span class="profile-val" id="profileRollNo">BHMS-2024-001</span>
+            </div>
+            <div class="profile-item">
+              <span>Verified Email</span>
+              <span class="profile-val" id="profileStudentEmail">student@homoeopulse.ayush.gov.in</span>
+            </div>
+          </div>
+
+          <div class="profile-section">
+            <div class="profile-section-title">OFFLINE STUDY VAULT STATUS</div>
+            <div class="profile-item">
+              <span>Vault Storage</span>
+              <span class="profile-val" style="color:var(--brand-green);">Internal Storage Active</span>
+            </div>
+            <div class="profile-item">
+              <span>Textbook Caching</span>
+              <span class="profile-val" style="color:var(--brand-green);">IndexedDB Offline Ready</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile App Screen 7: Built-in High-Yield PDF Reader -->
+        <div class="app-screen" id="appScreenPdfViewer">
+          <div class="pdf-viewer-bar">
+            <div class="pdf-viewer-title-box">
+              <div class="pdf-title-text" id="viewerDocTitle">Document Title</div>
+              <div class="pdf-security-badge" id="viewerSecurityBadge">🌿 VERIFIED AYUSH CANONICAL MEDICAL TEXT</div>
+            </div>
+            <div class="pdf-controls">
+              <button class="viewer-btn" onclick="togglePdfDarkMode()" title="Night Reading Mode">🌙</button>
+              <button class="viewer-btn" id="btnViewerBookmark" onclick="toggleCurrentDocBookmark()" title="Bookmark">☆</button>
+            </div>
+          </div>
+
+          <!-- Dynamic Live Watermark overlay -->
+          <div class="pdf-security-watermark" id="pdfViewerWatermark">
+            HOMOEO PULSE • VERIFIED AYUSH MATERIAL
+          </div>
+
+          <!-- Canvas Viewport for Real PDF files with Touch Pinch-to-Zoom & Drag-to-Scroll -->
+          <div id="pdfCanvasContainer" style="flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#334155;padding:6px;position:relative;touch-action:none;user-select:none;">
+            <div id="pdfLoadingSpinner" style="display:none;position:absolute;top:40%;color:#fff;font-weight:700;background:rgba(0,0,0,0.7);padding:10px 18px;border-radius:20px;z-index:10;">
+              Rendering Medical Textbook... 📄
+            </div>
+            <div id="pdfZoomWrapper" style="display:inline-block;transform-origin:center center;touch-action:none;transition:transform 0.04s ease-out;">
+              <canvas id="pdfRenderCanvas" style="max-width:100%;max-height:100%;box-shadow:0 8px 24px rgba(0,0,0,0.4);background:#fff;border-radius:6px;display:block;"></canvas>
+            </div>
+          </div>
+
+          <!-- Vector Text Reader Fallback -->
+          <div class="pdf-canvas-viewport" id="pdfFallbackViewport" style="display:none;">
+            <div class="pdf-document-page" id="pdfDocumentPage">
+              <div class="pdf-page-header">
+                <span id="pdfHeaderSubject">ORGANON OF MEDICINE</span>
+                <span id="pdfHeaderChapter">APHORISMS</span>
+              </div>
+              <div class="pdf-divider"></div>
+              <div class="pdf-content-body" id="pdfContentBody">
+                <!-- Fallback content rendered by JS -->
+              </div>
+              <div class="pdf-page-footer">
+                <span>NCH Verified Study Copy</span>
+                <span id="pdfPageNumberSpan">Page 1 of 14</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Page Navigation Bar -->
+          <div class="pdf-footer-bar">
+            <button class="page-nav-btn" onclick="changeViewerPage(-1)">‹ Prev</button>
+            <div class="page-indicator">
+              <span id="viewerCurrentPageText">1</span> / <span id="viewerTotalPageText">1</span>
+            </div>
+            <input type="range" class="page-slider" id="viewerPageSlider" min="1" max="1" value="1" oninput="handleViewerSlider(this.value)">
+            <button class="page-nav-btn" onclick="changeViewerPage(1)">Next ›</button>
+          </div>
+        </div>
+
+        <!-- Phone Bottom Navigation Bar -->
+        <nav class="app-bottom-nav" id="appBottomNav">
+          <div class="app-nav-item active" onclick="switchAppTab('dashboard')" id="navAppDashboard">
+            <span class="app-nav-icon">🏠</span>
+            <span>Dashboard</span>
+          </div>
+          <div class="app-nav-item" onclick="switchAppTab('admin')" id="navAppAdmin">
+            <span class="app-nav-icon">👨‍⚕️</span>
+            <span>Admin</span>
+          </div>
+          <div class="app-nav-item" onclick="switchAppTab('vault')" id="navAppVault">
+            <span class="app-nav-icon">📁</span>
+            <span>Study Vault</span>
+          </div>
+          <div class="app-nav-item" onclick="switchAppTab('profile')" id="navAppProfile">
+            <span class="app-nav-icon">👤</span>
+            <span>Profile</span>
+          </div>
+        </nav>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Real Student Profile Modal -->
+  <div class="modal-overlay" id="profileModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Edit Student Profile</h3>
+        <button class="modal-close" onclick="closeEditProfileModal()">×</button>
+      </div>
+      <form id="profileForm" onsubmit="handleProfileSubmit(event)">
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Your Full Name</label>
+          <input type="text" id="profName" required placeholder="e.g. Dr. Hemraj" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;">
+        </div>
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Medical College Full Name</label>
+          <input type="text" id="profCollege" required placeholder="e.g. Homoeopathic Medical College" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;">
+        </div>
+        <div class="grid-2-col" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+          <div class="form-group">
+            <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Academic Year</label>
+            <select id="profYear" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;">
+              <option value="1st Year">1st Year</option>
+              <option value="2nd Year">2nd Year</option>
+              <option value="3rd Year">3rd Year</option>
+              <option value="4th Year">4th Year</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Student Email</label>
+            <input type="email" id="profEmail" placeholder="e.g. hemraj@ayush.gov.in" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeEditProfileModal()" style="padding:10px 18px;border:1px solid var(--border);background:#fff;border-radius:8px;cursor:pointer;">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="padding:10px 22px;background:var(--brand-gradient);color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;">Save Profile</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Student App Fallback Data & Real-Time Sync Engine -->
+  <script src="fallback_data.js"></script>
+  <script src="student.js"></script>
+</body>
+</html>
