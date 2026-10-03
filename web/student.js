@@ -3,7 +3,7 @@
 // ============================================================
 
 // 1. App State & API Configuration
-const API_BASE_URL = window.HOMOEO_PULSE_API_URL || '';
+const API_BASE_URL = window.HOMOEO_PULSE_API_URL || 'https://homoeo-pulse.onrender.com';
 
 let BHMS_CURRICULUM = (window.HOMOEO_DEFAULT_DATA && window.HOMOEO_DEFAULT_DATA.curriculum) ? window.HOMOEO_DEFAULT_DATA.curriculum : {};
 let notesData = (window.HOMOEO_DEFAULT_DATA && window.HOMOEO_DEFAULT_DATA.notes) ? window.HOMOEO_DEFAULT_DATA.notes : [];
