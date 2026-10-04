@@ -98,6 +98,8 @@ const MIME_TYPES = {
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
   '.pdf': 'application/pdf',
+  '.aab': 'application/octet-stream',
+  '.apk': 'application/vnd.android.package-archive',
 };
 
 // Helper to parse JSON request bodies
