@@ -29,15 +29,33 @@ const KNOWN_DRIVE_MAPPING = {
   'golwalla': '1rY8iJOERv5uhmmN1J_mDOXEQkgSWQwtF',
   'mathew': '1Few1DKjNwgWzIS29Q-uTrs3qhdUvLbeM',
   'harrison_s_manual_of_medicine_18e': '10E-88eYJjjrGiES_4PiyV17_rWWBdBSX',
+  '18e': '10E-88eYJjjrGiES_4PiyV17_rWWBdBSX',
   'harrison_s_manual_of_medicine_19e': '17PuupCDHlsILQqiOiRtpTtEMAVYs0pco',
+  '19e': '17PuupCDHlsILQqiOiRtpTtEMAVYs0pco',
+  'harrison': '17PuupCDHlsILQqiOiRtpTtEMAVYs0pco',
   'manthappa': '10INdmSYppTr-J6kI_gM37aZDDUwjiFS6',
   'boloor': '1YExYuH4e-BO7BxwfxMKaSWSy_b1SlZ7M',
+  'nayak': '1YExYuH4e-BO7BxwfxMKaSWSy_b1SlZ7M',
   'maheta': '1cFuil-LhGtRoMR5wb75fHNMS1UnqGDvD',
+  'mehta': '1cFuil-LhGtRoMR5wb75fHNMS1UnqGDvD',
   'alagappan': '1fyg4GLygjU8GAHCR0caLqYmoJVoVSFEc',
   'davidson': '1xeM1dst86UqB8Jfa18BJsoSXn_12RrJM',
   'suryakantha': '1sSI3pE7LkfL5oOStqgwBQKgRoupMJWjM',
+  'psm': '1sSI3pE7LkfL5oOStqgwBQKgRoupMJWjM',
   'hutchisons': '1MGTRsxiq2VLpKl1sEuUr9xxzcCyweIMg'
 };
+
+function getDriveFileId(str) {
+  if (!str) return null;
+  const lower = String(str).toLowerCase();
+  for (const [key, driveId] of Object.entries(KNOWN_DRIVE_MAPPING)) {
+    if (lower.includes(key)) return driveId;
+  }
+  const match = String(str).match(/(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?export=download&id=)|id=)([a-zA-Z0-9_-]{25,})/i);
+  if (match && match[1]) return match[1];
+  return null;
+}
+window.getDriveFileId = getDriveFileId;
 
 function formatDriveUrl(rawUrl) {
   if (!rawUrl) return '';
@@ -1014,6 +1032,23 @@ async function openPdfViewer(docIdOrObj) {
     }
   }
 
+  // 2. Direct High-Speed Cloud Viewing via Native Google Drive Preview (100% Reliable, Zero 403)
+  const driveFrame = document.getElementById('pdfDriveFrame');
+  const footerBar = document.querySelector('.pdf-footer-bar');
+  const driveId = doc.driveFileId || getDriveFileId(doc.fileUrl) || getDriveFileId(doc.title);
+
+  if (driveId && driveFrame) {
+    if (spinner) spinner.style.display = 'none';
+    if (canvasContainer) canvasContainer.style.display = 'none';
+    if (fallbackViewport) fallbackViewport.style.display = 'none';
+    if (footerBar) footerBar.style.display = 'none';
+
+    driveFrame.style.display = 'block';
+    driveFrame.src = `https://drive.google.com/file/d/${driveId}/preview`;
+    updateResumeCardUI();
+    return;
+  }
+
   // 2. Try loading via network candidates with PDF.js Range Streaming
   if (typeof pdfjsLib !== 'undefined' && doc.fileUrl) {
     const directUrl = formatDriveUrl(doc.fileUrl);
@@ -1239,11 +1274,26 @@ function togglePdfDarkMode() {
 }
 
 function closePdfViewer() {
+  const driveFrame = document.getElementById('pdfDriveFrame');
+  if (driveFrame) {
+    driveFrame.style.display = 'none';
+    driveFrame.src = 'about:blank';
+  }
+  const footerBar = document.querySelector('.pdf-footer-bar');
+  if (footerBar) footerBar.style.display = 'flex';
+
   document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
   const sc = document.getElementById(pdfViewerOriginScreen) || document.getElementById('appScreenDashboard');
   if (sc) sc.classList.add('active');
   resetPinchZoom();
 }
+
+window.addEventListener('popstate', () => {
+  const viewerScreen = document.getElementById('appScreenPdfViewer');
+  if (viewerScreen && viewerScreen.classList.contains('active')) {
+    closePdfViewer();
+  }
+});
 
 function changeViewerPage(delta) {
   const max = currentPdfDoc ? currentPdfDoc.numPages : (currentViewingDoc ? currentViewingDoc.pages : 1);
