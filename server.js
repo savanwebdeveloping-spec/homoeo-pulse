@@ -598,6 +598,28 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 201, { success: true, topic: newTopic, chapter: ch, note: newNote });
     }
 
+    // 10c. Binary PDF File Upload
+    if (pathname === '/api/upload' && req.method === 'POST') {
+      const body = await parseBody(req);
+      const { filename, base64Data } = body;
+      if (!filename || !base64Data) {
+        return sendJson(res, 400, { error: 'Missing filename or base64Data' });
+      }
+      const safeFilename = Date.now() + '_' + path.basename(filename).replace(/[^a-zA-Z0-9._-]/g, '_');
+      const uploadsDir = path.join(__dirname, 'uploads');
+      if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+      const filePath = path.join(uploadsDir, safeFilename);
+      const buffer = Buffer.from(base64Data, 'base64');
+      fs.writeFileSync(filePath, buffer);
+      const sizeMB = (buffer.length / (1024 * 1024)).toFixed(1) + ' MB';
+      return sendJson(res, 201, {
+        success: true,
+        fileUrl: '/uploads/' + safeFilename,
+        filename: safeFilename,
+        size: sizeMB
+      });
+    }
+
     return sendJson(res, 404, { error: 'API Route Not Found' });
   }
 

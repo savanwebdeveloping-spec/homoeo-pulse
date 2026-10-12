@@ -166,11 +166,12 @@ window.HOMOEO_DEFAULT_DATA = {
       "pages": 499,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "/uploads/1790754256536_hutchisons_clinical_methods_an_integrated_approach_to_clinical_practice.pdf",
+      "fileUrl": "https://drive.usercontent.google.com/download?id=1MGTRsxiq2VLpKl1sEuUr9xxzcCyweIMg&export=download&authuser=0",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
-      "createdAt": "2026-09-30T07:44:16.626Z"
+      "createdAt": "2026-09-30T07:44:16.626Z",
+      "driveFileId": "1MGTRsxiq2VLpKl1sEuUr9xxzcCyweIMg"
     },
     {
       "id": "book_1790752707958",
@@ -184,11 +185,12 @@ window.HOMOEO_DEFAULT_DATA = {
       "pages": 957,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "/uploads/1790752707745_PSM_BOOK_BY_A_H_SURYAKANTHA__1_.pdf",
+      "fileUrl": "https://drive.usercontent.google.com/download?id=1sSI3pE7LkfL5oOStqgwBQKgRoupMJWjM&export=download&authuser=0",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
-      "createdAt": "2026-09-30T07:18:27.960Z"
+      "createdAt": "2026-09-30T07:18:27.960Z",
+      "driveFileId": "1sSI3pE7LkfL5oOStqgwBQKgRoupMJWjM"
     },
     {
       "id": "book_1790686055967",
@@ -206,7 +208,8 @@ window.HOMOEO_DEFAULT_DATA = {
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:47:35.969Z",
-      "fileUrl": "/uploads/1790686055936_Davidson_s_Essentials_of_Medicine_-_2E.pdf"
+      "fileUrl": "https://drive.usercontent.google.com/download?id=1xeM1dst86UqB8Jfa18BJsoSXn_12RrJM&export=download&authuser=0",
+      "driveFileId": "1xeM1dst86UqB8Jfa18BJsoSXn_12RrJM"
     },
     {
       "id": "book_1790685752533",
@@ -224,7 +227,8 @@ window.HOMOEO_DEFAULT_DATA = {
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:42:32.535Z",
-      "fileUrl": "/uploads/1790685752439_R_Alagappan_-_Manual_of_Practical_Medicine_-_4th_Edition.pdf"
+      "fileUrl": "https://drive.usercontent.google.com/download?id=1fyg4GLygjU8GAHCR0caLqYmoJVoVSFEc&export=download&authuser=0",
+      "driveFileId": "1fyg4GLygjU8GAHCR0caLqYmoJVoVSFEc"
     },
     {
       "id": "book_1790685623295",
@@ -242,7 +246,8 @@ window.HOMOEO_DEFAULT_DATA = {
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:40:23.298Z",
-      "fileUrl": "/uploads/1790685622925_Practical_Medicine_By_P._J._Maheta_20th_Edition.pdf"
+      "fileUrl": "https://drive.usercontent.google.com/download?id=1cFuil-LhGtRoMR5wb75fHNMS1UnqGDvD&export=download&authuser=0",
+      "driveFileId": "1cFuil-LhGtRoMR5wb75fHNMS1UnqGDvD"
     },
     {
       "id": "book_1790685511360",
@@ -260,7 +265,8 @@ window.HOMOEO_DEFAULT_DATA = {
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:38:31.363Z",
-      "fileUrl": "/uploads/1790685510025_Medicine_exam_prep_manual_Archit_Boloor_Ramdas_nayak.pdf"
+      "fileUrl": "https://drive.usercontent.google.com/download?id=1YExYuH4e-BO7BxwfxMKaSWSy_b1SlZ7M&export=download&authuser=0",
+      "driveFileId": "1YExYuH4e-BO7BxwfxMKaSWSy_b1SlZ7M"
     },
     {
       "id": "book_1790685013114",
@@ -278,7 +284,8 @@ window.HOMOEO_DEFAULT_DATA = {
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:30:13.116Z",
-      "fileUrl": "/uploads/1790685013036_Medicine_By_Manthappa_2nd_Edition.pdf"
+      "fileUrl": "https://drive.usercontent.google.com/download?id=10INdmSYppTr-J6kI_gM37aZDDUwjiFS6&export=download&authuser=0",
+      "driveFileId": "10INdmSYppTr-J6kI_gM37aZDDUwjiFS6"
     },
     {
       "id": "book_1790684515162",
@@ -296,7 +303,8 @@ window.HOMOEO_DEFAULT_DATA = {
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:21:55.179Z",
-      "fileUrl": "/uploads/1790684515125_Harrison_s_Manual_Of_Medicine_19E.pdf"
+      "fileUrl": "https://drive.usercontent.google.com/download?id=17PuupCDHlsILQqiOiRtpTtEMAVYs0pco&export=download&authuser=0",
+      "driveFileId": "17PuupCDHlsILQqiOiRtpTtEMAVYs0pco"
     },
     {
       "id": "book_1790684473020",
@@ -314,7 +322,8 @@ window.HOMOEO_DEFAULT_DATA = {
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:21:13.022Z",
-      "fileUrl": "/uploads/1790684472981_Harrison_s_Manual_Of_Medicine_18E.pdf"
+      "fileUrl": "https://drive.usercontent.google.com/download?id=10E-88eYJjjrGiES_4PiyV17_rWWBdBSX&export=download&authuser=0",
+      "driveFileId": "10E-88eYJjjrGiES_4PiyV17_rWWBdBSX"
     },
     {
       "id": "book_1790684213088",
@@ -332,7 +341,8 @@ window.HOMOEO_DEFAULT_DATA = {
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:16:53.090Z",
-      "fileUrl": "/uploads/1790684212886_MEDICINE_prep_manual_for_undergraduate_Mathew.pdf"
+      "fileUrl": "https://drive.usercontent.google.com/download?id=1Few1DKjNwgWzIS29Q-uTrs3qhdUvLbeM&export=download&authuser=0",
+      "driveFileId": "1Few1DKjNwgWzIS29Q-uTrs3qhdUvLbeM"
     },
     {
       "id": "book_1790684022909",
@@ -350,7 +360,8 @@ window.HOMOEO_DEFAULT_DATA = {
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:13:42.924Z",
-      "fileUrl": "/uploads/1790684022861_Golwalla_s_Medicine_For_Students_25th_Edition.pdf"
+      "fileUrl": "https://drive.usercontent.google.com/download?id=1rY8iJOERv5uhmmN1J_mDOXEQkgSWQwtF&export=download&authuser=0",
+      "driveFileId": "1rY8iJOERv5uhmmN1J_mDOXEQkgSWQwtF"
     }
   ],
   "students": [

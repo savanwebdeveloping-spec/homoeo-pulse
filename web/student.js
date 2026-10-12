@@ -25,6 +25,39 @@ function formatDocTitle(title) {
 }
 window.formatDocTitle = formatDocTitle;
 
+const KNOWN_DRIVE_MAPPING = {
+  'golwalla': '1rY8iJOERv5uhmmN1J_mDOXEQkgSWQwtF',
+  'mathew': '1Few1DKjNwgWzIS29Q-uTrs3qhdUvLbeM',
+  'harrison_s_manual_of_medicine_18e': '10E-88eYJjjrGiES_4PiyV17_rWWBdBSX',
+  'harrison_s_manual_of_medicine_19e': '17PuupCDHlsILQqiOiRtpTtEMAVYs0pco',
+  'manthappa': '10INdmSYppTr-J6kI_gM37aZDDUwjiFS6',
+  'boloor': '1YExYuH4e-BO7BxwfxMKaSWSy_b1SlZ7M',
+  'maheta': '1cFuil-LhGtRoMR5wb75fHNMS1UnqGDvD',
+  'alagappan': '1fyg4GLygjU8GAHCR0caLqYmoJVoVSFEc',
+  'davidson': '1xeM1dst86UqB8Jfa18BJsoSXn_12RrJM',
+  'suryakantha': '1sSI3pE7LkfL5oOStqgwBQKgRoupMJWjM',
+  'hutchisons': '1MGTRsxiq2VLpKl1sEuUr9xxzcCyweIMg'
+};
+
+function formatDriveUrl(rawUrl) {
+  if (!rawUrl) return '';
+  if (rawUrl.includes('drive.usercontent.google.com/download')) return rawUrl;
+
+  const lower = rawUrl.toLowerCase();
+  for (const [key, driveId] of Object.entries(KNOWN_DRIVE_MAPPING)) {
+    if (lower.includes(key)) {
+      return `https://drive.usercontent.google.com/download?id=${driveId}&export=download&authuser=0`;
+    }
+  }
+
+  const match = rawUrl.match(/(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?export=download&id=)|id=)([a-zA-Z0-9_-]{25,})/i);
+  if (match && match[1]) {
+    return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
+  }
+  return rawUrl;
+}
+window.formatDriveUrl = formatDriveUrl;
+
 // Offline Mozilla PDF.js Worker Configuration
 if (typeof pdfjsLib !== 'undefined') {
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
@@ -212,7 +245,12 @@ async function syncWithBackend(isAutoUpdate = false) {
     const res = await fetch((API_BASE_URL || '') + '/api/bootstrap');
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data.notes)) notesData = data.notes;
+      if (Array.isArray(data.notes)) {
+        notesData = data.notes.map(n => {
+          if (n.fileUrl) n.fileUrl = formatDriveUrl(n.fileUrl);
+          return n;
+        });
+      }
       if (data.curriculum && Object.keys(data.curriculum).length > 0) BHMS_CURRICULUM = data.curriculum;
       if (data.userProfile && data.userProfile.name) currentUserProfile = data.userProfile;
 
@@ -976,36 +1014,22 @@ async function openPdfViewer(docIdOrObj) {
     }
   }
 
-  // 2. Try loading via network candidates with PDF.js
   // 2. Try loading via network candidates with PDF.js Range Streaming
   if (typeof pdfjsLib !== 'undefined' && doc.fileUrl) {
+    const directUrl = formatDriveUrl(doc.fileUrl);
     const candidateUrls = [];
-    if (doc.fileUrl.startsWith('http')) {
-      candidateUrls.push(doc.fileUrl);
+    if (directUrl.startsWith('http')) {
+      candidateUrls.push(directUrl);
     } else {
-      candidateUrls.push('https://homoeopulse-vault.loca.lt' + doc.fileUrl);
-      if (API_BASE_URL) candidateUrls.push(API_BASE_URL + doc.fileUrl);
-      candidateUrls.push('http://192.168.98.147:3000' + doc.fileUrl);
-      candidateUrls.push(doc.fileUrl);
+      if (API_BASE_URL) candidateUrls.push(API_BASE_URL + directUrl);
+      candidateUrls.push(directUrl);
     }
 
     for (const url of candidateUrls) {
       try {
         if (spinner) {
           spinner.style.display = 'block';
-          spinner.innerHTML = 'Connecting to Medical Vault... 📄';
-        }
-
-        // Fast connectivity check: if server unreachable, abort in 2500ms
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2500);
-        try {
-          const testRes = await fetch(url, { method: 'HEAD', signal: controller.signal });
-          clearTimeout(timeoutId);
-          if (!testRes.ok && testRes.status !== 206) continue;
-        } catch (netErr) {
-          clearTimeout(timeoutId);
-          continue; // Server unreachable, try next candidate
+          spinner.innerHTML = 'Connecting to Google Drive Book... 📄';
         }
 
         const loadingTask = pdfjsLib.getDocument({
@@ -1019,7 +1043,7 @@ async function openPdfViewer(docIdOrObj) {
           if (spinner && p && p.total > 0) {
             const pct = Math.min(99, Math.round((p.loaded / p.total) * 100));
             const mb = (p.loaded / (1024 * 1024)).toFixed(1);
-            spinner.innerHTML = `Fast Streaming Page 1 (${pct}%)... 📄<br><span style="font-size:10px;font-weight:500;opacity:0.85;">${mb} MB</span>`;
+            spinner.innerHTML = `Fast Streaming Book (${pct}%)... 📄<br><span style="font-size:10px;font-weight:500;opacity:0.85;">${mb} MB</span>`;
           }
         };
 
@@ -1369,13 +1393,12 @@ async function toggleDocDownload(docId) {
   // Try candidate URLs to fetch real PDF binary
   const candidateUrls = [];
   if (doc.fileUrl) {
-    if (doc.fileUrl.startsWith('http')) {
-      candidateUrls.push(doc.fileUrl);
+    const directUrl = formatDriveUrl(doc.fileUrl);
+    if (directUrl.startsWith('http')) {
+      candidateUrls.push(directUrl);
     } else {
-      candidateUrls.push('https://homoeopulse-vault.loca.lt' + doc.fileUrl);
-      if (API_BASE_URL) candidateUrls.push(API_BASE_URL + doc.fileUrl);
-      candidateUrls.push('http://192.168.98.147:3000' + doc.fileUrl);
-      candidateUrls.push(doc.fileUrl);
+      if (API_BASE_URL) candidateUrls.push(API_BASE_URL + directUrl);
+      candidateUrls.push(directUrl);
     }
   }
 

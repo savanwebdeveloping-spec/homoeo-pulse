@@ -22,6 +22,16 @@ let selectedUploadFileBase64 = null;
 let selectedUploadFileName = null;
 let selectedUploadFileSizeStr = '3.5 MB';
 
+function formatDriveUrl(rawUrl) {
+  if (!rawUrl) return '';
+  if (rawUrl.includes('drive.usercontent.google.com/download')) return rawUrl;
+  const match = rawUrl.match(/(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?export=download&id=)|id=)([a-zA-Z0-9_-]{25,})/i);
+  if (match && match[1]) {
+    return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
+  }
+  return rawUrl;
+}
+
 // ============================================================
 // ADMIN SECURITY AUTHENTICATION ENGINE
 // ============================================================
@@ -508,11 +518,15 @@ async function handleModalUpload(e) {
   const summary = document.getElementById('mDocSummary').value.trim();
   const pages = parseInt(document.getElementById('mDocPages') ? document.getElementById('mDocPages').value : 14) || 14;
 
+  const driveUrlInput = document.getElementById('mDocDriveUrl');
+  const driveUrlVal = driveUrlInput ? driveUrlInput.value.trim() : '';
+
   let fileUrl = '';
   let fileSize = selectedUploadFileSizeStr || (type === 'book' ? '28.4 MB' : '3.2 MB');
 
-  // 1. Upload PDF file to /api/upload
-  if (selectedUploadFileBase64 && selectedUploadFileName) {
+  if (driveUrlVal) {
+    fileUrl = formatDriveUrl(driveUrlVal);
+  } else if (selectedUploadFileBase64 && selectedUploadFileName) {
     try {
       const upRes = await fetch('/api/upload', {
         method: 'POST',
