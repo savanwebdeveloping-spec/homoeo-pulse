@@ -1275,6 +1275,42 @@ function setupPdfTouchGestures() {
       isPanning = false;
     }
   }, { passive: true });
+
+  // Global window listeners to guarantee pinch gesture works anywhere on the screen
+  window.addEventListener('touchstart', (e) => {
+    const viewer = document.getElementById('appScreenPdfViewer');
+    if (!viewer || !viewer.classList.contains('active')) return;
+    if (e.touches.length === 2) {
+      isPinching = true;
+      initialPinchDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      initialZoomScale = pdfZoomScale;
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (e) => {
+    const viewer = document.getElementById('appScreenPdfViewer');
+    if (!viewer || !viewer.classList.contains('active')) return;
+    if (isPinching && e.touches.length === 2) {
+      const currentDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      if (initialPinchDist > 0) {
+        const factor = currentDist / initialPinchDist;
+        pdfZoomScale = Math.min(Math.max(1.0, initialZoomScale * factor), 4.0);
+        applyPdfTransform();
+      }
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchend', (e) => {
+    if (e.touches.length < 2) {
+      isPinching = false;
+    }
+  }, { passive: true });
 }
 
 function togglePdfDarkMode() {

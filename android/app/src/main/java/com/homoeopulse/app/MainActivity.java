@@ -108,10 +108,17 @@ public class MainActivity extends BridgeActivity {
     private void enableWebViewZoom() {
         try {
             if (getBridge() != null && getBridge().getWebView() != null) {
-                android.webkit.WebSettings ws = getBridge().getWebView().getSettings();
-                ws.setSupportZoom(true);
-                ws.setBuiltInZoomControls(true);
-                ws.setDisplayZoomControls(false); // Enable pinch gestures without clumsy zoom buttons
+                android.webkit.WebView webView = getBridge().getWebView();
+                webView.post(() -> {
+                    try {
+                        android.webkit.WebSettings ws = webView.getSettings();
+                        ws.setSupportZoom(true);
+                        ws.setBuiltInZoomControls(true);
+                        ws.setDisplayZoomControls(false); // Enable pinch gestures
+                        ws.setLoadWithOverviewMode(true);
+                        ws.setUseWideViewPort(true);
+                    } catch (Exception ignored) {}
+                });
             }
         } catch (Exception ignored) {
         }
