@@ -1171,7 +1171,9 @@ let isPinching = false;
 let isPanning = false;
 
 function applyPdfTransform() {
-  const wrapper = document.getElementById('pdfZoomWrapper') || document.getElementById('pdfRenderCanvas');
+  const wrapper = document.getElementById('pdfZoomContentWrapper') || 
+                  document.getElementById('pdfZoomWrapper') || 
+                  document.getElementById('pdfRenderCanvas');
   if (!wrapper) return;
   if (pdfZoomScale <= 1.0) {
     pdfZoomScale = 1.0;
@@ -1179,6 +1181,15 @@ function applyPdfTransform() {
     pdfPanY = 0;
   }
   wrapper.style.transform = `translate(${pdfPanX}px, ${pdfPanY}px) scale(${pdfZoomScale})`;
+}
+
+function handlePdfZoom(delta) {
+  pdfZoomScale = Math.min(Math.max(1.0, pdfZoomScale + delta), 4.0);
+  if (pdfZoomScale === 1.0) {
+    pdfPanX = 0;
+    pdfPanY = 0;
+  }
+  applyPdfTransform();
 }
 
 function resetPinchZoom() {
@@ -1191,7 +1202,9 @@ function resetPinchZoom() {
 }
 
 function setupPdfTouchGestures() {
-  const container = document.getElementById('pdfCanvasContainer');
+  const container = document.getElementById('pdfZoomViewportContainer') || 
+                    document.getElementById('appScreenPdfViewer') || 
+                    document.getElementById('pdfCanvasContainer');
   if (!container || container._hasPinchAttached) return;
   container._hasPinchAttached = true;
 
@@ -1217,7 +1230,7 @@ function setupPdfTouchGestures() {
         if (pdfZoomScale > 1.1) {
           resetPinchZoom();
         } else {
-          pdfZoomScale = 2.0;
+          pdfZoomScale = 1.75;
           pdfPanX = 0;
           pdfPanY = 0;
           applyPdfTransform();
@@ -1227,22 +1240,20 @@ function setupPdfTouchGestures() {
         lastTapTime = now;
       }
     }
-  }, { passive: false });
+  }, { passive: true });
 
   container.addEventListener('touchmove', (e) => {
     if (isPinching && e.touches.length === 2) {
-      e.preventDefault();
       const currentDist = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
       );
       if (initialPinchDist > 0) {
         const factor = currentDist / initialPinchDist;
-        pdfZoomScale = Math.min(Math.max(0.85, initialZoomScale * factor), 4.5);
+        pdfZoomScale = Math.min(Math.max(1.0, initialZoomScale * factor), 4.0);
         applyPdfTransform();
       }
     } else if (isPanning && e.touches.length === 1 && pdfZoomScale > 1.0) {
-      e.preventDefault();
       const dx = e.touches[0].clientX - touchStartX;
       const dy = e.touches[0].clientY - touchStartY;
       touchStartX = e.touches[0].clientX;
@@ -1251,19 +1262,19 @@ function setupPdfTouchGestures() {
       pdfPanY += dy;
       applyPdfTransform();
     }
-  }, { passive: false });
+  }, { passive: true });
 
   container.addEventListener('touchend', (e) => {
     if (e.touches.length < 2) {
       isPinching = false;
-      if (pdfZoomScale < 1.0) {
+      if (pdfZoomScale <= 1.0) {
         resetPinchZoom();
       }
     }
     if (e.touches.length === 0) {
       isPanning = false;
     }
-  });
+  }, { passive: true });
 }
 
 function togglePdfDarkMode() {

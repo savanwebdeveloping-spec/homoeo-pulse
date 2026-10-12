@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
   <title>Homoeo Pulse | Student Academic App</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -590,6 +590,10 @@
               <div class="pdf-title-text" id="viewerDocTitle">Document Title</div>
             </div>
             <div class="pdf-controls">
+              <!-- Zoom In / Zoom Out / Reset Controls -->
+              <button class="viewer-btn" onclick="handlePdfZoom(0.25)" title="Zoom In" style="font-size:14px;font-weight:800;padding:2px 7px;">🔍+</button>
+              <button class="viewer-btn" onclick="handlePdfZoom(-0.25)" title="Zoom Out" style="font-size:14px;font-weight:800;padding:2px 7px;">🔍-</button>
+              <button class="viewer-btn" onclick="resetPinchZoom()" title="Reset Zoom" style="font-size:11px;font-weight:700;padding:2px 6px;">100%</button>
               <button class="viewer-btn" onclick="togglePdfDarkMode()" title="Night Reading Mode">🌙</button>
               <button class="viewer-btn" id="btnViewerBookmark" onclick="toggleCurrentDocBookmark()" title="Bookmark">☆</button>
             </div>
@@ -600,34 +604,41 @@
             HOMOEO PULSE • VERIFIED AYUSH MATERIAL
           </div>
 
-          <!-- Native Google Drive Cloud Book Viewer (Zero CORS delay, Full Medical Text) -->
-          <iframe id="pdfDriveFrame" style="flex:1;width:100%;height:100%;min-height:75vh;border:none;display:none;background:#1e293b;" allow="autoplay" allowfullscreen></iframe>
+          <!-- Zoom & Pan Viewport Container (Handles pinch-to-zoom on all screens) -->
+          <div id="pdfZoomViewportContainer" style="flex:1;width:100%;height:100%;position:relative;overflow:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;touch-action:pan-x pan-y pinch-zoom;">
+            <div id="pdfZoomContentWrapper" style="flex:1;width:100%;height:100%;display:flex;flex-direction:column;transform-origin:top center;transition:transform 0.05s ease-out;position:relative;">
+              
+              <!-- Native Google Drive Cloud Book Viewer (Zero CORS delay, Full Medical Text) -->
+              <iframe id="pdfDriveFrame" style="flex:1;width:100%;height:100%;min-height:75vh;border:none;display:none;background:#1e293b;" allow="autoplay" allowfullscreen></iframe>
 
-          <!-- Canvas Viewport for Real PDF files with Touch Pinch-to-Zoom & Drag-to-Scroll -->
-          <div id="pdfCanvasContainer" style="flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#334155;padding:6px;position:relative;touch-action:none;user-select:none;">
-            <div id="pdfLoadingSpinner" style="display:none;position:absolute;top:40%;color:#fff;font-weight:700;background:rgba(0,0,0,0.7);padding:10px 18px;border-radius:20px;z-index:10;">
-              Rendering Medical Textbook... 📄
-            </div>
-            <div id="pdfZoomWrapper" style="display:inline-block;transform-origin:center center;touch-action:none;transition:transform 0.04s ease-out;">
-              <canvas id="pdfRenderCanvas" style="max-width:100%;max-height:100%;box-shadow:0 8px 24px rgba(0,0,0,0.4);background:#fff;border-radius:6px;display:block;"></canvas>
-            </div>
-          </div>
+              <!-- Canvas Viewport for Real PDF files with Touch Pinch-to-Zoom & Drag-to-Scroll -->
+              <div id="pdfCanvasContainer" style="flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#334155;padding:6px;position:relative;">
+                <div id="pdfLoadingSpinner" style="display:none;position:absolute;top:40%;color:#fff;font-weight:700;background:rgba(0,0,0,0.7);padding:10px 18px;border-radius:20px;z-index:10;">
+                  Rendering Medical Textbook... 📄
+                </div>
+                <div id="pdfZoomWrapper" style="display:inline-block;transform-origin:center center;">
+                  <canvas id="pdfRenderCanvas" style="max-width:100%;max-height:100%;box-shadow:0 8px 24px rgba(0,0,0,0.4);background:#fff;border-radius:6px;display:block;"></canvas>
+                </div>
+              </div>
 
-          <!-- Vector Text Reader Fallback -->
-          <div class="pdf-canvas-viewport" id="pdfFallbackViewport" style="display:none;">
-            <div class="pdf-document-page" id="pdfDocumentPage">
-              <div class="pdf-page-header">
-                <span id="pdfHeaderSubject">ORGANON OF MEDICINE</span>
-                <span id="pdfHeaderChapter">APHORISMS</span>
+              <!-- Vector Text Reader Fallback -->
+              <div class="pdf-canvas-viewport" id="pdfFallbackViewport" style="display:none;">
+                <div class="pdf-document-page" id="pdfDocumentPage">
+                  <div class="pdf-page-header">
+                    <span id="pdfHeaderSubject">ORGANON OF MEDICINE</span>
+                    <span id="pdfHeaderChapter">APHORISMS</span>
+                  </div>
+                  <div class="pdf-divider"></div>
+                  <div class="pdf-content-body" id="pdfContentBody">
+                    <!-- Fallback content rendered by JS -->
+                  </div>
+                  <div class="pdf-page-footer">
+                    <span>NCH Verified Study Copy</span>
+                    <span id="pdfPageNumberSpan">Page 1 of 14</span>
+                  </div>
+                </div>
               </div>
-              <div class="pdf-divider"></div>
-              <div class="pdf-content-body" id="pdfContentBody">
-                <!-- Fallback content rendered by JS -->
-              </div>
-              <div class="pdf-page-footer">
-                <span>NCH Verified Study Copy</span>
-                <span id="pdfPageNumberSpan">Page 1 of 14</span>
-              </div>
+
             </div>
           </div>
 

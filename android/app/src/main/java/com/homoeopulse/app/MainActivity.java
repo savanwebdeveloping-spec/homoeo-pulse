@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -25,36 +27,67 @@ public class MainActivity extends BridgeActivity {
             WindowManager.LayoutParams.FLAG_SECURE
         );
 
-        // 2. Ensure system navigation bar is NEVER hidden / immersive on any phone brand
+        // 2. Ensure system bars are never fullscreen / translucent
         window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 
-        // 3. Apply persistent, visible navigation bar
+        // 3. Crucial: Tell Android window that decor MUST fit system windows
+        // This ensures the app display begins BELOW the selfie camera and sits ABOVE the back button
+        WindowCompat.setDecorFitsSystemWindows(window, true);
+
+        // 4. Set insets padding on root content view to physically push content
+        // below the selfie camera punch hole / notch and above the bottom navigation bar
+        applySystemBarPaddings(window);
+
+        // 5. Apply persistent navigation bar colors and visibility
         applyNavigationBarSettings(window);
+
+        // 6. Enable native WebView touch pinch-to-zoom
+        enableWebViewZoom();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        // Re-enforce navigation bar visibility upon returning to the app
+        applySystemBarPaddings(getWindow());
         applyNavigationBarSettings(getWindow());
+        enableWebViewZoom();
     }
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
+            applySystemBarPaddings(getWindow());
             applyNavigationBarSettings(getWindow());
+            enableWebViewZoom();
+        }
+    }
+
+    private void applySystemBarPaddings(Window window) {
+        if (window == null) return;
+        View contentView = findViewById(android.R.id.content);
+        if (contentView != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(contentView, (v, insets) -> {
+                Insets bars = insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout()
+                );
+                // Top padding: below selfie camera / notch
+                // Bottom padding: above system back button bar
+                v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+                return insets;
+            });
+            contentView.requestApplyInsets();
         }
     }
 
     private void applyNavigationBarSettings(Window window) {
         if (window == null) return;
 
-        // Solid dark slate (#0F172A) navigation bar:
-        // Guarantees that Back, Home, and Recents buttons are ALWAYS 100% visible
-        // with crisp white icons on EVERY Android model and never blend into white app content.
+        // Solid dark slate (#0F172A) navigation bar
+        // Buttons (Back, Home, Recents) are always 100% visible with crisp white icons
         window.setNavigationBarColor(Color.parseColor("#0F172A"));
         window.setStatusBarColor(Color.parseColor("#0F766E"));
 
@@ -62,21 +95,27 @@ public class MainActivity extends BridgeActivity {
             WindowInsetsControllerCompat insetsController = 
                 WindowCompat.getInsetsController(window, window.getDecorView());
             if (insetsController != null) {
-                // Permanently show navigation bars & status bars
                 insetsController.show(WindowInsetsCompat.Type.navigationBars());
                 insetsController.show(WindowInsetsCompat.Type.statusBars());
-
-                // BEHAVIOR_DEFAULT ensures system navigation bar never auto-hides
                 insetsController.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_DEFAULT);
-
-                // Dark navigation bar background -> white navigation icons
                 insetsController.setAppearanceLightNavigationBars(false);
-
-                // Dark status bar background -> white status bar icons
                 insetsController.setAppearanceLightStatusBars(false);
             }
         } catch (Exception ignored) {
         }
     }
+
+    private void enableWebViewZoom() {
+        try {
+            if (getBridge() != null && getBridge().getWebView() != null) {
+                android.webkit.WebSettings ws = getBridge().getWebView().getSettings();
+                ws.setSupportZoom(true);
+                ws.setBuiltInZoomControls(true);
+                ws.setDisplayZoomControls(false); // Enable pinch gestures without clumsy zoom buttons
+            }
+        } catch (Exception ignored) {
+        }
+    }
 }
+
 
