@@ -1288,13 +1288,6 @@ function closePdfViewer() {
   resetPinchZoom();
 }
 
-window.addEventListener('popstate', () => {
-  const viewerScreen = document.getElementById('appScreenPdfViewer');
-  if (viewerScreen && viewerScreen.classList.contains('active')) {
-    closePdfViewer();
-  }
-});
-
 function changeViewerPage(delta) {
   const max = currentPdfDoc ? currentPdfDoc.numPages : (currentViewingDoc ? currentViewingDoc.pages : 1);
   const next = Math.max(1, Math.min(max, currentViewerPage + delta));
@@ -1656,62 +1649,157 @@ async function handleProfileSubmit(e) {
 
 // ============================================================
 // NATIVE ANDROID HARDWARE/GESTURE BACK BUTTON CONTROLLER
+// Hierarchical Screen Pop & Double-Tap to Exit System
 // ============================================================
+let lastHardwareBackTap = 0;
+let exitToastTimer = null;
+let lastBackHandledTimestamp = 0;
+
+function showExitToast() {
+  let toast = document.getElementById('appExitToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'appExitToast';
+    toast.style.cssText = `
+      position: fixed;
+      bottom: 84px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #0F172A;
+      color: #FFFFFF;
+      padding: 10px 22px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.15);
+      z-index: 99999;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    `;
+    toast.innerHTML = `<span style="font-size: 15px;">🚪</span> <span>Press back again to exit</span>`;
+    document.body.appendChild(toast);
+  }
+
+  clearTimeout(exitToastTimer);
+  requestAnimationFrame(() => {
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateX(-50%) translateY(0)';
+  });
+
+  exitToastTimer = setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(-50%) translateY(20px)';
+  }, 2000);
+}
+
 function handleAppHardwareBack() {
-  // 1. Edit Profile Modal
+  // Prevent duplicate execution within 250ms (debounces hardware back + popstate)
+  const now = Date.now();
+  if (now - lastBackHandledTimestamp < 250) {
+    return true;
+  }
+  lastBackHandledTimestamp = now;
+
+  // 1. Check open Modals
   const profModal = document.getElementById('profileModal');
   if (profModal && profModal.classList.contains('active')) {
     closeEditProfileModal();
     return true;
   }
-  // 2. PDF Viewer
+  const notifToast = document.getElementById('phoneNotifToast');
+  if (notifToast && notifToast.classList.contains('active')) {
+    notifToast.classList.remove('active');
+    return true;
+  }
+
+  // 2. Active PDF Viewer -> Return to origin screen
   const pdfScreen = document.getElementById('appScreenPdfViewer');
   if (pdfScreen && pdfScreen.classList.contains('active')) {
     closePdfViewer();
     return true;
   }
-  // 3. Topics screen
+
+  // 3. Active Topics screen -> Return to Chapters screen
   const topicsScreen = document.getElementById('appScreenTopics');
   if (topicsScreen && topicsScreen.classList.contains('active')) {
-    document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
-    const sc = document.getElementById('appScreenChapters') || document.getElementById('appScreenDashboard');
-    if (sc) sc.classList.add('active');
+    navigateBackFromTopics();
     return true;
   }
-  // 4. Notes list
+
+  // 4. Active Subject Notes list screen -> Return to Dashboard
   const notesScreen = document.getElementById('appScreenNotesList');
   if (notesScreen && notesScreen.classList.contains('active')) {
-    document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
-    const sc = document.getElementById('appScreenChapters') || document.getElementById('appScreenDashboard');
-    if (sc) sc.classList.add('active');
+    navigateBackToDashboard();
     return true;
   }
-  // 5. Chapters screen
+
+  // 5. Active Chapters screen -> Return to Dashboard
   const chapScreen = document.getElementById('appScreenChapters');
   if (chapScreen && chapScreen.classList.contains('active')) {
-    switchAppTab('dashboard');
+    navigateBackFromChapters();
     return true;
   }
-  // 6. Admin / Vault / Profile tab -> return to Dashboard
+
+  // 6. Active other tabs (Admin, Vault, Profile) -> Return to Dashboard
   const dashScreen = document.getElementById('appScreenDashboard');
   if (dashScreen && !dashScreen.classList.contains('active')) {
     switchAppTab('dashboard');
     return true;
   }
-  return false;
+
+  // 7. If Search query active on Dashboard -> clear search
+  const searchInput = document.getElementById('appSearchInput');
+  if (searchInput && searchInput.value && searchInput.value.trim().length > 0) {
+    searchInput.value = '';
+    handleAppSearch();
+    return true;
+  }
+
+  // 8. User is at root Dashboard: Double Tap Back to Exit
+  if (now - lastHardwareBackTap < 2000) {
+    // Second tap within 2 seconds -> Exit app cleanly!
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App && window.Capacitor.Plugins.App.exitApp) {
+      window.Capacitor.Plugins.App.exitApp();
+    } else {
+      try {
+        if (navigator.app && navigator.app.exitApp) navigator.app.exitApp();
+      } catch (e) {}
+    }
+    return true;
+  } else {
+    // First tap -> Show toast warning
+    lastHardwareBackTap = now;
+    showExitToast();
+    return true;
+  }
 }
 
 // Attach native Capacitor Android Back Button Listener
-if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
-  window.Capacitor.Plugins.App.addListener('backButton', ({ canGoBack }) => {
-    const handled = handleAppHardwareBack();
-    if (!handled && canGoBack) {
-      window.history.back();
+function registerBackButtonListener() {
+  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+    try {
+      window.Capacitor.Plugins.App.removeAllListeners();
+    } catch (e) {}
+    try {
+      window.Capacitor.Plugins.App.addListener('backButton', () => {
+        handleAppHardwareBack();
+      });
+    } catch (e) {
+      console.warn('Capacitor backButton registration error:', e);
     }
-  });
+  }
 }
 
-// Web History Popstate Listener
+registerBackButtonListener();
+window.addEventListener('DOMContentLoaded', registerBackButtonListener);
+window.addEventListener('load', registerBackButtonListener);
+
+// Web History Popstate Listener (debounced)
 window.addEventListener('popstate', (e) => {
   handleAppHardwareBack();
 });
