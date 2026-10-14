@@ -211,6 +211,24 @@
       <!-- Phone Screen Surface -->
       <div class="phone-screen" id="phoneScreen">
 
+        <!-- Floating Real-Time Academic Push Notification Toast -->
+        <div id="phoneNotifToast" class="phone-notif-toast">
+          <div class="pnt-icon-wrapper">
+            <span class="pnt-icon">🔔</span>
+            <span class="pnt-pulse-ping"></span>
+          </div>
+          <div class="pnt-content">
+            <div class="pnt-header">
+              <span class="pnt-source">HOMOEO PULSE • NOTIFICATION</span>
+              <span class="pnt-time">Just now</span>
+            </div>
+            <div id="toastTitle" class="pnt-title">New Study Note Published</div>
+            <div id="toastMsg" class="pnt-msg">Materia Medica 2nd Year notes are now available.</div>
+            <div class="pnt-action-hint">👆 Tap to view</div>
+          </div>
+          <button type="button" class="pnt-close-btn" onclick="event.stopPropagation(); document.getElementById('phoneNotifToast').classList.remove('show');" aria-label="Dismiss">✕</button>
+        </div>
+
         <!-- Mobile App Splash Screen -->
         <div class="app-splash-screen" id="appSplashScreen" onclick="dismissSplashScreen()">
           <div class="splash-particles">
@@ -722,6 +740,9 @@
       </form>
     </div>
   </div>
+
+  <!-- Academic Notification Chime Tune -->
+  <audio id="notifAudioTune" src="notification_chime.wav" preload="auto"></audio>
 
   <!-- Student App Fallback Data & Real-Time Sync Engine -->
   <script src="fallback_data.js"></script>

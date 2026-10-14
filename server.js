@@ -288,6 +288,7 @@ const server = http.createServer(async (req, res) => {
       const notesCount = notes.filter(n => n.contentType === 'note').length;
       const totalDownloads = notes.reduce((sum, n) => sum + (n.downloads || 0), 0);
       const activeStudents = (db.students || []).filter(s => s.status === 'Active').length;
+      const latestNotif = (db.notifications && db.notifications.length > 0) ? db.notifications[0] : null;
 
       return sendJson(res, 200, {
         totalBooks: booksCount,
@@ -297,7 +298,10 @@ const server = http.createServer(async (req, res) => {
         totalStudents: (db.students || []).length,
         activeStudents,
         totalColleges: (db.colleges || []).length,
-        vaultStorage: '184.2 MB Encrypted Sandbox'
+        vaultStorage: '184.2 MB Encrypted Sandbox',
+        lastUpdated: db.lastUpdated || Date.now(),
+        latestNotification: latestNotif,
+        totalNotifications: (db.notifications || []).length
       });
     }
 
@@ -350,8 +354,22 @@ const server = http.createServer(async (req, res) => {
         };
 
         db.notes.unshift(newDoc);
+        db.lastUpdated = Date.now();
+        db.notifications = db.notifications || [];
+        const isBook = newDoc.contentType === 'book';
+        const notif = {
+          id: 'notif_' + Date.now(),
+          title: `📚 New ${isBook ? 'Textbook' : 'Study Note'} Published!`,
+          target: newDoc.year || 'All Years',
+          type: isBook ? 'Textbook Upload' : 'Study Note Upload',
+          time: 'Just now',
+          body: `"${newDoc.title}" for ${newDoc.subject || 'BHMS'} (${newDoc.year}) is now available in your academic repository.`,
+          timestamp: Date.now(),
+          docId: newDoc.id
+        };
+        db.notifications.unshift(notif);
         saveDatabase(db);
-        return sendJson(res, 201, { success: true, doc: newDoc });
+        return sendJson(res, 201, { success: true, doc: newDoc, notification: notif });
       }
     }
 
@@ -402,8 +420,21 @@ const server = http.createServer(async (req, res) => {
         }
       }
 
+      db.lastUpdated = Date.now();
+      db.notifications = db.notifications || [];
+      const notif = {
+        id: 'notif_' + Date.now(),
+        title: `✏️ Document Details Updated`,
+        target: doc.year || 'All Years',
+        type: 'Academic Update',
+        time: 'Just now',
+        body: `Faculty updated "${doc.title}" (${doc.subject || 'BHMS'}). Latest revision is now ready in the app.`,
+        timestamp: Date.now(),
+        docId: doc.id
+      };
+      db.notifications.unshift(notif);
       saveDatabase(db);
-      return sendJson(res, 200, { success: true, doc });
+      return sendJson(res, 200, { success: true, doc, notification: notif });
     }
 
     // 4c. Delete Note
@@ -433,11 +464,21 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (db.notes.length !== prevLen) {
-        saveDatabase(db);
-        return sendJson(res, 200, { success: true, message: `Document ${docId} deleted successfully.` });
+        db.lastUpdated = Date.now();
+        db.notifications = db.notifications || [];
+        const notif = {
+          id: 'notif_' + Date.now(),
+          title: `🔄 Library Repository Updated`,
+          target: 'All Years',
+          type: 'Curriculum Maintenance',
+          time: 'Just now',
+          body: `Academic repository has been updated by faculty administrators.`,
+          timestamp: Date.now()
+        };
+        db.notifications.unshift(notif);
       }
       saveDatabase(db);
-      return sendJson(res, 200, { success: true, message: `Deleted.` });
+      return sendJson(res, 200, { success: true, message: `Document ${docId} deleted successfully.` });
     }
 
     // 4c. Delete Curriculum Chapter

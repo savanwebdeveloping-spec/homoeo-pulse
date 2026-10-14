@@ -2757,6 +2757,155 @@ html, body {
   touch-action: pan-y !important;
 }
 
+/* ============================================================
+   REAL-TIME PUSH NOTIFICATION TOAST (ADMIN UPDATES)
+   ============================================================ */
+.phone-notif-toast {
+  position: absolute;
+  top: 14px;
+  left: 12px;
+  right: 12px;
+  z-index: 99999;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 18px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 135, 68, 0.3);
+  transform: translateY(-130%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+  cursor: pointer;
+}
+
+.phone-notif-toast.show {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.pnt-icon-wrapper {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #008744 0%, #00B159 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 135, 68, 0.4);
+}
+
+.pnt-icon {
+  font-size: 18px;
+  line-height: 1;
+  animation: pntBellRing 2s infinite ease-in-out;
+}
+
+@keyframes pntBellRing {
+  0%, 100% { transform: rotate(0deg); }
+  10%, 30% { transform: rotate(14deg); }
+  20%, 40% { transform: rotate(-14deg); }
+  50% { transform: rotate(0deg); }
+}
+
+.pnt-pulse-ping {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #EF4444;
+  border: 2px solid #0F172A;
+  box-shadow: 0 0 8px #EF4444;
+}
+
+.pnt-content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.pnt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.pnt-source {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: #34D399;
+  text-transform: uppercase;
+}
+
+.pnt-time {
+  font-size: 9.5px;
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+.pnt-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #FFFFFF;
+  line-height: 1.3;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pnt-msg {
+  font-size: 11.5px;
+  color: #CBD5E1;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pnt-action-hint {
+  font-size: 10px;
+  color: #6EE7B7;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.pnt-close-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  color: #94A3B8;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  margin-left: 2px;
+}
+
+.pnt-close-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: #FFFFFF;
+}
+
+
 
 
 

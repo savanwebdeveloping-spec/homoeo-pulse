@@ -267,14 +267,17 @@ let pdfViewerOriginScreen = 'appScreenDashboard';
 // REAL-TIME BROADCAST & SERVER SYNC CHANNEL
 // ============================================================
 const syncChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('homoeo_pulse_sync') : null;
+let lastKnownNotifId = null;
+let lastKnownStatsSig = null;
+let isInitialSyncDone = false;
 
 function setupRealtimeSync() {
   // 1. Instant sync via BroadcastChannel (Same browser / different tabs)
   if (syncChannel) {
-    syncChannel.onmessage = (event) => {
+    syncChannel.onmessage = async (event) => {
       if (event.data && event.data.type === 'DATA_UPDATED') {
         console.log('📡 Real-time update signal received from Faculty Admin CMS!');
-        syncWithBackend(true);
+        await syncWithBackend(true);
       }
     };
   }
@@ -286,18 +289,42 @@ function setupRealtimeSync() {
     }
   });
 
-  // 3. Periodic Background Polling (Every 4 seconds)
+  // 3. Periodic Background Polling (Every 3.5 seconds) to catch cloud/admin edits
   setInterval(async () => {
     try {
       const res = await fetch((API_BASE_URL || '') + '/api/stats');
       if (res.ok) {
         const stats = await res.json();
-        if (stats.totalDocuments !== notesData.length) {
-          syncWithBackend(true);
+        const currentSig = `${stats.totalDocuments}_${stats.lastUpdated || 0}_${stats.totalNotifications || 0}`;
+
+        if (!isInitialSyncDone) {
+          isInitialSyncDone = true;
+          lastKnownStatsSig = currentSig;
+          lastKnownNotifId = stats.latestNotification ? stats.latestNotification.id : null;
+          return;
+        }
+
+        if (lastKnownStatsSig && currentSig !== lastKnownStatsSig) {
+          lastKnownStatsSig = currentSig;
+          const newNotif = stats.latestNotification;
+          const hasNewNotif = newNotif && newNotif.id !== lastKnownNotifId;
+          if (hasNewNotif) {
+            lastKnownNotifId = newNotif.id;
+          }
+
+          // Fetch full database update
+          await syncWithBackend(false);
+
+          // Push alert to phone with notification chime & haptic
+          if (hasNewNotif) {
+            triggerPhonePushNotification(newNotif.title, newNotif.body, newNotif.docId);
+          } else {
+            triggerPhonePushNotification('🔔 Academic Material Updated', 'Faculty has updated study documents or curriculum topics.');
+          }
         }
       }
     } catch (e) {}
-  }, 4000);
+  }, 3500);
 }
 
 // ============================================================
@@ -498,13 +525,144 @@ function dismissSplashScreen() {
 }
 window.dismissSplashScreen = dismissSplashScreen;
 
-function triggerPhonePushNotification(title, msg) {
+// ============================================================
+// NOTIFICATION CHIME TUNE & PUSH NOTIFICATION ENGINE
+// ============================================================
+let notificationAudioContext = null;
+
+function playNotificationChime() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtx) {
+      if (!notificationAudioContext) {
+        notificationAudioContext = new AudioCtx();
+      }
+      if (notificationAudioContext.state === 'suspended') {
+        notificationAudioContext.resume();
+      }
+      const ctx = notificationAudioContext;
+      const now = ctx.currentTime;
+
+      const master = ctx.createGain();
+      master.gain.setValueAtTime(0.35, now);
+      master.connect(ctx.destination);
+
+      // Bell Tone 1: D5 (587.33 Hz) warm crystal
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(587.33, now);
+      gain1.gain.setValueAtTime(0.7, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+      osc1.connect(gain1);
+      gain1.connect(master);
+      osc1.start(now);
+      osc1.stop(now + 0.7);
+
+      // Bell Tone 2: A5 (880.00 Hz) sweet ringing chime
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(880.00, now + 0.08);
+      gain2.gain.setValueAtTime(0.001, now);
+      gain2.gain.setValueAtTime(0.85, now + 0.08);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 1.1);
+      osc2.connect(gain2);
+      gain2.connect(master);
+      osc2.start(now + 0.08);
+      osc2.stop(now + 1.15);
+
+      // Bell Shimmer Harmonic: 1760 Hz
+      const osc3 = ctx.createOscillator();
+      const gain3 = ctx.createGain();
+      osc3.type = 'sine';
+      osc3.frequency.setValueAtTime(1760.00, now + 0.09);
+      gain3.gain.setValueAtTime(0.001, now);
+      gain3.gain.setValueAtTime(0.25, now + 0.09);
+      gain3.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
+      osc3.connect(gain3);
+      gain3.connect(master);
+      osc3.start(now + 0.09);
+      osc3.stop(now + 0.75);
+
+      return;
+    }
+  } catch (e) {
+    console.warn('Web Audio chime fallback:', e);
+  }
+
+  // Fallback to audio element
+  try {
+    const audio = document.getElementById('notifAudioTune') || new Audio('notification_chime.wav');
+    audio.volume = 0.6;
+    audio.play().catch(() => {});
+  } catch (e) {}
+}
+window.playNotificationChime = playNotificationChime;
+
+// Unlock Audio on first user interaction for seamless mobile autoplay
+function unlockAudioContext() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtx && !notificationAudioContext) {
+      notificationAudioContext = new AudioCtx();
+    }
+    if (notificationAudioContext && notificationAudioContext.state === 'suspended') {
+      notificationAudioContext.resume();
+    }
+    const audio = document.getElementById('notifAudioTune');
+    if (audio) {
+      audio.load();
+    }
+  } catch (e) {}
+}
+window.addEventListener('click', unlockAudioContext, { once: true, passive: true });
+window.addEventListener('touchstart', unlockAudioContext, { once: true, passive: true });
+
+function triggerPhonePushNotification(title, msg, optDocId = null) {
+  // 1. Play crystal notification tune!
+  playNotificationChime();
+
+  // 2. Gentle haptic vibration on phone
+  try {
+    if (navigator.vibrate) {
+      navigator.vibrate([80, 40, 100]);
+    }
+  } catch (e) {}
+
+  // 3. Show in-app floating toast
   const toast = document.getElementById('phoneNotifToast');
-  if (!toast) return;
-  document.getElementById('toastTitle').innerText = title;
-  document.getElementById('toastMsg').innerText = msg;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 5000);
+  if (toast) {
+    document.getElementById('toastTitle').innerText = title;
+    document.getElementById('toastMsg').innerText = msg;
+    if (optDocId) {
+      toast.onclick = () => {
+        toast.classList.remove('show');
+        openPdfViewer(optDocId);
+      };
+    } else {
+      toast.onclick = () => {
+        toast.classList.remove('show');
+        switchAppTab('dashboard');
+      };
+    }
+    toast.classList.add('show');
+    clearTimeout(toast._hideTimer);
+    toast._hideTimer = setTimeout(() => toast.classList.remove('show'), 6000);
+  }
+
+  // 4. Native OS Notification if permitted
+  try {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification(title, {
+        body: msg,
+        icon: 'logo.jpeg',
+        badge: 'logo.jpeg'
+      });
+    } else if ('Notification' in window && Notification.permission !== 'denied') {
+      Notification.requestPermission();
+    }
+  } catch (e) {}
 }
 
 function openNotifDetails() {
