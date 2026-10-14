@@ -271,9 +271,12 @@ function renderAdminNotesTable(filterQuery = '', filterType = 'All', filterYear 
       <td style="padding:14px 16px;"><span class="badge-tag cat" style="background:#F1F5F9;color:#475569;padding:3px 8px;border-radius:6px;font-size:11px;">${escapeHtml(doc.category || 'General')}</span></td>
       <td style="padding:14px 16px;color:var(--text-muted);">${doc.size || '3.5 MB'} (${doc.pages || 14} pgs)</td>
       <td style="padding:14px 16px;"><strong style="color:var(--brand-green);">${doc.downloads || 0}</strong></td>
-      <td style="padding:14px 16px;text-align:right;">
-        ${doc.fileUrl ? `<a href="${doc.fileUrl}" target="_blank" style="text-decoration:none;padding:5px 10px;background:#F1F5F9;border-radius:6px;font-size:11px;font-weight:700;color:var(--text);margin-right:6px;">View PDF</a>` : ''}
-        <button class="action-btn delete" onclick="deleteNote('${doc.id}')" style="padding:5px 10px;background:#FEE2E2;color:#DC2626;border:1px solid #FECACA;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">Delete</button>
+      <td style="padding:14px 16px;text-align:right;white-space:nowrap;">
+        <button class="action-btn edit" onclick="openEditNoteModal('${doc.id}')" style="padding:6px 12px;background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;border-radius:6px;font-size:11.5px;font-weight:700;cursor:pointer;margin-right:6px;transition:all 0.2s;" title="Edit title, author, year, subject or change PDF link">
+          ✏️ Edit
+        </button>
+        ${doc.fileUrl ? `<a href="${doc.fileUrl}" target="_blank" style="text-decoration:none;padding:6px 10px;background:#F1F5F9;border:1px solid #E2E8F0;border-radius:6px;font-size:11.5px;font-weight:700;color:var(--text);margin-right:6px;display:inline-block;" title="Preview PDF">👁️ View</a>` : ''}
+        <button class="action-btn delete" onclick="deleteNote('${doc.id}')" style="padding:6px 10px;background:#FEE2E2;color:#DC2626;border:1px solid #FECACA;border-radius:6px;font-size:11.5px;font-weight:700;cursor:pointer;" title="Delete document">🗑️ Delete</button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -997,4 +1000,188 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+// ============================================================
+// EDIT DOCUMENT / PDF DETAILS ENGINE
+// ============================================================
+let selectedEditFileBase64 = null;
+let selectedEditFileName = null;
+let selectedEditFileSizeStr = null;
+
+function handleEditFileSelect(input) {
+  const file = input.files[0];
+  const infoEl = document.getElementById('editFileSelectedInfo');
+  if (!file) return;
+
+  if (!file.name.toLowerCase().endsWith('.pdf')) {
+    alert('Please choose a valid .PDF document file.');
+    input.value = '';
+    return;
+  }
+
+  selectedEditFileName = file.name;
+  const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+  selectedEditFileSizeStr = sizeMB + ' MB';
+  if (infoEl) infoEl.innerText = `✓ Selected new PDF: ${file.name} (${selectedEditFileSizeStr})`;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const dataUrl = e.target.result;
+    selectedEditFileBase64 = dataUrl.split(',')[1];
+  };
+  reader.readAsDataURL(file);
+}
+
+function updateEditModalSubjectDropdown() {
+  const year = document.getElementById('editDocYear') ? document.getElementById('editDocYear').value : '1st Year';
+  const subSelect = document.getElementById('editDocSubject');
+  if (!subSelect) return;
+  const subjects = (BHMS_CURRICULUM && BHMS_CURRICULUM[year]) ? BHMS_CURRICULUM[year] : [];
+  subSelect.innerHTML = subjects.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('');
+}
+
+function openEditNoteModal(docId) {
+  const doc = notesData.find(d => String(d.id) === String(docId));
+  if (!doc) {
+    alert('Document not found!');
+    return;
+  }
+
+  selectedEditFileBase64 = null;
+  selectedEditFileName = null;
+  selectedEditFileSizeStr = null;
+
+  document.getElementById('editDocId').value = doc.id;
+  document.getElementById('editDocTitle').value = doc.title || '';
+  document.getElementById('editDocAuthor').value = doc.author || '';
+  document.getElementById('editDocType').value = doc.contentType || 'book';
+  document.getElementById('editDocYear').value = doc.year || '1st Year';
+
+  updateEditModalSubjectDropdown();
+  if (doc.subject) {
+    document.getElementById('editDocSubject').value = doc.subject;
+  }
+
+  document.getElementById('editDocCategory').value = doc.category || 'Standard Textbooks';
+  document.getElementById('editDocPages').value = doc.pages || 45;
+  document.getElementById('editDocSummary').value = doc.summary || '';
+  document.getElementById('editDocDriveUrl').value = doc.fileUrl || '';
+
+  const fileInput = document.getElementById('editDocFile');
+  if (fileInput) fileInput.value = '';
+  const infoEl = document.getElementById('editFileSelectedInfo');
+  if (infoEl) infoEl.innerText = doc.fileUrl ? `Current file: ${doc.fileUrl}` : 'No file currently attached';
+
+  document.getElementById('editNoteModal').classList.add('active');
+}
+
+function closeEditNoteModal() {
+  document.getElementById('editNoteModal').classList.remove('active');
+}
+
+async function handleEditNoteSubmit(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btnEditSubmit');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = 'Saving Changes... ⏳';
+  }
+
+  const docId = document.getElementById('editDocId').value;
+  const title = document.getElementById('editDocTitle').value.trim();
+  const author = document.getElementById('editDocAuthor').value.trim();
+  const contentType = document.getElementById('editDocType').value;
+  const year = document.getElementById('editDocYear').value;
+  const subject = document.getElementById('editDocSubject').value;
+  const category = document.getElementById('editDocCategory').value;
+  const pages = parseInt(document.getElementById('editDocPages').value, 10) || 45;
+  const summary = document.getElementById('editDocSummary').value.trim();
+  const rawDriveUrl = document.getElementById('editDocDriveUrl').value.trim();
+
+  let fileUrl = rawDriveUrl ? formatDriveUrl(rawDriveUrl) : '';
+  let size = null;
+
+  // If a new PDF file was uploaded from local computer:
+  if (selectedEditFileBase64 && selectedEditFileName) {
+    try {
+      const upRes = await fetch('/api/upload', {
+        method: 'POST',
+        headers: getAdminHeaders(),
+        body: JSON.stringify({
+          filename: selectedEditFileName,
+          base64Data: selectedEditFileBase64
+        })
+      });
+      if (upRes.ok) {
+        const upData = await upRes.json();
+        fileUrl = upData.fileUrl;
+        size = upData.size;
+      }
+    } catch (err) {
+      console.warn('PDF upload error during edit:', err);
+    }
+  }
+
+  const updatePayload = {
+    title,
+    author,
+    contentType,
+    year,
+    subject,
+    category,
+    pages,
+    summary
+  };
+  if (fileUrl) updatePayload.fileUrl = fileUrl;
+  if (size) updatePayload.size = size;
+
+  try {
+    const res = await fetch(`/api/notes/${docId}`, {
+      method: 'PUT',
+      headers: getAdminHeaders(),
+      body: JSON.stringify(updatePayload)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const updatedDoc = data.doc;
+
+      // Update in local notesData array
+      const idx = notesData.findIndex(d => String(d.id) === String(docId));
+      if (idx !== -1) {
+        notesData[idx] = Object.assign({}, notesData[idx], updatedDoc);
+      }
+
+      // Also sync to Live Cloud if running locally
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        fetch(`${LIVE_CLOUD_API}/api/notes/${docId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-key': DEFAULT_ADMIN_PASSCODE
+          },
+          body: JSON.stringify(updatePayload)
+        }).catch(() => {});
+      }
+
+      notifyStudentAppOfUpdate();
+      renderAdminNotesTable();
+      renderAdminCurriculumTree(currentAdminCurriculumYear);
+      updateAnalyticsStats();
+      closeEditNoteModal();
+      alert('✅ Document details updated successfully! Changes are live on the mobile app.');
+    } else {
+      const err = await res.json();
+      alert('Error saving changes: ' + (err.error || 'Server error'));
+    }
+  } catch (err) {
+    console.error('Save edit error:', err);
+    alert('Failed to connect to server. Check network.');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerText = 'Save Changes 💾';
+    }
+  }
 }

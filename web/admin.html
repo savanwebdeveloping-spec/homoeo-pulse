@@ -187,17 +187,23 @@
     <div class="admin-main-body">
       <!-- Admin Sidebar -->
       <aside class="admin-sidebar">
-        <div class="admin-profile" style="margin-bottom:20px;padding:14px;background:#F8FAFC;border-radius:12px;border:1px solid var(--border);">
-          <div style="display:flex;align-items:center;">
+        <div class="admin-profile" style="margin-bottom:20px;padding:14px;background:#F8FAFC;border-radius:12px;border:1px solid var(--border);display:flex;flex-direction:column;gap:10px;">
+          <div class="admin-profile-header" style="display:flex;align-items:center;gap:12px;width:100%;">
             <div class="admin-avatar" style="width:42px;height:42px;border-radius:50%;background:var(--brand-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0;">MC</div>
-            <div class="admin-info" style="margin-left:12px;overflow:hidden;">
-              <div class="admin-name" style="font-weight:800;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Dr. Mrunali Chavada</div>
+            <div class="admin-info" style="overflow:hidden;flex:1;">
+              <div class="admin-name" style="font-weight:800;font-size:13.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Dr. Mrunali Chavada</div>
               <div class="admin-role" style="font-size:11px;color:var(--brand-green);font-weight:700;">Super Administrator</div>
             </div>
           </div>
-          <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);font-size:11px;color:var(--text-muted);display:flex;flex-direction:column;gap:5px;">
-            <div><strong style="color:var(--text);">Official Email:</strong><br><a href="mailto:savanwebdeveloping@gmail.com" style="color:var(--brand-green-dark);font-weight:600;text-decoration:none;word-break:break-all;">savanwebdeveloping@gmail.com</a></div>
-            <div><strong style="color:var(--text);">Student Enquiries:</strong><br><a href="mailto:savanwebdeveloping@gmail.com" style="color:var(--brand-green-dark);font-weight:600;text-decoration:none;word-break:break-all;">savanwebdeveloping@gmail.com</a></div>
+          <div class="admin-profile-details" style="border-top:1px dashed var(--border);padding-top:10px;font-size:11px;color:var(--text-muted);display:flex;flex-direction:column;gap:6px;width:100%;">
+            <div>
+              <span style="color:var(--text);font-weight:700;">Official Email:</span>
+              <div style="margin-top:2px;"><a href="mailto:savanwebdeveloping@gmail.com" style="color:var(--brand-green-dark);font-weight:600;text-decoration:none;word-break:break-all;font-size:11px;">savanwebdeveloping@gmail.com</a></div>
+            </div>
+            <div>
+              <span style="color:var(--text);font-weight:700;">Student Enquiries:</span>
+              <div style="margin-top:2px;"><a href="mailto:savanwebdeveloping@gmail.com" style="color:var(--brand-green-dark);font-weight:600;text-decoration:none;word-break:break-all;font-size:11px;">savanwebdeveloping@gmail.com</a></div>
+            </div>
           </div>
         </div>
 
@@ -243,12 +249,12 @@
 
         <!-- 1. Notes & Repositories Tab -->
         <div class="admin-tab-view active" id="tab-notes">
-          <div class="tab-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div class="tab-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
             <div>
               <h2 class="tab-title" style="font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px;">Academic Notes &amp; Repositories</h2>
               <p class="tab-subtitle" style="font-size:13px;color:var(--text-muted);">Upload, manage, and publish year-wise BHMS study documents directly to the student app</p>
             </div>
-            <button class="btn btn-primary" onclick="openUploadModal()" style="background:var(--brand-gradient);color:#fff;border:none;padding:10px 20px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;">
+            <button class="btn btn-primary" onclick="openUploadModal()" style="background:var(--brand-gradient);color:#fff;border:none;padding:10px 20px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 4px 14px rgba(0,135,68,0.25);">
               <span>+</span>
               <span>Upload Academic Material</span>
             </button>
@@ -271,26 +277,27 @@
             </select>
             <select class="select-filter" id="adminFilterCat" onchange="filterAdminNotes()" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;">
               <option value="All">All Categories</option>
-              <option value="Handwritten Notes">Handwritten Notes</option>
               <option value="Standard Textbooks">Standard Textbooks</option>
+              <option value="Reference Literature">Reference Literature</option>
+              <option value="Handwritten Notes">Handwritten Notes</option>
               <option value="University Past Papers">University Past Papers</option>
               <option value="Important Rubrics & Charts">Rubrics &amp; Charts</option>
             </select>
           </div>
 
           <!-- Notes Table -->
-          <div class="card table-card" style="background:#fff;border-radius:14px;border:1px solid var(--border);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.02);">
-            <table class="data-table" style="width:100%;border-collapse:collapse;text-align:left;font-size:13px;">
+          <div class="card table-card" style="background:#fff;border-radius:14px;border:1px solid var(--border);overflow-x:auto;box-shadow:0 1px 4px rgba(0,0,0,0.03);">
+            <table class="data-table" style="width:100%;min-width:980px;border-collapse:collapse;text-align:left;font-size:13px;">
               <thead style="background:#F8FAFC;border-bottom:1px solid var(--border);">
                 <tr>
-                  <th style="padding:14px 16px;">Title &amp; Author</th>
-                  <th style="padding:14px 16px;">Type</th>
-                  <th style="padding:14px 16px;">Year</th>
-                  <th style="padding:14px 16px;">Subject</th>
-                  <th style="padding:14px 16px;">Category</th>
-                  <th style="padding:14px 16px;">Size / Pages</th>
-                  <th style="padding:14px 16px;">Reads</th>
-                  <th style="padding:14px 16px;text-align:right;">Actions</th>
+                  <th style="padding:14px 16px;min-width:240px;color:var(--text-muted);font-size:11.5px;text-transform:uppercase;letter-spacing:0.5px;">Title &amp; Author</th>
+                  <th style="padding:14px 16px;min-width:130px;color:var(--text-muted);font-size:11.5px;text-transform:uppercase;letter-spacing:0.5px;">Type</th>
+                  <th style="padding:14px 16px;min-width:85px;color:var(--text-muted);font-size:11.5px;text-transform:uppercase;letter-spacing:0.5px;">Year</th>
+                  <th style="padding:14px 16px;min-width:110px;color:var(--text-muted);font-size:11.5px;text-transform:uppercase;letter-spacing:0.5px;">Subject</th>
+                  <th style="padding:14px 16px;min-width:130px;color:var(--text-muted);font-size:11.5px;text-transform:uppercase;letter-spacing:0.5px;">Category</th>
+                  <th style="padding:14px 16px;min-width:110px;color:var(--text-muted);font-size:11.5px;text-transform:uppercase;letter-spacing:0.5px;">Size / Pages</th>
+                  <th style="padding:14px 16px;min-width:70px;color:var(--text-muted);font-size:11.5px;text-transform:uppercase;letter-spacing:0.5px;">Reads</th>
+                  <th style="padding:14px 16px;min-width:180px;text-align:right;color:var(--text-muted);font-size:11.5px;text-transform:uppercase;letter-spacing:0.5px;">Actions</th>
                 </tr>
               </thead>
               <tbody id="adminNotesTableBody">
@@ -588,6 +595,105 @@
           <button type="button" class="btn btn-secondary" onclick="closeUploadModal()" style="padding:10px 18px;border:1px solid var(--border);background:#fff;border-radius:8px;cursor:pointer;">Cancel</button>
           <button type="submit" id="btnUploadSubmit" class="btn btn-primary" style="padding:10px 22px;background:var(--brand-gradient);color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;">
             Publish to Student Mobile App 🚀
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Academic Document / PDF Modal -->
+  <div class="modal-overlay" id="editNoteModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:24px;">✏️</span>
+          <div>
+            <h3 style="margin:0;font-size:18px;font-weight:800;color:var(--text);">Edit Document / PDF Details</h3>
+            <p style="margin:2px 0 0 0;font-size:11.5px;color:var(--text-muted);">Author name, title, year, subject ya PDF link change karein</p>
+          </div>
+        </div>
+        <button class="modal-close" onclick="closeEditNoteModal()">×</button>
+      </div>
+
+      <form id="editNoteForm" onsubmit="handleEditNoteSubmit(event)">
+        <input type="hidden" id="editDocId">
+
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Document / Book Title</label>
+          <input type="text" id="editDocTitle" required placeholder="e.g. Boericke Materia Medica" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
+        </div>
+
+        <div class="grid-2-col" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+          <div class="form-group">
+            <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Author / Faculty Name</label>
+            <input type="text" id="editDocAuthor" required placeholder="e.g. Dr. William Boericke" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
+          </div>
+          <div class="form-group">
+            <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Content Type</label>
+            <select id="editDocType" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
+              <option value="book">📚 Standard Textbook / Reference</option>
+              <option value="note">📝 Academic Study Notes / Chapter Topic</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-2-col" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+          <div class="form-group">
+            <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">BHMS Academic Year</label>
+            <select id="editDocYear" onchange="updateEditModalSubjectDropdown()" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
+              <option value="1st Year">1st Year</option>
+              <option value="2nd Year">2nd Year</option>
+              <option value="3rd Year">3rd Year</option>
+              <option value="4th Year">4th Year</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Curriculum Subject</label>
+            <select id="editDocSubject" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-2-col" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+          <div class="form-group">
+            <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Category Tag</label>
+            <select id="editDocCategory" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
+              <option value="Standard Textbooks">Standard Textbooks</option>
+              <option value="Reference Literature">Reference Literature</option>
+              <option value="Handwritten Notes">Handwritten Notes</option>
+              <option value="University Past Papers">University Past Papers</option>
+              <option value="Important Rubrics & Charts">Important Rubrics &amp; Charts</option>
+              <option value="Mnemonics & Quick Revision">Mnemonics &amp; Quick Revision</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Page Count</label>
+            <input type="number" id="editDocPages" min="1" max="5000" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:14px;background:#F0FDF4;padding:12px;border-radius:10px;border:1px solid #BBF7D0;">
+          <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;color:#166534;">📁 Google Drive Link ya Cloud Stream URL</label>
+          <input type="text" id="editDocDriveUrl" placeholder="Paste link (e.g. https://drive.google.com/file/d/...)" style="width:100%;padding:10px;border:1px solid #86EFAC;border-radius:8px;background:#fff;font-size:13px;">
+          <div style="font-size:11px;color:#15803D;margin-top:4px;">✨ Agar galat PDF ki link dali thi, to yahan nayi Google Drive link paste karein.</div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Nayi PDF File Upload Karein (Optional - Replace file)</label>
+          <input type="file" accept=".pdf" id="editDocFile" onchange="handleEditFileSelect(this)" style="width:100%;padding:8px;border:1px dashed var(--border);border-radius:8px;background:#F8FAFC;font-size:12px;">
+          <div id="editFileSelectedInfo" style="font-size:12px;color:var(--brand-green);margin-top:6px;font-weight:700;"></div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:16px;">
+          <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Summary / Syllabus Highlights</label>
+          <textarea id="editDocSummary" rows="2" placeholder="High-yield points, key remedies covered, exam rubrics..." style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:13px;"></textarea>
+        </div>
+
+        <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px;border-top:1px solid var(--border);padding-top:16px;">
+          <button type="button" class="btn btn-secondary" onclick="closeEditNoteModal()" style="padding:10px 18px;border:1px solid var(--border);background:#fff;border-radius:8px;cursor:pointer;font-weight:600;">Cancel</button>
+          <button type="submit" id="btnEditSubmit" class="btn btn-primary" style="padding:10px 24px;background:var(--brand-gradient);color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(0,135,68,0.25);">
+            <span>Save Changes 💾</span>
           </button>
         </div>
       </form>

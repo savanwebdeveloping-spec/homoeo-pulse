@@ -355,7 +355,58 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
-    // 4b. Delete Note
+    // 4b. Update / Edit Note
+    if (pathname.startsWith('/api/notes/') && (req.method === 'PUT' || req.method === 'PATCH')) {
+      if (!verifyAdminAuth(req)) {
+        return sendJson(res, 401, { error: 'Unauthorized: Admin security passcode required.' });
+      }
+      const docId = pathname.replace('/api/notes/', '');
+      const doc = (db.notes || []).find(n => String(n.id) === String(docId));
+      if (!doc) {
+        return sendJson(res, 404, { error: 'Document not found' });
+      }
+
+      const body = await parseBody(req);
+      if (body.title) doc.title = body.title;
+      if (body.author !== undefined) doc.author = body.author;
+      if (body.year) doc.year = body.year;
+      if (body.subject) doc.subject = body.subject;
+      if (body.contentType) doc.contentType = body.contentType;
+      if (body.category) doc.category = body.category;
+      if (body.fileUrl !== undefined) doc.fileUrl = body.fileUrl;
+      if (body.pages !== undefined) doc.pages = Number(body.pages) || doc.pages;
+      if (body.size !== undefined) doc.size = body.size;
+      if (body.summary !== undefined) doc.summary = body.summary;
+      doc.updatedAt = new Date().toISOString();
+
+      // Also update matching topic in curriculum if it was a note
+      if (db.curriculum) {
+        for (const y in db.curriculum) {
+          if (Array.isArray(db.curriculum[y])) {
+            for (const s of db.curriculum[y]) {
+              if (s.chapters && Array.isArray(s.chapters)) {
+                for (const ch of s.chapters) {
+                  if (ch.topics && Array.isArray(ch.topics)) {
+                    for (const t of ch.topics) {
+                      if (String(t.id) === String(docId) || ('note_' + t.id) === String(docId)) {
+                        if (body.title) t.title = body.title;
+                        if (body.fileUrl) t.fileUrl = body.fileUrl;
+                        if (body.pages) t.pages = Number(body.pages);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      saveDatabase(db);
+      return sendJson(res, 200, { success: true, doc });
+    }
+
+    // 4c. Delete Note
     if (pathname.startsWith('/api/notes/') && req.method === 'DELETE') {
       if (!verifyAdminAuth(req)) {
         return sendJson(res, 401, { error: 'Unauthorized: Admin security passcode required.' });
