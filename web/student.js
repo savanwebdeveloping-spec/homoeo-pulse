@@ -146,6 +146,9 @@ async function removePdfFromVault(docId) {
   } catch (e) {}
 }
 
+// ============================================================
+// OFFLINE VAULT & BOOKMARKS PERSISTENCE ENGINE
+// ============================================================
 function getDownloadedDocIds() {
   try {
     return JSON.parse(localStorage.getItem('hp_vault_downloads') || '[]');
@@ -154,24 +157,84 @@ function getDownloadedDocIds() {
   }
 }
 
-function setDocDownloadedInStorage(docId, isDownloaded) {
+function setDocDownloadedInStorage(docId, isDownloaded, docMeta = null) {
   try {
     let ids = getDownloadedDocIds();
+    const idStr = String(docId);
     if (isDownloaded) {
-      if (!ids.includes(String(docId))) ids.push(String(docId));
+      if (!ids.includes(idStr)) ids.push(idStr);
+      if (docMeta) {
+        const metaMap = JSON.parse(localStorage.getItem('hp_vault_docs_meta') || '{}');
+        metaMap[idStr] = {
+          id: docMeta.id,
+          title: docMeta.title,
+          author: docMeta.author,
+          subject: docMeta.subject,
+          pages: docMeta.pages,
+          year: docMeta.year,
+          fileUrl: docMeta.fileUrl,
+          downloaded: true,
+          bookmarked: docMeta.bookmarked || false
+        };
+        localStorage.setItem('hp_vault_docs_meta', JSON.stringify(metaMap));
+      }
     } else {
-      ids = ids.filter(id => id !== String(docId));
+      ids = ids.filter(id => id !== idStr);
+      const metaMap = JSON.parse(localStorage.getItem('hp_vault_docs_meta') || '{}');
+      delete metaMap[idStr];
+      localStorage.setItem('hp_vault_docs_meta', JSON.stringify(metaMap));
     }
     localStorage.setItem('hp_vault_downloads', JSON.stringify(ids));
   } catch (e) {}
 }
 
-function syncDownloadedStatus() {
-  const downloadedIds = getDownloadedDocIds();
-  notesData.forEach(d => {
-    if (downloadedIds.includes(String(d.id))) {
-      d.downloaded = true;
+function getBookmarkedDocIds() {
+  try {
+    return JSON.parse(localStorage.getItem('hp_vault_bookmarks') || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
+function setDocBookmarkedInStorage(docId, isBookmarked, docMeta = null) {
+  try {
+    let ids = getBookmarkedDocIds();
+    const idStr = String(docId);
+    if (isBookmarked) {
+      if (!ids.includes(idStr)) ids.push(idStr);
+      if (docMeta) {
+        const metaMap = JSON.parse(localStorage.getItem('hp_vault_bookmarks_meta') || '{}');
+        metaMap[idStr] = {
+          id: docMeta.id,
+          title: docMeta.title,
+          author: docMeta.author,
+          subject: docMeta.subject,
+          pages: docMeta.pages,
+          year: docMeta.year,
+          fileUrl: docMeta.fileUrl,
+          downloaded: docMeta.downloaded || false,
+          bookmarked: true
+        };
+        localStorage.setItem('hp_vault_bookmarks_meta', JSON.stringify(metaMap));
+      }
+    } else {
+      ids = ids.filter(id => id !== idStr);
+      const metaMap = JSON.parse(localStorage.getItem('hp_vault_bookmarks_meta') || '{}');
+      delete metaMap[idStr];
+      localStorage.setItem('hp_vault_bookmarks_meta', JSON.stringify(metaMap));
     }
+    localStorage.setItem('hp_vault_bookmarks', JSON.stringify(ids));
+  } catch (e) {}
+}
+
+function syncVaultStatus() {
+  const downloadedIds = getDownloadedDocIds();
+  const bookmarkedIds = getBookmarkedDocIds();
+
+  notesData.forEach(d => {
+    const idStr = String(d.id);
+    d.downloaded = downloadedIds.includes(idStr);
+    d.bookmarked = bookmarkedIds.includes(idStr);
   });
 }
 
@@ -247,7 +310,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Load initial local data
   loadLocalProfile();
   renderUserProfileUI();
-  syncDownloadedStatus();
+  syncVaultStatus();
 
   // Initial render
   updateYearSubpartCounts();
@@ -269,6 +332,7 @@ async function syncWithBackend(isAutoUpdate = false) {
           if (n.fileUrl) n.fileUrl = formatDriveUrl(n.fileUrl);
           return n;
         });
+        syncVaultStatus();
       }
       if (data.curriculum && Object.keys(data.curriculum).length > 0) BHMS_CURRICULUM = data.curriculum;
       // Do NOT overwrite user's saved local profile with backend bootstrap mock profile!
@@ -278,6 +342,8 @@ async function syncWithBackend(isAutoUpdate = false) {
       renderAppContentForYear(currentAppYear, currentAppSubpart);
       updateResumeCardUI();
       renderUserProfileUI();
+      updateVaultCounts();
+      if (document.getElementById('appScreenVault')?.classList.contains('active')) renderVaultScreen();
 
       if (currentSelectedSubject) {
         // Re-find subject in updated curriculum
@@ -1033,6 +1099,11 @@ async function openPdfViewer(docIdOrObj) {
   } else {
     doc = notesData.find(d => String(d.id) === String(docIdOrObj));
   }
+  if (!doc) {
+    const dMeta = JSON.parse(localStorage.getItem('hp_vault_docs_meta') || '{}');
+    const bMeta = JSON.parse(localStorage.getItem('hp_vault_bookmarks_meta') || '{}');
+    doc = dMeta[String(docIdOrObj)] || bMeta[String(docIdOrObj)];
+  }
   if (!doc) return;
 
   currentViewingDoc = doc;
@@ -1071,9 +1142,9 @@ async function openPdfViewer(docIdOrObj) {
 
   if (spinner) spinner.style.display = 'block';
 
-  // 1. Check if saved in IndexedDB Offline Study Vault
+  // 1. Check if saved in IndexedDB Offline Study Vault (must be real PDF > 5KB, not dummy)
   const vaultBuffer = await getPdfFromVault(doc.id);
-  if (vaultBuffer && typeof pdfjsLib !== 'undefined') {
+  if (vaultBuffer && vaultBuffer.byteLength > 5000 && typeof pdfjsLib !== 'undefined') {
     try {
       const loadingTask = pdfjsLib.getDocument({ data: vaultBuffer });
       currentPdfDoc = await loadingTask.promise;
@@ -1086,7 +1157,8 @@ async function openPdfViewer(docIdOrObj) {
       document.getElementById('viewerPageSlider').max = doc.pages;
       document.getElementById('viewerPageSlider').value = 1;
 
-      await renderRealPdfPage(1);
+      await setupContinuousPdfFeed(currentPdfDoc);
+      setupPdfTouchGestures();
       updateResumeCardUI();
       return;
     } catch (err) {
@@ -1578,16 +1650,24 @@ function renderViewerPageContent() {
 // OFFLINE VAULT & BOOKMARKS
 // ============================================================
 function toggleDocBookmark(docId) {
-  const doc = notesData.find(d => String(d.id) === String(docId));
+  const doc = notesData.find(d => String(d.id) === String(docId)) ||
+    JSON.parse(localStorage.getItem('hp_vault_docs_meta') || '{}')[String(docId)] ||
+    JSON.parse(localStorage.getItem('hp_vault_bookmarks_meta') || '{}')[String(docId)];
   if (doc) {
     doc.bookmarked = !doc.bookmarked;
+    setDocBookmarkedInStorage(doc.id, doc.bookmarked, doc);
     updateVaultCounts();
-    if (document.getElementById('appScreenVault').classList.contains('active')) renderVaultScreen();
+    if (document.getElementById('appScreenVault')?.classList.contains('active')) renderVaultScreen();
+    triggerPhonePushNotification(
+      doc.bookmarked ? '⭐ Bookmark Saved' : 'Bookmark Removed',
+      doc.bookmarked ? `"${formatDocTitle(doc.title)}" saved to your bookmarks.` : `"${formatDocTitle(doc.title)}" removed from bookmarks.`
+    );
   }
 }
 
 async function toggleDocDownload(docId) {
-  const doc = notesData.find(d => String(d.id) === String(docId));
+  const doc = notesData.find(d => String(d.id) === String(docId)) ||
+    JSON.parse(localStorage.getItem('hp_vault_docs_meta') || '{}')[String(docId)];
   if (!doc) return;
 
   const btn = window.event && window.event.target ? window.event.target.closest('.btn-doc-download') : null;
@@ -1602,8 +1682,8 @@ async function toggleDocDownload(docId) {
       btn.classList.remove('downloaded');
       btn.innerHTML = '📥 Save';
     }
-    triggerPhonePushNotification('Removed from Vault', `"${formatDocTitle(doc.title)}" removed from offline storage.`);
-    if (document.getElementById('appScreenVault').classList.contains('active')) renderVaultScreen();
+    triggerPhonePushNotification('Removed from Offline Storage', `"${formatDocTitle(doc.title)}" removed from offline storage.`);
+    if (document.getElementById('appScreenVault')?.classList.contains('active')) renderVaultScreen();
     return;
   }
 
@@ -1616,8 +1696,15 @@ async function toggleDocDownload(docId) {
 
   let fetchedBuffer = null;
 
-  // Try candidate URLs to fetch real PDF binary
+  // Build candidate URLs with proxy prioritized for CORS & Range
   const candidateUrls = [];
+  const driveId = doc.driveFileId || getDriveFileId(doc.fileUrl) || getDriveFileId(doc.title);
+
+  if (driveId) {
+    if (API_BASE_URL) candidateUrls.push(`${API_BASE_URL}/api/pdf-stream?file=${driveId}`);
+    candidateUrls.push(`/api/pdf-stream?file=${driveId}`);
+  }
+
   if (doc.fileUrl) {
     const directUrl = formatDriveUrl(doc.fileUrl);
     if (directUrl.startsWith('http')) {
@@ -1632,40 +1719,39 @@ async function toggleDocDownload(docId) {
     try {
       const res = await fetch(u);
       if (res.ok) {
-        fetchedBuffer = await res.arrayBuffer();
-        if (fetchedBuffer && fetchedBuffer.byteLength > 500) {
+        const buf = await res.arrayBuffer();
+        if (buf && buf.byteLength > 5000) {
+          fetchedBuffer = buf;
           break;
         }
       }
-    } catch (err) {}
+    } catch (err) {
+      console.warn('Candidate download attempt failed:', u, err);
+    }
   }
 
-  // Fallback: Cache sample_note.pdf into vault so user always has valid offline multi-page PDF
-  if (!fetchedBuffer) {
-    try {
-      const fbRes = await fetch('sample_note.pdf');
-      if (fbRes.ok) {
-        fetchedBuffer = await fbRes.arrayBuffer();
-      }
-    } catch (e) {}
-  }
-
-  if (fetchedBuffer) {
+  if (fetchedBuffer && fetchedBuffer.byteLength > 5000) {
     await savePdfToVault(doc.id, fetchedBuffer);
+    doc.downloaded = true;
+    setDocDownloadedInStorage(doc.id, true, doc);
+    updateVaultCounts();
+
+    if (btn) {
+      btn.classList.add('downloaded');
+      btn.innerHTML = '✓ Offline';
+      btn.disabled = false;
+    }
+
+    triggerPhonePushNotification('✓ Offline Vault Ready', `"${formatDocTitle(doc.title)}" saved! You can now read it offline in Study Vault.`);
+    if (document.getElementById('appScreenVault')?.classList.contains('active')) renderVaultScreen();
+  } else {
+    // If download failed, inform user cleanly (do NOT save dummy sample_note.pdf!)
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '📥 Save';
+    }
+    triggerPhonePushNotification('Download Failed', `Could not download "${formatDocTitle(doc.title)}". Please check internet connection.`);
   }
-
-  doc.downloaded = true;
-  setDocDownloadedInStorage(doc.id, true);
-  updateVaultCounts();
-
-  if (btn) {
-    btn.classList.add('downloaded');
-    btn.innerHTML = '✓ Offline';
-    btn.disabled = false;
-  }
-
-  triggerPhonePushNotification('✓ Offline Vault Ready', `"${formatDocTitle(doc.title)}" saved! You can now read it offline in Study Vault.`);
-  if (document.getElementById('appScreenVault').classList.contains('active')) renderVaultScreen();
 }
 
 function toggleTopicOffline(topicId, event) {
@@ -1682,36 +1768,54 @@ function toggleTopicOffline(topicId, event) {
 }
 
 function updateVaultCounts() {
-  const bookmarks = notesData.filter(d => d.bookmarked);
-  const offline = notesData.filter(d => d.downloaded);
+  syncVaultStatus();
+  const downloadedIds = getDownloadedDocIds();
+  const bookmarkedIds = getBookmarkedDocIds();
   const bEl = document.getElementById('countVaultBookmarks');
   const oEl = document.getElementById('countVaultOffline');
-  if (bEl) bEl.innerText = bookmarks.length;
-  if (oEl) oEl.innerText = offline.length;
+  if (bEl) bEl.innerText = bookmarkedIds.length;
+  if (oEl) oEl.innerText = downloadedIds.length;
 }
 
 let currentVaultTab = 'bookmarks';
 function switchVaultTab(tab) {
   currentVaultTab = tab;
-  document.getElementById('btnVaultBookmarks').classList.toggle('active', tab === 'bookmarks');
-  document.getElementById('btnVaultOffline').classList.toggle('active', tab === 'offline');
+  document.getElementById('btnVaultBookmarks')?.classList.toggle('active', tab === 'bookmarks');
+  document.getElementById('btnVaultOffline')?.classList.toggle('active', tab === 'offline');
   renderVaultScreen();
 }
 
 function renderVaultScreen() {
+  syncVaultStatus();
   const container = document.getElementById('appVaultContainer');
   if (!container) return;
   container.innerHTML = '';
 
-  const list = currentVaultTab === 'bookmarks'
-    ? notesData.filter(d => d.bookmarked)
-    : notesData.filter(d => d.downloaded);
+  const metaMap = JSON.parse(
+    localStorage.getItem(currentVaultTab === 'bookmarks' ? 'hp_vault_bookmarks_meta' : 'hp_vault_docs_meta') || '{}'
+  );
+
+  const docMap = new Map();
+  notesData.forEach(d => {
+    if (currentVaultTab === 'bookmarks' ? d.bookmarked : d.downloaded) {
+      docMap.set(String(d.id), d);
+    }
+  });
+
+  Object.keys(metaMap).forEach(id => {
+    if (!docMap.has(String(id))) {
+      docMap.set(String(id), metaMap[id]);
+    }
+  });
+
+  const list = Array.from(docMap.values());
+  updateVaultCounts();
 
   if (list.length === 0) {
     container.innerHTML = `
       <div style="text-align:center;padding:48px 16px;color:var(--text-muted);">
         <div style="font-size:36px;margin-bottom:8px;">${currentVaultTab === 'bookmarks' ? '⭐' : '📥'}</div>
-        <div style="font-weight:700;">No ${currentVaultTab} saved yet</div>
+        <div style="font-weight:700;">No ${currentVaultTab === 'bookmarks' ? 'Bookmarks' : 'Offline Downloads'} saved yet</div>
         <div style="font-size:11px;margin-top:4px;">Tap the bookmark or save button on any note or book to add it here.</div>
       </div>
     `;
@@ -1726,7 +1830,7 @@ function renderVaultScreen() {
       <div style="font-size:24px;">📄</div>
       <div style="flex:1;min-width:0;">
         <div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${formatDocTitle(doc.title)}</div>
-        <div style="font-size:11px;color:var(--text-muted);">${doc.subject} • ${doc.pages} pgs</div>
+        <div style="font-size:11px;color:var(--text-muted);">${doc.subject || 'Academic Document'} • ${doc.pages || 14} pgs</div>
       </div>
       <button class="btn-doc-open" style="padding:4px 10px;font-size:10px;">Read</button>
     `;
