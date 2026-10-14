@@ -350,8 +350,8 @@ async function syncWithBackend() {
       if (data.students && data.students.length > 0) studentsData = data.students;
       if (data.colleges && data.colleges.length > 0) collegesData = data.colleges;
       if (data.notifications && data.notifications.length > 0) notificationHistory = data.notifications;
-      if (data.userProfile && data.userProfile.name) currentUserProfile = data.userProfile;
       if (data.curriculum && Object.keys(data.curriculum).length > 0) BHMS_CURRICULUM = data.curriculum;
+      // Do NOT overwrite user's saved device profile from backend bootstrap
       
       persistLocalData();
 

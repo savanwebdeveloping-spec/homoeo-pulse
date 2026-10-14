@@ -596,8 +596,30 @@ const server = http.createServer(async (req, res) => {
           year: body.year || '1st Year',
           college: body.college || 'Homoeopathic Medical College',
           email: body.email || 'student@homoeopulse.ayush.gov.in',
-          rollNo: body.rollNo || 'BHMS-2024-001'
+          rollNo: body.rollNo || 'BHMS-2024-001',
+          isSetupDone: true
         };
+        if (body.name && body.name !== 'BHMS Scholar') {
+          db.students = db.students || [];
+          const existing = db.students.find(s => (body.email && s.email === body.email) || (s.name && s.name.toLowerCase() === body.name.toLowerCase()));
+          if (existing) {
+            existing.name = body.name;
+            existing.year = body.year || existing.year;
+            existing.college = body.college || existing.college;
+            existing.lastActive = 'Just now';
+          } else {
+            db.students.push({
+              id: 'STU-' + Math.floor(1000 + Math.random() * 9000),
+              name: body.name,
+              email: body.email || 'student@homoeopulse.ayush.gov.in',
+              year: body.year || '1st Year',
+              college: body.college || 'Homoeopathic Medical College',
+              downloads: 1,
+              status: 'Active',
+              lastActive: 'Just now'
+            });
+          }
+        }
         saveDatabase(db);
         return sendJson(res, 200, { success: true, userProfile: db.userProfile });
       }

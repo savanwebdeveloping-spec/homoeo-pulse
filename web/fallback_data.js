@@ -1552,6 +1552,7 @@ window.HOMOEO_DEFAULT_DATA = {
     "year": "1st Year",
     "college": "Homoeopathic Medical College & Hospital",
     "email": "student@homoeopulse.ayush.gov.in",
-    "rollNo": "BHMS-2024-001"
+    "rollNo": "BHMS-2024-001",
+    "isSetupDone": true
   }
 };

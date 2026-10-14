@@ -271,7 +271,8 @@ async function syncWithBackend(isAutoUpdate = false) {
         });
       }
       if (data.curriculum && Object.keys(data.curriculum).length > 0) BHMS_CURRICULUM = data.curriculum;
-      if (data.userProfile && data.userProfile.name) currentUserProfile = data.userProfile;
+      // Do NOT overwrite user's saved local profile with backend bootstrap mock profile!
+      // Local profile is device-specific and persists until app uninstallation.
 
       updateYearSubpartCounts();
       renderAppContentForYear(currentAppYear, currentAppSubpart);
@@ -302,15 +303,29 @@ async function syncWithBackend(isAutoUpdate = false) {
 
 function loadLocalProfile() {
   try {
-    const prof = localStorage.getItem('hp_user_profile_v5');
-    if (prof) {
-      const parsed = JSON.parse(prof);
-      if (parsed && parsed.name && parsed.name.trim().length > 0 && parsed.isSetupDone) {
-        currentUserProfile = parsed;
-        return;
+    const profKeys = ['hp_user_profile_v5', 'hp_user_profile', 'hp_user_profile_v4'];
+    for (const key of profKeys) {
+      const prof = localStorage.getItem(key);
+      if (prof) {
+        const parsed = JSON.parse(prof);
+        if (parsed && parsed.name && parsed.name.trim().length > 0 && parsed.name !== 'BHMS Scholar') {
+          currentUserProfile = {
+            name: parsed.name.trim(),
+            year: parsed.year || '1st Year',
+            college: parsed.college || '',
+            email: parsed.email || '',
+            rollNo: parsed.rollNo || '',
+            isSetupDone: true
+          };
+          saveLocalProfile();
+          return;
+        }
       }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn('LocalStorage profile load error:', e);
+  }
+
   // Default fresh install state: Profile Pending
   currentUserProfile = {
     name: '',
@@ -324,9 +339,15 @@ function loadLocalProfile() {
 
 function saveLocalProfile() {
   try {
-    currentUserProfile.isSetupDone = true;
-    localStorage.setItem('hp_user_profile_v5', JSON.stringify(currentUserProfile));
-  } catch (e) {}
+    if (currentUserProfile && currentUserProfile.name && currentUserProfile.name.trim().length > 0) {
+      currentUserProfile.isSetupDone = true;
+    }
+    const dataStr = JSON.stringify(currentUserProfile);
+    localStorage.setItem('hp_user_profile_v5', dataStr);
+    localStorage.setItem('hp_user_profile', dataStr);
+  } catch (e) {
+    console.warn('LocalStorage profile save error:', e);
+  }
 }
 
 let splashTimeout = null;
@@ -392,6 +413,21 @@ function dismissSplashScreen() {
   setTimeout(() => {
     el.classList.add('hidden');
     el.style.display = 'none';
+
+    // On fresh install / after uninstall & re-download:
+    // If profile has never been set up, prompt user to enter their profile!
+    const isConfigured = Boolean(
+      currentUserProfile &&
+      currentUserProfile.isSetupDone &&
+      currentUserProfile.name &&
+      currentUserProfile.name.trim().length > 0 &&
+      currentUserProfile.name !== 'BHMS Scholar'
+    );
+    if (!isConfigured) {
+      setTimeout(() => {
+        openEditProfileModal();
+      }, 400);
+    }
   }, 600);
 }
 window.dismissSplashScreen = dismissSplashScreen;
@@ -1702,7 +1738,13 @@ function renderVaultScreen() {
 // STUDENT PROFILE & EDIT PROFILE
 // ============================================================
 function renderUserProfileUI() {
-  const isConfigured = currentUserProfile && currentUserProfile.isSetupDone && currentUserProfile.name && currentUserProfile.name.trim().length > 0;
+  const isConfigured = Boolean(
+    currentUserProfile &&
+    currentUserProfile.isSetupDone &&
+    currentUserProfile.name &&
+    currentUserProfile.name.trim().length > 0 &&
+    currentUserProfile.name !== 'BHMS Scholar'
+  );
 
   const gName = document.getElementById('appGreetingName');
   const topAv = document.getElementById('appTopAvatar');
@@ -1773,10 +1815,20 @@ function closeEditProfileModal() {
 
 async function handleProfileSubmit(e) {
   e.preventDefault();
-  currentUserProfile.name = document.getElementById('profName').value.trim();
-  currentUserProfile.college = document.getElementById('profCollege').value.trim();
-  currentUserProfile.year = document.getElementById('profYear').value;
-  currentUserProfile.email = document.getElementById('profEmail').value.trim();
+  const nameVal = (document.getElementById('profName')?.value || '').trim();
+  const collegeVal = (document.getElementById('profCollege')?.value || '').trim();
+  const yearVal = document.getElementById('profYear')?.value || '1st Year';
+  const emailVal = (document.getElementById('profEmail')?.value || '').trim();
+
+  if (!nameVal) {
+    alert('Please enter your Name to complete your scholar profile.');
+    return;
+  }
+
+  currentUserProfile.name = nameVal;
+  currentUserProfile.college = collegeVal || 'Homoeopathic Medical College';
+  currentUserProfile.year = yearVal;
+  currentUserProfile.email = emailVal;
   currentUserProfile.isSetupDone = true;
 
   saveLocalProfile();
@@ -1784,7 +1836,7 @@ async function handleProfileSubmit(e) {
   closeEditProfileModal();
 
   try {
-    await fetch('/api/user-profile', {
+    await fetch((API_BASE_URL || '') + '/api/user-profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(currentUserProfile)
