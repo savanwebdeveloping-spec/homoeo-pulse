@@ -175,6 +175,7 @@ async function loadAdminData(silent = false) {
       collegesData = Array.isArray(data.colleges) ? data.colleges : [];
       notificationHistory = Array.isArray(data.notifications) ? data.notifications : [];
 
+      populateAdminFilterSubjects();
       renderAdminNotesTable();
       renderAdminCurriculumTree(currentAdminCurriculumYear);
       renderStudentTable();
@@ -219,33 +220,143 @@ function showAdminTab(tabName) {
 }
 
 // ============================================================
-// NOTES & BOOKS TABLE
+// NOTES & BOOKS TABLE & ADVANCED FILTERING
 // ============================================================
-function renderAdminNotesTable(filterQuery = '', filterType = 'All', filterYear = 'All', filterCat = 'All') {
+function populateAdminFilterSubjects(selectedYear = 'All') {
+  const select = document.getElementById('adminFilterSubject');
+  if (!select) return;
+  const currentVal = select.value || 'All';
+  select.innerHTML = '<option value="All">All Subjects</option>';
+
+  const subjectSet = new Set();
+  
+  // 1. Gather from BHMS_CURRICULUM
+  if (selectedYear === 'All') {
+    Object.keys(BHMS_CURRICULUM).forEach(yr => {
+      (BHMS_CURRICULUM[yr] || []).forEach(sub => {
+        if (sub.name) subjectSet.add(sub.name);
+      });
+    });
+  } else if (BHMS_CURRICULUM[selectedYear]) {
+    BHMS_CURRICULUM[selectedYear].forEach(sub => {
+      if (sub.name) subjectSet.add(sub.name);
+    });
+  }
+
+  // 2. Also gather any subjects present in notesData
+  notesData.forEach(d => {
+    if (d.subject) {
+      if (selectedYear === 'All' || d.year === selectedYear) {
+        subjectSet.add(d.subject);
+      }
+    }
+  });
+
+  const sortedSubjects = Array.from(subjectSet).sort();
+  sortedSubjects.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s;
+    if (s === currentVal) opt.selected = true;
+    select.appendChild(opt);
+  });
+}
+window.populateAdminFilterSubjects = populateAdminFilterSubjects;
+
+function handleAdminFilterYearChange() {
+  const yr = document.getElementById('adminFilterYear')?.value || 'All';
+  populateAdminFilterSubjects(yr);
+  filterAdminNotes();
+}
+window.handleAdminFilterYearChange = handleAdminFilterYearChange;
+
+function resetAdminFilters() {
+  const qEl = document.getElementById('adminSearchNotes');
+  const tEl = document.getElementById('adminFilterType');
+  const yEl = document.getElementById('adminFilterYear');
+  const cEl = document.getElementById('adminFilterCat');
+  const sEl = document.getElementById('adminSortOrder');
+  const subEl = document.getElementById('adminFilterSubject');
+
+  if (qEl) qEl.value = '';
+  if (tEl) tEl.value = 'All';
+  if (yEl) yEl.value = 'All';
+  if (cEl) cEl.value = 'All';
+  if (sEl) sEl.value = 'default';
+
+  populateAdminFilterSubjects('All');
+  if (subEl) subEl.value = 'All';
+
+  filterAdminNotes();
+}
+window.resetAdminFilters = resetAdminFilters;
+
+function renderAdminNotesTable(filterQuery, filterType, filterYear, filterCat, filterSub, sortOrder) {
   const tbody = document.getElementById('adminNotesTableBody');
   if (!tbody) return;
   tbody.innerHTML = '';
 
-  const filtered = notesData.filter(doc => {
-    const matchesQ = filterQuery === '' ||
-      doc.title.toLowerCase().includes(filterQuery) ||
-      (doc.subject && doc.subject.toLowerCase().includes(filterQuery)) ||
-      (doc.author && doc.author.toLowerCase().includes(filterQuery));
-    const matchesT = filterType === 'All' || doc.contentType === filterType;
-    const matchesY = filterYear === 'All' || doc.year === filterYear;
-    const matchesC = filterCat === 'All' || doc.category === filterCat;
-    return matchesQ && matchesT && matchesY && matchesC;
+  const q = filterQuery !== undefined ? filterQuery : (document.getElementById('adminSearchNotes')?.value.toLowerCase().trim() || '');
+  const t = filterType !== undefined ? filterType : (document.getElementById('adminFilterType')?.value || 'All');
+  const y = filterYear !== undefined ? filterYear : (document.getElementById('adminFilterYear')?.value || 'All');
+  const c = filterCat !== undefined ? filterCat : (document.getElementById('adminFilterCat')?.value || 'All');
+  const s = filterSub !== undefined ? filterSub : (document.getElementById('adminFilterSubject')?.value || 'All');
+  const sort = sortOrder !== undefined ? sortOrder : (document.getElementById('adminSortOrder')?.value || 'default');
+
+  let filtered = notesData.filter(doc => {
+    const matchesQ = q === '' ||
+      (doc.title && doc.title.toLowerCase().includes(q)) ||
+      (doc.subject && doc.subject.toLowerCase().includes(q)) ||
+      (doc.author && doc.author.toLowerCase().includes(q));
+    const matchesT = t === 'All' || doc.contentType === t;
+    const matchesY = y === 'All' || doc.year === y;
+    const matchesC = c === 'All' || doc.category === c;
+    const matchesS = s === 'All' || doc.subject === s;
+    return matchesQ && matchesT && matchesY && matchesC && matchesS;
   });
 
-  document.getElementById('badge-notes-count').innerText = notesData.length;
+  // Sorting
+  const yearOrder = { '1st Year': 1, '2nd Year': 2, '3rd Year': 3, '4th Year': 4 };
+  if (sort === 'year') {
+    filtered.sort((a, b) => (yearOrder[a.year] || 99) - (yearOrder[b.year] || 99) || (a.subject || '').localeCompare(b.subject || ''));
+  } else if (sort === 'subject') {
+    filtered.sort((a, b) => (a.subject || '').localeCompare(b.subject || '') || (a.title || '').localeCompare(b.title || ''));
+  } else if (sort === 'title') {
+    filtered.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+  }
+
+  const badgeEl = document.getElementById('badge-notes-count');
+  if (badgeEl) badgeEl.innerText = notesData.length;
+
+  // Status pill bar updates
+  const resultsText = document.getElementById('adminNotesResultsText');
+  const clearBtn = document.getElementById('adminClearFiltersBtn');
+  const hasActiveFilter = (q !== '' || t !== 'All' || y !== 'All' || c !== 'All' || s !== 'All' || sort !== 'default');
+
+  if (resultsText) {
+    if (hasActiveFilter) {
+      let filterDesc = [];
+      if (t !== 'All') filterDesc.push(t === 'book' ? '📚 Standard Books' : '📝 Study Notes');
+      if (y !== 'All') filterDesc.push(y);
+      if (s !== 'All') filterDesc.push(s);
+      if (c !== 'All') filterDesc.push(c);
+      if (q !== '') filterDesc.push(`"${q}"`);
+      resultsText.innerHTML = `Showing <strong>${filtered.length}</strong> of <strong>${notesData.length}</strong> academic documents (${filterDesc.join(' • ')})`;
+    } else {
+      resultsText.innerHTML = `Showing all <strong>${notesData.length}</strong> documents in repository (Books &amp; Notes across All BHMS Years)`;
+    }
+  }
+  if (clearBtn) {
+    clearBtn.style.display = hasActiveFilter ? 'inline-block' : 'none';
+  }
 
   if (filtered.length === 0) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td colspan="8" style="text-align:center;padding:48px 16px;color:var(--text-muted);">
         <div style="font-size:36px;margin-bottom:8px;">📂</div>
-        <div style="font-size:15px;font-weight:700;color:var(--text);">No Academic Documents Uploaded Yet</div>
-        <div style="font-size:12px;margin-top:4px;">Click the <strong>"+ Upload Academic Material"</strong> button above to upload your first textbook or chapter note PDF.</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text);">No Academic Documents Match Your Filter</div>
+        <div style="font-size:12px;margin-top:4px;">Try clicking <a href="javascript:void(0)" onclick="resetAdminFilters()" style="color:var(--brand-green);font-weight:700;">Reset All Filters</a> or use <strong>"+ Upload Academic Material"</strong> to upload a document.</div>
       </td>
     `;
     tbody.appendChild(tr);
@@ -284,12 +395,15 @@ function renderAdminNotesTable(filterQuery = '', filterType = 'All', filterYear 
 }
 
 function filterAdminNotes() {
-  const q = document.getElementById('adminSearchNotes').value.toLowerCase().trim();
-  const t = document.getElementById('adminFilterType').value;
-  const y = document.getElementById('adminFilterYear').value;
-  const c = document.getElementById('adminFilterCat').value;
-  renderAdminNotesTable(q, t, y, c);
+  const q = document.getElementById('adminSearchNotes')?.value.toLowerCase().trim() || '';
+  const t = document.getElementById('adminFilterType')?.value || 'All';
+  const y = document.getElementById('adminFilterYear')?.value || 'All';
+  const c = document.getElementById('adminFilterCat')?.value || 'All';
+  const s = document.getElementById('adminFilterSubject')?.value || 'All';
+  const sort = document.getElementById('adminSortOrder')?.value || 'default';
+  renderAdminNotesTable(q, t, y, c, s, sort);
 }
+window.filterAdminNotes = filterAdminNotes;
 
 async function deleteNote(id) {
   if (!confirm('Are you sure you want to permanently delete this academic document from the repository?')) return;

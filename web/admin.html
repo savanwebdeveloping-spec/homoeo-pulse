@@ -261,28 +261,44 @@
           </div>
 
           <!-- Notes Filter Bar -->
-          <div class="filter-bar" style="display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap;">
-            <input type="text" class="input-search" id="adminSearchNotes" placeholder="Search by title, subject, or author..." oninput="filterAdminNotes()" style="flex:1;min-width:240px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;">
+          <div class="filter-bar" style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+            <input type="text" class="input-search" id="adminSearchNotes" placeholder="Search by title, subject, or author..." oninput="filterAdminNotes()" style="flex:1;min-width:220px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;">
             <select class="select-filter" id="adminFilterType" onchange="filterAdminNotes()" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;">
               <option value="All">All Types (Books &amp; Notes)</option>
               <option value="book">📚 Standard Books</option>
               <option value="note">📝 Academic Study Notes</option>
             </select>
-            <select class="select-filter" id="adminFilterYear" onchange="filterAdminNotes()" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;">
+            <select class="select-filter" id="adminFilterYear" onchange="handleAdminFilterYearChange()" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;">
               <option value="All">All BHMS Years</option>
               <option value="1st Year">1st Year</option>
               <option value="2nd Year">2nd Year</option>
               <option value="3rd Year">3rd Year</option>
               <option value="4th Year">4th Year</option>
             </select>
+            <select class="select-filter" id="adminFilterSubject" onchange="filterAdminNotes()" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;">
+              <option value="All">All Subjects</option>
+            </select>
             <select class="select-filter" id="adminFilterCat" onchange="filterAdminNotes()" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;">
               <option value="All">All Categories</option>
               <option value="Standard Textbooks">Standard Textbooks</option>
               <option value="Reference Literature">Reference Literature</option>
+              <option value="Reference Books">Reference Books</option>
               <option value="Handwritten Notes">Handwritten Notes</option>
               <option value="University Past Papers">University Past Papers</option>
               <option value="Important Rubrics & Charts">Rubrics &amp; Charts</option>
             </select>
+            <select class="select-filter" id="adminSortOrder" onchange="filterAdminNotes()" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;">
+              <option value="default">Default Order</option>
+              <option value="year">Sort by Year (1st ➔ 4th)</option>
+              <option value="subject">Sort by Subject (A-Z)</option>
+              <option value="title">Sort by Title (A-Z)</option>
+            </select>
+          </div>
+
+          <!-- Live Filter Count & Quick Reset Pill -->
+          <div id="adminNotesResultsBar" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;font-size:12.5px;color:var(--text);background:#F8FAFC;padding:10px 16px;border-radius:10px;border:1px solid var(--border);">
+            <div id="adminNotesResultsText" style="font-weight:600;">Showing all documents in repository</div>
+            <button id="adminClearFiltersBtn" onclick="resetAdminFilters()" style="display:none;background:#FEE2E2;border:1px solid #FECACA;color:#DC2626;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;">✕ Reset All Filters</button>
           </div>
 
           <!-- Notes Table -->
