@@ -549,6 +549,31 @@ function renderAppContentForYear(year, subpart) {
       ›
     </button>
   `;
+
+  // Native mobile touch swipe for subject carousel
+  let carouselTouchX = 0;
+  let carouselTouchY = 0;
+  carouselWrapper.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+      carouselTouchX = e.touches[0].clientX;
+      carouselTouchY = e.touches[0].clientY;
+    }
+  }, { passive: true });
+
+  carouselWrapper.addEventListener('touchend', (e) => {
+    if (e.changedTouches.length === 1) {
+      const diffX = e.changedTouches[0].clientX - carouselTouchX;
+      const diffY = e.changedTouches[0].clientY - carouselTouchY;
+      if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
+        if (diffX < 0) {
+          navigateSubjectCarousel(1); // Swipe left -> Next
+        } else {
+          navigateSubjectCarousel(-1); // Swipe right -> Previous
+        }
+      }
+    }
+  }, { passive: true });
+
   container.appendChild(carouselWrapper);
 
   const activeSubjects = currentSubjectFilter === 'All' ? subjects : subjects.filter(s => s.name === currentSubjectFilter);
@@ -1094,7 +1119,8 @@ async function openPdfViewer(docIdOrObj) {
         document.getElementById('viewerPageSlider').max = doc.pages;
         document.getElementById('viewerPageSlider').value = 1;
 
-        await renderRealPdfPage(1);
+        await setupContinuousPdfFeed(currentPdfDoc);
+        setupPdfTouchGestures();
         updateResumeCardUI();
         return;
       } catch (err) {
@@ -1117,7 +1143,8 @@ async function openPdfViewer(docIdOrObj) {
       document.getElementById('viewerPageSlider').max = doc.pages;
       document.getElementById('viewerPageSlider').value = 1;
 
-      await renderRealPdfPage(1);
+      await setupContinuousPdfFeed(currentPdfDoc);
+      setupPdfTouchGestures();
       updateResumeCardUI();
       return;
     } catch (err) {
@@ -1134,107 +1161,218 @@ async function openPdfViewer(docIdOrObj) {
   updateResumeCardUI();
 }
 
-async function renderRealPdfPage(pageNumber) {
-  if (!currentPdfDoc) return;
-  const canvas = document.getElementById('pdfRenderCanvas');
-  if (!canvas) return;
+// ============================================================
+// CONTINUOUS VERTICAL REELS-STYLE PDF FEED & LAZY RENDERING
+// ============================================================
+let pdfFeedObserver = null;
+const renderedPdfPages = new Set();
+const renderingPdfPages = new Set();
+let pdfZoomScale = 1.0;
 
-  const page = await currentPdfDoc.getPage(pageNumber);
-  const viewport = page.getViewport({ scale: currentPdfScale });
-  const ctx = canvas.getContext('2d');
+async function setupContinuousPdfFeed(pdfDoc) {
+  const feed = document.getElementById('pdfPagesScrollFeed');
+  if (!feed || !pdfDoc) return;
 
-  canvas.height = viewport.height;
-  canvas.width = viewport.width;
+  feed.innerHTML = '';
+  renderedPdfPages.clear();
+  renderingPdfPages.clear();
+  pdfZoomScale = 1.0;
+  applyPdfTransform();
 
-  if (currentRenderingTask) {
-    try { currentRenderingTask.cancel(); } catch(e) {}
+  const totalPages = pdfDoc.numPages;
+  document.getElementById('viewerTotalPageText').innerText = totalPages;
+  document.getElementById('viewerPageSlider').max = totalPages;
+  document.getElementById('viewerPageSlider').value = 1;
+  document.getElementById('viewerCurrentPageText').innerText = '1';
+
+  // Get sample aspect ratio from page 1
+  let pageAspectRatio = 1.414;
+  try {
+    const page1 = await pdfDoc.getPage(1);
+    const vp = page1.getViewport({ scale: 1.0 });
+    pageAspectRatio = vp.height / vp.width;
+  } catch (e) {}
+
+  const containerWidth = feed.clientWidth || 360;
+  const targetCardWidth = Math.min(containerWidth - 16, 580);
+  const estimatedCardHeight = Math.round(targetCardWidth * pageAspectRatio);
+
+  // Build page placeholder cards for continuous vertical reels-style feed
+  const fragment = document.createDocumentFragment();
+  for (let i = 1; i <= totalPages; i++) {
+    const card = document.createElement('div');
+    card.className = 'pdf-page-card';
+    card.id = `pdfPageCard_${i}`;
+    card.dataset.page = String(i);
+    card.style.minHeight = `${estimatedCardHeight}px`;
+
+    card.innerHTML = `
+      <div class="pdf-page-skeleton" id="pdfSkeleton_${i}">
+        <span>Loading Page ${i} of ${totalPages}...</span>
+      </div>
+      <canvas id="pdfCanvas_${i}" style="display:none;"></canvas>
+      <span class="pdf-page-chip">Page ${i} / ${totalPages}</span>
+    `;
+
+    fragment.appendChild(card);
+  }
+  feed.appendChild(fragment);
+
+  // Setup IntersectionObserver for on-demand lazy rendering
+  if (pdfFeedObserver) {
+    try { pdfFeedObserver.disconnect(); } catch (e) {}
   }
 
-  currentRenderingTask = page.render({ canvasContext: ctx, viewport: viewport });
-  await currentRenderingTask.promise;
+  pdfFeedObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const pageNum = parseInt(entry.target.dataset.page, 10);
+      if (entry.isIntersecting) {
+        renderPageOnDemand(pageNum);
 
-  document.getElementById('viewerCurrentPageText').innerText = pageNumber;
-  document.getElementById('viewerPageSlider').value = pageNumber;
-  document.getElementById('pdfPageNumberSpan').innerText = `Page ${pageNumber} of ${currentPdfDoc.numPages}`;
+        // Update active page indicator when centered in viewport
+        if (entry.intersectionRatio >= 0.45) {
+          currentViewerPage = pageNum;
+          document.getElementById('viewerCurrentPageText').innerText = pageNum;
+          document.getElementById('viewerPageSlider').value = pageNum;
+          const subtitle = document.getElementById('viewerDocSubtitle');
+          if (subtitle) subtitle.innerText = `Page ${pageNum} of ${totalPages} • Swipe Up/Down`;
+        }
+      }
+    });
+  }, {
+    root: feed,
+    rootMargin: '350px 0px 350px 0px',
+    threshold: [0.1, 0.45, 0.8]
+  });
+
+  // Observe all page cards
+  document.querySelectorAll('.pdf-page-card').forEach(card => {
+    pdfFeedObserver.observe(card);
+  });
+
+  // Render first 2 pages immediately
+  renderPageOnDemand(1);
+  if (totalPages >= 2) renderPageOnDemand(2);
+}
+
+async function renderPageOnDemand(pageNum) {
+  if (!currentPdfDoc || renderedPdfPages.has(pageNum) || renderingPdfPages.has(pageNum)) return;
+  renderingPdfPages.add(pageNum);
+
+  try {
+    const card = document.getElementById(`pdfPageCard_${pageNum}`);
+    const canvas = document.getElementById(`pdfCanvas_${pageNum}`);
+    const skeleton = document.getElementById(`pdfSkeleton_${pageNum}`);
+    if (!canvas || !card) return;
+
+    const page = await currentPdfDoc.getPage(pageNum);
+    const feed = document.getElementById('pdfPagesScrollFeed');
+    const containerWidth = (feed ? feed.clientWidth : 360) || 360;
+    const targetWidth = Math.min(containerWidth - 16, 580);
+
+    const baseVp = page.getViewport({ scale: 1.0 });
+    const renderScale = (targetWidth / baseVp.width) * (window.devicePixelRatio || 1.5);
+    const viewport = page.getViewport({ scale: renderScale });
+
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    canvas.style.width = '100%';
+    canvas.style.height = 'auto';
+
+    const ctx = canvas.getContext('2d');
+    const renderTask = page.render({ canvasContext: ctx, viewport: viewport });
+    await renderTask.promise;
+
+    if (skeleton) skeleton.style.display = 'none';
+    canvas.style.display = 'block';
+    card.style.minHeight = 'auto';
+
+    renderedPdfPages.add(pageNum);
+  } catch (err) {
+    console.warn(`Render error on page ${pageNum}:`, err);
+  } finally {
+    renderingPdfPages.delete(pageNum);
+  }
 }
 
 // ============================================================
 // TOUCH PINCH-TO-ZOOM & PAN GESTURES ENGINE
 // ============================================================
-let pdfZoomScale = 1.0;
-let pdfPanX = 0;
-let pdfPanY = 0;
-let initialPinchDist = 0;
-let initialZoomScale = 1.0;
-let touchStartX = 0;
-let touchStartY = 0;
-let lastTapTime = 0;
-let isPinching = false;
-let isPanning = false;
-
-function applyPdfTransform() {
-  const wrapper = document.getElementById('pdfZoomContentWrapper') || 
-                  document.getElementById('pdfZoomWrapper') || 
-                  document.getElementById('pdfRenderCanvas');
-  if (!wrapper) return;
-  if (pdfZoomScale <= 1.0) {
-    pdfZoomScale = 1.0;
-    pdfPanX = 0;
-    pdfPanY = 0;
-  }
-  wrapper.style.transform = `translate(${pdfPanX}px, ${pdfPanY}px) scale(${pdfZoomScale})`;
-}
-
 function handlePdfZoom(delta) {
-  pdfZoomScale = Math.min(Math.max(1.0, pdfZoomScale + delta), 4.0);
-  if (pdfZoomScale === 1.0) {
-    pdfPanX = 0;
-    pdfPanY = 0;
-  }
+  pdfZoomScale = Math.min(Math.max(0.75, Math.round((pdfZoomScale + delta) * 100) / 100), 3.0);
   applyPdfTransform();
 }
 
 function resetPinchZoom() {
   pdfZoomScale = 1.0;
-  pdfPanX = 0;
-  pdfPanY = 0;
-  isPinching = false;
-  isPanning = false;
   applyPdfTransform();
 }
 
-function setupPdfTouchGestures() {
-  const container = document.getElementById('pdfZoomViewportContainer') || 
-                    document.getElementById('appScreenPdfViewer') || 
-                    document.getElementById('pdfCanvasContainer');
-  if (!container || container._hasPinchAttached) return;
-  container._hasPinchAttached = true;
+function applyPdfTransform() {
+  const badge = document.getElementById('viewerZoomBadge');
+  if (badge) badge.innerText = Math.round(pdfZoomScale * 100) + '%';
 
-  container.addEventListener('touchstart', (e) => {
+  const feed = document.getElementById('pdfPagesScrollFeed');
+  const cards = document.querySelectorAll('.pdf-page-card');
+  const pct = Math.round(pdfZoomScale * 100);
+
+  cards.forEach(card => {
+    if (pdfZoomScale <= 1.0) {
+      card.style.setProperty('width', '100%', 'important');
+      card.style.setProperty('min-width', '0', 'important');
+      card.style.setProperty('max-width', '580px', 'important');
+    } else {
+      card.style.setProperty('width', `${pct}%`, 'important');
+      card.style.setProperty('min-width', `${pct}%`, 'important');
+      card.style.setProperty('max-width', `${Math.round(580 * pdfZoomScale)}px`, 'important');
+    }
+  });
+
+  const fallbackPage = document.getElementById('pdfDocumentPage');
+  if (fallbackPage) {
+    if (pdfZoomScale <= 1.0) {
+      fallbackPage.style.setProperty('width', '100%', 'important');
+      fallbackPage.style.setProperty('min-width', '0', 'important');
+    } else {
+      fallbackPage.style.setProperty('width', `${pct}%`, 'important');
+      fallbackPage.style.setProperty('min-width', `${pct}%`, 'important');
+    }
+  }
+
+  if (feed) {
+    if (pdfZoomScale > 1.0) {
+      feed.style.setProperty('touch-action', 'pan-x pan-y', 'important');
+      feed.style.setProperty('overflow-x', 'auto', 'important');
+    } else {
+      feed.style.setProperty('touch-action', 'pan-y', 'important');
+      feed.style.setProperty('overflow-x', 'hidden', 'important');
+    }
+  }
+}
+
+function setupPdfTouchGestures() {
+  const feed = document.getElementById('pdfPagesScrollFeed');
+  if (!feed || feed._hasPinchAttached) return;
+  feed._hasPinchAttached = true;
+
+  let initialDist = 0;
+  let startScale = 1.0;
+  let lastTapTime = 0;
+
+  feed.addEventListener('touchstart', (e) => {
     if (e.touches.length === 2) {
-      isPinching = true;
-      isPanning = false;
-      initialPinchDist = Math.hypot(
+      initialDist = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
       );
-      initialZoomScale = pdfZoomScale;
+      startScale = pdfZoomScale;
     } else if (e.touches.length === 1) {
-      isPinching = false;
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-      if (pdfZoomScale > 1.0) {
-        isPanning = true;
-      }
-      // Double tap to toggle zoom
       const now = Date.now();
       if (now - lastTapTime < 300) {
         if (pdfZoomScale > 1.1) {
           resetPinchZoom();
         } else {
-          pdfZoomScale = 1.75;
-          pdfPanX = 0;
-          pdfPanY = 0;
+          pdfZoomScale = 1.6;
           applyPdfTransform();
         }
         lastTapTime = 0;
@@ -1244,92 +1382,47 @@ function setupPdfTouchGestures() {
     }
   }, { passive: true });
 
-  container.addEventListener('touchmove', (e) => {
-    if (isPinching && e.touches.length === 2) {
+  feed.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 2 && initialDist > 0) {
+      if (e.cancelable) e.preventDefault();
       const currentDist = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
       );
-      if (initialPinchDist > 0) {
-        const factor = currentDist / initialPinchDist;
-        pdfZoomScale = Math.min(Math.max(1.0, initialZoomScale * factor), 4.0);
-        applyPdfTransform();
-      }
-    } else if (isPanning && e.touches.length === 1 && pdfZoomScale > 1.0) {
-      const dx = e.touches[0].clientX - touchStartX;
-      const dy = e.touches[0].clientY - touchStartY;
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-      pdfPanX += dx;
-      pdfPanY += dy;
+      const factor = currentDist / initialDist;
+      pdfZoomScale = Math.min(Math.max(0.75, Math.round(startScale * factor * 20) / 20), 3.0);
       applyPdfTransform();
     }
-  }, { passive: true });
+  }, { passive: false });
 
-  container.addEventListener('touchend', (e) => {
+  feed.addEventListener('touchend', (e) => {
     if (e.touches.length < 2) {
-      isPinching = false;
-      if (pdfZoomScale <= 1.0) {
-        resetPinchZoom();
-      }
-    }
-    if (e.touches.length === 0) {
-      isPanning = false;
-    }
-  }, { passive: true });
-
-  // Global window listeners to guarantee pinch gesture works anywhere on the screen
-  window.addEventListener('touchstart', (e) => {
-    const viewer = document.getElementById('appScreenPdfViewer');
-    if (!viewer || !viewer.classList.contains('active')) return;
-    if (e.touches.length === 2) {
-      isPinching = true;
-      initialPinchDist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      initialZoomScale = pdfZoomScale;
-    }
-  }, { passive: true });
-
-  window.addEventListener('touchmove', (e) => {
-    const viewer = document.getElementById('appScreenPdfViewer');
-    if (!viewer || !viewer.classList.contains('active')) return;
-    if (isPinching && e.touches.length === 2) {
-      const currentDist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      if (initialPinchDist > 0) {
-        const factor = currentDist / initialPinchDist;
-        pdfZoomScale = Math.min(Math.max(1.0, initialZoomScale * factor), 4.0);
-        applyPdfTransform();
-      }
-    }
-  }, { passive: true });
-
-  window.addEventListener('touchend', (e) => {
-    if (e.touches.length < 2) {
-      isPinching = false;
+      initialDist = 0;
     }
   }, { passive: true });
 }
 
 function togglePdfDarkMode() {
-  const page = document.getElementById('pdfDocumentPage');
-  if (page) page.classList.toggle('inverted');
-  const canvas = document.getElementById('pdfRenderCanvas');
-  if (canvas) canvas.style.filter = canvas.style.filter ? '' : 'invert(90%) hue-rotate(180deg)';
+  const feed = document.getElementById('pdfPagesScrollFeed');
+  if (feed) feed.classList.toggle('inverted');
+  const cards = document.querySelectorAll('.pdf-page-card');
+  cards.forEach(c => c.classList.toggle('inverted'));
 }
 
 function closePdfViewer() {
+  if (pdfFeedObserver) {
+    try { pdfFeedObserver.disconnect(); } catch (e) {}
+  }
+  const feed = document.getElementById('pdfPagesScrollFeed');
+  if (feed) feed.innerHTML = '';
+  renderedPdfPages.clear();
+  renderingPdfPages.clear();
+
   const driveFrame = document.getElementById('pdfDriveFrame');
   if (driveFrame) {
     driveFrame.style.display = 'none';
     driveFrame.src = 'about:blank';
   }
-  const footerBar = document.querySelector('.pdf-footer-bar');
-  if (footerBar) footerBar.style.display = 'flex';
 
   document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
   const sc = document.getElementById(pdfViewerOriginScreen) || document.getElementById('appScreenDashboard');
@@ -1337,20 +1430,25 @@ function closePdfViewer() {
   resetPinchZoom();
 }
 
-function changeViewerPage(delta) {
-  const max = currentPdfDoc ? currentPdfDoc.numPages : (currentViewingDoc ? currentViewingDoc.pages : 1);
-  const next = Math.max(1, Math.min(max, currentViewerPage + delta));
-  if (next !== currentViewerPage) {
-    currentViewerPage = next;
-    if (currentPdfDoc) renderRealPdfPage(next);
-    else renderViewerPageContent();
+function handleViewerSlider(val) {
+  const pageNum = parseInt(val, 10);
+  if (!pageNum) return;
+  currentViewerPage = pageNum;
+  document.getElementById('viewerCurrentPageText').innerText = pageNum;
+
+  const targetCard = document.getElementById(`pdfPageCard_${pageNum}`);
+  if (targetCard) {
+    targetCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    renderPageOnDemand(pageNum);
   }
 }
 
-function handleViewerSlider(val) {
-  currentViewerPage = parseInt(val) || 1;
-  if (currentPdfDoc) renderRealPdfPage(currentViewerPage);
-  else renderViewerPageContent();
+function scrollToTopPdf() {
+  const feed = document.getElementById('pdfPagesScrollFeed');
+  if (feed) {
+    feed.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  handleViewerSlider(1);
 }
 
 function updateViewerBookmarkBtn() {

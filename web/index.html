@@ -594,8 +594,12 @@
             <button class="viewer-btn" onclick="closePdfViewer()" title="Back" style="font-size:18px;margin-right:8px;background:none;border:none;color:#fff;cursor:pointer;padding:4px 8px;">←</button>
             <div class="pdf-viewer-title-box">
               <div class="pdf-title-text" id="viewerDocTitle">Document Title</div>
+              <div style="font-size:9.5px;opacity:0.85;color:#A7F3D0;" id="viewerDocSubtitle">Vertical Feed • Swipe / Scroll Pages Naturally</div>
             </div>
             <div class="pdf-controls">
+              <button class="viewer-btn" onclick="handlePdfZoom(-0.2)" title="Zoom Out" style="font-size:16px;font-weight:800;padding:4px 8px;">−</button>
+              <span id="viewerZoomBadge" onclick="resetPinchZoom()" title="Tap to Reset Zoom" style="font-size:11px;font-weight:700;color:#fff;background:rgba(255,255,255,0.2);padding:2px 6px;border-radius:6px;cursor:pointer;">100%</span>
+              <button class="viewer-btn" onclick="handlePdfZoom(0.2)" title="Zoom In" style="font-size:16px;font-weight:800;padding:4px 8px;">+</button>
               <button class="viewer-btn" onclick="togglePdfDarkMode()" title="Night Reading Mode">🌙</button>
               <button class="viewer-btn" id="btnViewerBookmark" onclick="toggleCurrentDocBookmark()" title="Bookmark">☆</button>
             </div>
@@ -606,25 +610,27 @@
             HOMOEO PULSE • VERIFIED AYUSH MATERIAL
           </div>
 
-          <!-- Zoom & Pan Viewport Container (Handles pinch-to-zoom on all screens) -->
-          <div id="pdfZoomViewportContainer" style="flex:1;width:100%;height:100%;position:relative;overflow:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;touch-action:auto;">
-            <div id="pdfZoomContentWrapper" style="flex:1;width:100%;height:100%;display:flex;flex-direction:column;transform-origin:top center;transition:transform 0.05s ease-out;position:relative;">
+          <!-- Zoom & Pan Viewport Container -->
+          <div id="pdfZoomViewportContainer" style="flex:1;width:100%;height:100%;position:relative;overflow:hidden;display:flex;flex-direction:column;touch-action:auto;">
+            <div id="pdfZoomContentWrapper" style="flex:1;width:100%;height:100%;display:flex;flex-direction:column;transform-origin:center top;transition:transform 0.08s ease-out;position:relative;">
               
               <!-- Native Google Drive Cloud Book Viewer (Zero CORS delay, Full Medical Text) -->
               <iframe id="pdfDriveFrame" style="flex:1;width:100%;height:100%;min-height:75vh;border:none;display:none;background:#1e293b;" allow="autoplay" allowfullscreen></iframe>
 
-              <!-- Canvas Viewport for Real PDF files with Touch Pinch-to-Zoom & Drag-to-Scroll -->
-              <div id="pdfCanvasContainer" style="flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#334155;padding:6px;position:relative;">
-                <div id="pdfLoadingSpinner" style="display:none;position:absolute;top:40%;color:#fff;font-weight:700;background:rgba(0,0,0,0.7);padding:10px 18px;border-radius:20px;z-index:10;">
-                  Rendering Medical Textbook... 📄
+              <!-- Continuous Reels-Style Vertical PDF Feed -->
+              <div id="pdfCanvasContainer" style="flex:1;width:100%;height:100%;position:relative;background:#0F172A;overflow:hidden;display:flex;flex-direction:column;">
+                <div id="pdfLoadingSpinner" style="display:none;position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);color:#fff;font-weight:700;background:rgba(15,23,42,0.92);padding:14px 24px;border-radius:24px;z-index:30;box-shadow:0 12px 32px rgba(0,0,0,0.6);text-align:center;border:1px solid rgba(255,255,255,0.15);">
+                  Loading Medical Textbook... 📄
                 </div>
-                <div id="pdfZoomWrapper" style="display:inline-block;transform-origin:center center;">
-                  <canvas id="pdfRenderCanvas" style="max-width:100%;max-height:100%;box-shadow:0 8px 24px rgba(0,0,0,0.4);background:#fff;border-radius:6px;display:block;"></canvas>
+
+                <!-- Smooth Thumb/Hand Swipe Reels Feed -->
+                <div id="pdfPagesScrollFeed" class="pdf-pages-scroll-feed">
+                  <!-- Real PDF Pages dynamically rendered here like Reels -->
                 </div>
               </div>
 
-              <!-- Vector Text Reader Fallback -->
-              <div class="pdf-canvas-viewport" id="pdfFallbackViewport" style="display:none;">
+              <!-- Vector Text Reader Fallback (Reels-style continuous vertical feed) -->
+              <div class="pdf-canvas-viewport" id="pdfFallbackViewport" style="display:none;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 8px 80px 8px;">
                 <div class="pdf-document-page" id="pdfDocumentPage">
                   <div class="pdf-page-header">
                     <span id="pdfHeaderSubject">ORGANON OF MEDICINE</span>
@@ -644,14 +650,13 @@
             </div>
           </div>
 
-          <!-- Page Navigation Bar -->
-          <div class="pdf-footer-bar">
-            <button class="page-nav-btn" onclick="changeViewerPage(-1)">‹ Prev</button>
-            <div class="page-indicator">
-              <span id="viewerCurrentPageText">1</span> / <span id="viewerTotalPageText">1</span>
-            </div>
-            <input type="range" class="page-slider" id="viewerPageSlider" min="1" max="1" value="1" oninput="handleViewerSlider(this.value)">
-            <button class="page-nav-btn" onclick="changeViewerPage(1)">Next ›</button>
+          <!-- Floating Glassmorphism Scrubber (No clunky Prev/Next buttons) -->
+          <div class="pdf-floating-scrubber" id="pdfFloatingScrubber">
+            <span id="viewerCurrentPageText" class="scrubber-current-page">1</span>
+            <span class="scrubber-divider">/</span>
+            <span id="viewerTotalPageText" class="scrubber-total-page">1</span>
+            <input type="range" class="page-slider scrubber-slider" id="viewerPageSlider" min="1" max="1" value="1" oninput="handleViewerSlider(this.value)">
+            <button onclick="scrollToTopPdf()" class="scrubber-top-btn" title="Scroll to Top">↑</button>
           </div>
         </div>
 
