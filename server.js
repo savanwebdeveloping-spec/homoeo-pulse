@@ -1,7 +1,31 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { Readable } = require('stream');
 const { MongoClient } = require('mongodb');
+
+// Cache confirmation URLs & cookies for Google Drive file downloads (30 min TTL)
+const gdriveConfirmCache = new Map();
+
+async function getGDriveDownloadUrl(fileId) {
+  const cached = gdriveConfirmCache.get(fileId);
+  if (cached && (Date.now() - cached.time < 30 * 60 * 1000)) {
+    return cached;
+  }
+
+  const url1 = `https://drive.usercontent.google.com/download?id=${fileId}&export=download`;
+  const res1 = await fetch(url1);
+  const cookie = res1.headers.get('set-cookie');
+  const html = await res1.text();
+
+  const uuidMatch = html.match(/name="uuid"\s+value="([^"]+)"/);
+  const confirmUrl = `https://drive.usercontent.google.com/download?id=${fileId}&export=download&confirm=t` + (uuidMatch ? `&uuid=${uuidMatch[1]}` : '');
+
+  const data = { confirmUrl, cookie, time: Date.now() };
+  gdriveConfirmCache.set(fileId, data);
+  return data;
+}
+
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, 'web');
@@ -148,7 +172,8 @@ function sendJson(res, statusCode, data) {
     'Content-Type': 'application/json; charset=UTF-8',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-admin-key'
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-admin-key, Range',
+    'Access-Control-Expose-Headers': 'Content-Range, Content-Length, Accept-Ranges'
   }, SECURITY_HEADERS);
 
   res.writeHead(statusCode, headers);
@@ -187,7 +212,8 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(204, Object.assign({
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-admin-key'
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-admin-key, Range',
+      'Access-Control-Expose-Headers': 'Content-Range, Content-Length, Accept-Ranges'
     }, SECURITY_HEADERS));
     res.end();
     return;
@@ -197,6 +223,52 @@ const server = http.createServer(async (req, res) => {
   // BACKEND REST API ENDPOINTS
   // ==========================================
   if (pathname.startsWith('/api/')) {
+    // 0. High-Speed PDF Proxy Streaming (Zero Google Drive CORS / Preview limits)
+    if (pathname === '/api/pdf-stream') {
+      const fileId = parsedUrl.searchParams.get('file');
+      if (!fileId) {
+        return sendJson(res, 400, { error: 'Missing file ID parameter' });
+      }
+
+      try {
+        const { confirmUrl, cookie } = await getGDriveDownloadUrl(fileId);
+
+        const fetchHeaders = {};
+        if (cookie) fetchHeaders['cookie'] = cookie;
+        if (req.headers['range']) fetchHeaders['range'] = req.headers['range'];
+
+        const driveRes = await fetch(confirmUrl, { headers: fetchHeaders });
+
+        const clientHeaders = Object.assign({
+          'Content-Type': 'application/pdf',
+          'Accept-Ranges': 'bytes',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+          'Access-Control-Allow-Headers': 'Range, Content-Type',
+          'Access-Control-Expose-Headers': 'Content-Range, Content-Length, Accept-Ranges',
+          'Cache-Control': 'public, max-age=86400'
+        }, SECURITY_HEADERS);
+
+        if (driveRes.headers.get('content-range')) {
+          clientHeaders['Content-Range'] = driveRes.headers.get('content-range');
+        }
+        if (driveRes.headers.get('content-length')) {
+          clientHeaders['Content-Length'] = driveRes.headers.get('content-length');
+        }
+
+        res.writeHead(driveRes.status, clientHeaders);
+        if (driveRes.body) {
+          Readable.fromWeb(driveRes.body).pipe(res);
+        } else {
+          res.end();
+        }
+      } catch (err) {
+        console.error('PDF stream error:', err);
+        return sendJson(res, 502, { error: 'Failed to stream document from cloud storage' });
+      }
+      return;
+    }
+
     // 1. Health Status
     if (pathname === '/api/status' && req.method === 'GET') {
       return sendJson(res, 200, {

@@ -24,10 +24,10 @@ let selectedUploadFileSizeStr = '3.5 MB';
 
 function formatDriveUrl(rawUrl) {
   if (!rawUrl) return '';
-  if (rawUrl.includes('drive.usercontent.google.com/download')) return rawUrl;
-  const match = rawUrl.match(/(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?export=download&id=)|id=)([a-zA-Z0-9_-]{25,})/i);
+  if (rawUrl.includes('/api/pdf-stream?file=')) return rawUrl;
+  const match = rawUrl.match(/(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?export=download&id=)|id=|file=)([a-zA-Z0-9_-]{25,})/i);
   if (match && match[1]) {
-    return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
+    return `/api/pdf-stream?file=${match[1]}`;
   }
   return rawUrl;
 }

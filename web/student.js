@@ -59,6 +59,7 @@ window.getDriveFileId = getDriveFileId;
 
 function formatDriveUrl(rawUrl) {
   if (!rawUrl) return '';
+  if (rawUrl.includes('/api/pdf-stream')) return rawUrl;
   if (rawUrl.includes('drive.usercontent.google.com/download')) return rawUrl;
 
   const lower = rawUrl.toLowerCase();
@@ -1032,10 +1033,11 @@ async function openPdfViewer(docIdOrObj) {
     }
   }
 
-  // 2. Direct High-Speed Cloud Viewing via Native Google Drive Preview (100% Reliable, Zero 403)
+  // 2. Direct High-Speed Cloud Viewing via Native Google Drive Preview (Only if NOT streamable via API)
+  const isDirectStream = doc.fileUrl && doc.fileUrl.includes('/api/pdf-stream');
   const driveFrame = document.getElementById('pdfDriveFrame');
   const footerBar = document.querySelector('.pdf-footer-bar');
-  const driveId = doc.driveFileId || getDriveFileId(doc.fileUrl) || getDriveFileId(doc.title);
+  const driveId = !isDirectStream ? (doc.driveFileId || getDriveFileId(doc.fileUrl) || getDriveFileId(doc.title)) : null;
 
   if (driveId && driveFrame) {
     if (spinner) spinner.style.display = 'none';
