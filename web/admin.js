@@ -32,10 +32,61 @@ function formatDriveUrl(rawUrl) {
   return rawUrl;
 }
 
-// ============================================================
-// ADMIN SECURITY AUTHENTICATION ENGINE
-// ============================================================
+const LIVE_CLOUD_API = 'https://homoeo-pulse.onrender.com';
 const DEFAULT_ADMIN_PASSCODE = 'homoeopulse2025';
+
+async function syncAllToLiveCloud() {
+  const btn = document.getElementById('btnSyncLiveCloud');
+  const originalText = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳</span><span>Syncing with Live Phone App...</span>';
+  }
+
+  try {
+    // 1. Fetch current live notes from Render
+    const liveRes = await fetch(`${LIVE_CLOUD_API}/api/bootstrap`);
+    if (!liveRes.ok) throw new Error('Live cloud server not reachable');
+    const liveDb = await liveRes.json();
+    const liveIds = new Set((liveDb.notes || []).map(n => n.id));
+
+    // 2. Upload any local notes missing on live
+    const toAdd = notesData.filter(n => !liveIds.has(n.id)).reverse();
+    let addedCount = 0;
+
+    for (let doc of toAdd) {
+      const res = await fetch(`${LIVE_CLOUD_API}/api/notes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-key': DEFAULT_ADMIN_PASSCODE
+        },
+        body: JSON.stringify(doc)
+      });
+      if (res.ok) addedCount++;
+    }
+
+    // 3. Remove from live any notes deleted locally
+    const localIds = new Set(notesData.map(n => n.id));
+    const toDelete = (liveDb.notes || []).filter(n => !localIds.has(n.id));
+    for (let doc of toDelete) {
+      await fetch(`${LIVE_CLOUD_API}/api/notes/${doc.id}`, {
+        method: 'DELETE',
+        headers: { 'x-admin-key': DEFAULT_ADMIN_PASSCODE }
+      });
+    }
+
+    alert(`✅ Synced with Live Student App!\n\nAll ${notesData.length} academic PDFs/books are now live on your phone.`);
+  } catch (err) {
+    alert('Live Cloud Sync Notice: ' + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  }
+}
+window.syncAllToLiveCloud = syncAllToLiveCloud;
 
 function checkAdminAuthGate() {
   const isAuth = sessionStorage.getItem('hp_admin_authenticated') === 'true';
@@ -250,6 +301,14 @@ async function deleteNote(id) {
       renderAdminCurriculumTree(currentAdminCurriculumYear);
       updateAnalyticsStats();
       notifyStudentAppOfUpdate();
+
+      // If running on localhost, auto-sync delete to Live Cloud
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        fetch(`${LIVE_CLOUD_API}/api/notes/${id}`, {
+          method: 'DELETE',
+          headers: { 'x-admin-key': DEFAULT_ADMIN_PASSCODE }
+        }).catch(() => {});
+      }
     }
   } catch (err) {
     console.error('Delete error:', err);
@@ -635,6 +694,36 @@ async function handleModalUpload(e) {
   }
 
   notifyStudentAppOfUpdate();
+
+  // If running locally, also auto-push to Live Cloud on Render
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    try {
+      const activeDoc = notesData.find(d => d.title === title) || {
+        contentType: type,
+        title,
+        author: author || 'Faculty Text Team',
+        year,
+        subject,
+        category,
+        size: fileSize,
+        pages,
+        downloads: 1,
+        summary: summary || 'Faculty uploaded standard textbook.',
+        fileUrl: fileUrl,
+        bookmarked: false,
+        downloaded: false,
+        currentPage: 1
+      };
+      fetch(`${LIVE_CLOUD_API}/api/notes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-key': DEFAULT_ADMIN_PASSCODE
+        },
+        body: JSON.stringify(activeDoc)
+      }).catch(e => console.warn('Cloud auto-sync background error:', e));
+    } catch (err) {}
+  }
 
   alert(`✅ Success! "${title}" has been published and is now instantly live on the Student Mobile App!`);
 }

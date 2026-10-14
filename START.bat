@@ -41,10 +41,11 @@ echo   [2] 💻 Faculty Admin Dashboard (Private) -> Opens http://localhost:3000
 echo   [3] ⚡ Both in Separate Windows          -> Opens Both
 echo   [4] 🌐 Portal Hub Launcher (Default)     -> Opens http://localhost:3000/hub
 echo   [5] 🤖 Build Android APK & Play Store AAB-> Runs BUILD_ANDROID.bat
+echo   [6] ☁️ Live Cloud Admin Dashboard        -> Opens https://homoeo-pulse.onrender.com/admin
 echo.
 echo ==============================================================================
 set choice=4
-set /p choice="Enter your choice (1, 2, 3, 4, or 5) [Default 4]: "
+set /p choice="Enter your choice (1, 2, 3, 4, 5, or 6) [Default 4]: "
 
 if "%choice%"=="1" (
     echo [*] Opening Student Mobile App...
@@ -59,6 +60,9 @@ if "%choice%"=="1" (
 ) else if "%choice%"=="5" (
     echo [*] Launching Android Build Tool...
     call BUILD_ANDROID.bat
+) else if "%choice%"=="6" (
+    echo [*] Opening Live Cloud Admin Dashboard...
+    start "" "https://homoeo-pulse.onrender.com/admin"
 ) else (
     echo [*] Opening Unified Portal Hub...
     start "" "http://localhost:3000/hub"

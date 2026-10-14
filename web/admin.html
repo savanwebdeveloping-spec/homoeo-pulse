@@ -167,6 +167,10 @@
           <span class="status-indicator"></span>
           <span id="apiStatusText">REST BACKEND • CONNECTED</span>
         </div>
+        <button id="btnSyncLiveCloud" onclick="syncAllToLiveCloud()" class="btn-sync-live" title="Sync all uploaded PDFs and books directly to the live mobile app on Render Cloud" style="background:linear-gradient(135deg, #10B981, #059669);color:#fff;border:none;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer;box-shadow:0 2px 8px rgba(16,185,129,0.3);">
+          <span>⚡</span>
+          <span>Sync to Live App</span>
+        </button>
         <a href="/" target="_blank" class="btn-preview-app" title="Open the Student Mobile App in a separate window">
           <span>📱</span>
           <span>Open Student Mobile App</span>
@@ -183,11 +187,17 @@
     <div class="admin-main-body">
       <!-- Admin Sidebar -->
       <aside class="admin-sidebar">
-        <div class="admin-profile" style="margin-bottom:20px;padding:12px;background:#F8FAFC;border-radius:12px;border:1px solid var(--border);">
-          <div class="admin-avatar" style="width:42px;height:42px;border-radius:50%;background:var(--brand-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;">AD</div>
-          <div class="admin-info" style="margin-left:12px;">
-            <div class="admin-name" style="font-weight:800;font-size:14px;">Dr. A. K. Banerjee</div>
-            <div class="admin-role" style="font-size:11px;color:var(--brand-green);font-weight:700;">Super Administrator</div>
+        <div class="admin-profile" style="margin-bottom:20px;padding:14px;background:#F8FAFC;border-radius:12px;border:1px solid var(--border);">
+          <div style="display:flex;align-items:center;">
+            <div class="admin-avatar" style="width:42px;height:42px;border-radius:50%;background:var(--brand-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0;">MC</div>
+            <div class="admin-info" style="margin-left:12px;overflow:hidden;">
+              <div class="admin-name" style="font-weight:800;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Dr. Mrunali Chavada</div>
+              <div class="admin-role" style="font-size:11px;color:var(--brand-green);font-weight:700;">Super Administrator</div>
+            </div>
+          </div>
+          <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);font-size:11px;color:var(--text-muted);display:flex;flex-direction:column;gap:5px;">
+            <div><strong style="color:var(--text);">Official Email:</strong><br><a href="mailto:savanwebdeveloping@gmail.com" style="color:var(--brand-green-dark);font-weight:600;text-decoration:none;word-break:break-all;">savanwebdeveloping@gmail.com</a></div>
+            <div><strong style="color:var(--text);">Student Enquiries:</strong><br><a href="mailto:savanwebdeveloping@gmail.com" style="color:var(--brand-green-dark);font-weight:600;text-decoration:none;word-break:break-all;">savanwebdeveloping@gmail.com</a></div>
           </div>
         </div>
 

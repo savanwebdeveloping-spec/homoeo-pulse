@@ -26,23 +26,23 @@ function formatDocTitle(title) {
 window.formatDocTitle = formatDocTitle;
 
 const KNOWN_DRIVE_MAPPING = {
-  'golwalla': '1rY8iJOERv5uhmmN1J_mDOXEQkgSWQwtF',
-  'mathew': '1Few1DKjNwgWzIS29Q-uTrs3qhdUvLbeM',
-  'harrison_s_manual_of_medicine_18e': '10E-88eYJjjrGiES_4PiyV17_rWWBdBSX',
-  '18e': '10E-88eYJjjrGiES_4PiyV17_rWWBdBSX',
-  'harrison_s_manual_of_medicine_19e': '17PuupCDHlsILQqiOiRtpTtEMAVYs0pco',
-  '19e': '17PuupCDHlsILQqiOiRtpTtEMAVYs0pco',
-  'harrison': '17PuupCDHlsILQqiOiRtpTtEMAVYs0pco',
-  'manthappa': '10INdmSYppTr-J6kI_gM37aZDDUwjiFS6',
-  'boloor': '1YExYuH4e-BO7BxwfxMKaSWSy_b1SlZ7M',
-  'nayak': '1YExYuH4e-BO7BxwfxMKaSWSy_b1SlZ7M',
-  'maheta': '1cFuil-LhGtRoMR5wb75fHNMS1UnqGDvD',
-  'mehta': '1cFuil-LhGtRoMR5wb75fHNMS1UnqGDvD',
-  'alagappan': '1fyg4GLygjU8GAHCR0caLqYmoJVoVSFEc',
-  'davidson': '1xeM1dst86UqB8Jfa18BJsoSXn_12RrJM',
-  'suryakantha': '1sSI3pE7LkfL5oOStqgwBQKgRoupMJWjM',
-  'psm': '1sSI3pE7LkfL5oOStqgwBQKgRoupMJWjM',
-  'hutchisons': '1MGTRsxiq2VLpKl1sEuUr9xxzcCyweIMg'
+  'golwalla': '15uL8k_MFXQOwlHlQbk7t34GXymZhTKW5',
+  'mathew': '13aQ3_EWbZhlcNMLI-DYaeautOffJzG4I',
+  'harrison_s_manual_of_medicine_18e': '1AbR_owQCSLDTgYheM6kfta_XpW7tJr6R',
+  '18e': '1AbR_owQCSLDTgYheM6kfta_XpW7tJr6R',
+  'harrison_s_manual_of_medicine_19e': '1XBQJSo2zHCoKxPREivjDFcvhG7s0nmvn',
+  '19e': '1XBQJSo2zHCoKxPREivjDFcvhG7s0nmvn',
+  'harrison': '1XBQJSo2zHCoKxPREivjDFcvhG7s0nmvn',
+  'manthappa': '1HHqf2v8PZXz5duH30tNQ7LVFvaFZJw60',
+  'boloor': '1sHZ_zBe-Jb2xKe1bd8PkdLNCCnNi5mDC',
+  'nayak': '1sHZ_zBe-Jb2xKe1bd8PkdLNCCnNi5mDC',
+  'maheta': '11Za5JjUfEBp1OHYhL0uLDE3dsToDYL_r',
+  'mehta': '11Za5JjUfEBp1OHYhL0uLDE3dsToDYL_r',
+  'alagappan': '1qqby-npnOEiOUeKbpdgZbhFb9nEfeaiQ',
+  'davidson': '1bzIfkYOLDMcgDt5rrX9smkb-lvxl7Cx4',
+  'suryakantha': '17gXct122Z1-iYwEV_mV1qPb9C4KTl7Ym',
+  'psm': '17gXct122Z1-iYwEV_mV1qPb9C4KTl7Ym',
+  'hutchisons': '1vEMtXv80wggJrfiThUIrzM2XRRq34ky-'
 };
 
 function getDriveFileId(str) {
@@ -1377,7 +1377,7 @@ function renderViewerPageContent() {
 
   const docTitle = formatDocTitle(currentViewingDoc.title);
   const subject = currentViewingDoc.subject || 'Homoeopathy';
-  const author = currentViewingDoc.author || 'Dr. Hemraj & Faculty Panel';
+  const author = currentViewingDoc.author || 'Dr. Mrunali Chavada & Faculty Panel';
 
   // Rich clinical curriculum pages with actual syllabus content
   const chapterTopics = [
