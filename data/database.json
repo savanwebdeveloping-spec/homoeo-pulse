@@ -1531,20 +1531,25 @@
       "rating": "Oldest Homoeopathic College in Asia"
     }
   ],
+  "lastUpdated": 1791978991862,
   "notifications": [
     {
+      "id": "notif_init_1",
       "title": "MUHS Summer 2026 Examination Schedule Released",
       "target": "All Years",
       "type": "Exam Date Sheet",
       "time": "10 mins ago",
-      "body": "Theory examination timetable for BHMS 1st to 4th year has been published by MUHS Nashik. Hall tickets available next week."
+      "body": "Theory examination timetable for BHMS 1st to 4th year has been published by MUHS Nashik. Hall tickets available next week.",
+      "timestamp": 1791978900000
     },
     {
+      "id": "notif_init_2",
       "title": "New Standard Books Added to 1st Year Repository",
       "target": "1st Year",
       "type": "High-Yield Notes",
       "time": "1 hour ago",
-      "body": "Guyton Physiology, Chaurasia Anatomy, and Dudgeon Organon 6th Ed are now available in the Books section."
+      "body": "Guyton Physiology, Chaurasia Anatomy, and Dudgeon Organon 6th Ed are now available in the Books section.",
+      "timestamp": 1791978800000
     }
   ],
   "userProfile": {

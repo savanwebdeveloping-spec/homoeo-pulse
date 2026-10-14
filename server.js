@@ -39,12 +39,16 @@ let mongoDbInstance = null;
 function loadDatabase() {
   try {
     if (fs.existsSync(DB_PATH)) {
-      return JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
+      const data = JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
+      if (!data.lastUpdated) {
+        data.lastUpdated = 1791978991862;
+      }
+      return data;
     }
   } catch (err) {
     console.error('Error reading database:', err);
   }
-  return { curriculum: {}, notes: [], students: [], colleges: [], notifications: [] };
+  return { curriculum: {}, notes: [], students: [], colleges: [], notifications: [], lastUpdated: 1791978991862 };
 }
 
 // In-memory reference synced to disk and MongoDB
@@ -299,7 +303,7 @@ const server = http.createServer(async (req, res) => {
         activeStudents,
         totalColleges: (db.colleges || []).length,
         vaultStorage: '184.2 MB Encrypted Sandbox',
-        lastUpdated: db.lastUpdated || Date.now(),
+        lastUpdated: db.lastUpdated || 1791978991862,
         latestNotification: latestNotif,
         totalNotifications: (db.notifications || []).length
       });
@@ -565,13 +569,17 @@ const server = http.createServer(async (req, res) => {
       if (req.method === 'POST') {
         const body = await parseBody(req);
         const newNotif = {
+          id: 'notif_' + Date.now(),
           title: body.title,
           target: body.target || 'All Years',
           type: body.type || 'Exam Notification',
           time: 'Just now',
-          body: body.body || ''
+          body: body.body || '',
+          timestamp: Date.now()
         };
+        db.notifications = db.notifications || [];
         db.notifications.unshift(newNotif);
+        db.lastUpdated = Date.now();
         saveDatabase(db);
         return sendJson(res, 201, { success: true, notification: newNotif });
       }
@@ -779,6 +787,19 @@ const server = http.createServer(async (req, res) => {
         createdAt: new Date().toISOString()
       };
       db.notes.unshift(newNote);
+      db.lastUpdated = Date.now();
+      db.notifications = db.notifications || [];
+      const notif = {
+        id: 'notif_' + Date.now(),
+        title: '📚 New Topic Notes Published!',
+        target: year || 'All Years',
+        type: 'Study Note Upload',
+        time: 'Just now',
+        body: `"${newTopic.title}" (${subj.name}) has been uploaded to ${ch.title}.`,
+        timestamp: Date.now(),
+        docId: newNote.id
+      };
+      db.notifications.unshift(notif);
 
       saveDatabase(db);
       return sendJson(res, 201, { success: true, topic: newTopic, chapter: ch, note: newNote });

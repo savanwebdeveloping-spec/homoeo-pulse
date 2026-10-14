@@ -267,17 +267,18 @@ let pdfViewerOriginScreen = 'appScreenDashboard';
 // REAL-TIME BROADCAST & SERVER SYNC CHANNEL
 // ============================================================
 const syncChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('homoeo_pulse_sync') : null;
-let lastKnownNotifId = null;
+const appSessionStartTime = Date.now();
+let lastKnownNotifId = localStorage.getItem('hp_last_seen_notif_id') || null;
 let lastKnownStatsSig = null;
 let isInitialSyncDone = false;
 
 function setupRealtimeSync() {
-  // 1. Instant sync via BroadcastChannel (Same browser / different tabs)
+  // 1. Instant sync via BroadcastChannel (Same device / different tabs)
   if (syncChannel) {
     syncChannel.onmessage = async (event) => {
       if (event.data && event.data.type === 'DATA_UPDATED') {
         console.log('📡 Real-time update signal received from Faculty Admin CMS!');
-        await syncWithBackend(true);
+        await syncWithBackend(false);
       }
     };
   }
@@ -285,7 +286,7 @@ function setupRealtimeSync() {
   // 2. Storage event fallback across tabs
   window.addEventListener('storage', (e) => {
     if (e.key === 'hp_last_sync_time') {
-      syncWithBackend(true);
+      syncWithBackend(false);
     }
   });
 
@@ -297,29 +298,33 @@ function setupRealtimeSync() {
         const stats = await res.json();
         const currentSig = `${stats.totalDocuments}_${stats.lastUpdated || 0}_${stats.totalNotifications || 0}`;
 
+        // FIRST RUN (App Launch / Cold Start):
+        // Record baseline state and DO NOT trigger any notifications for past uploads!
         if (!isInitialSyncDone) {
           isInitialSyncDone = true;
           lastKnownStatsSig = currentSig;
-          lastKnownNotifId = stats.latestNotification ? stats.latestNotification.id : null;
+          if (stats.latestNotification && stats.latestNotification.id) {
+            lastKnownNotifId = stats.latestNotification.id;
+            localStorage.setItem('hp_last_seen_notif_id', stats.latestNotification.id);
+          }
           return;
         }
 
+        // Subsequent runs: Only trigger if something changed while the app was running!
         if (lastKnownStatsSig && currentSig !== lastKnownStatsSig) {
           lastKnownStatsSig = currentSig;
-          const newNotif = stats.latestNotification;
-          const hasNewNotif = newNotif && newNotif.id !== lastKnownNotifId;
-          if (hasNewNotif) {
-            lastKnownNotifId = newNotif.id;
-          }
 
-          // Fetch full database update
+          // Silently refresh books and notes in background
           await syncWithBackend(false);
 
-          // Push alert to phone with notification chime & haptic
-          if (hasNewNotif) {
+          const newNotif = stats.latestNotification;
+          // Trigger notification ONLY if there is a genuinely new notification id
+          if (newNotif && newNotif.id && newNotif.id !== lastKnownNotifId) {
+            lastKnownNotifId = newNotif.id;
+            localStorage.setItem('hp_last_seen_notif_id', newNotif.id);
+
+            // Trigger notification ONLY for the newly uploaded / edited item!
             triggerPhonePushNotification(newNotif.title, newNotif.body, newNotif.docId);
-          } else {
-            triggerPhonePushNotification('🔔 Academic Material Updated', 'Faculty has updated study documents or curriculum topics.');
           }
         }
       }
@@ -383,10 +388,6 @@ async function syncWithBackend(isAutoUpdate = false) {
             renderAppDocsForSubject(updatedSub, currentSubjectSubpart, 'All');
           }
         }
-      }
-
-      if (isAutoUpdate) {
-        triggerPhonePushNotification('Academic Material Synced', 'New study notes or books have just been published by faculty.');
       }
     }
   } catch (err) {
@@ -650,19 +651,6 @@ function triggerPhonePushNotification(title, msg, optDocId = null) {
     clearTimeout(toast._hideTimer);
     toast._hideTimer = setTimeout(() => toast.classList.remove('show'), 6000);
   }
-
-  // 4. Native OS Notification if permitted
-  try {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification(title, {
-        body: msg,
-        icon: 'logo.jpeg',
-        badge: 'logo.jpeg'
-      });
-    } else if ('Notification' in window && Notification.permission !== 'denied') {
-      Notification.requestPermission();
-    }
-  } catch (e) {}
 }
 
 function openNotifDetails() {
