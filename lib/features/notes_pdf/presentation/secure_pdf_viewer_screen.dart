@@ -78,6 +78,11 @@ class _SecurePdfViewerScreenState extends State<SecurePdfViewerScreen> {
         }
         _preparedPdfFile = file;
       }
+
+      // Record real-time student read telemetry to cloud backend
+      try {
+        Dio().post('https://homoeo-pulse.onrender.com/api/notes/${widget.pdf.id}/read').catchError((_) => Response(requestOptions: RequestOptions()));
+      } catch (_) {}
     } catch (e) {
       _errorMessage = 'Failed to load document: $e';
     } finally {

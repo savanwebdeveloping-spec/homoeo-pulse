@@ -155,6 +155,22 @@ const SECURITY_HEADERS = {
 
 const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || 'homoeopulse2025';
 
+// Mirror changes to Live Cloud Production Server if running on local machine
+const IS_LIVE_CLOUD = !!(process.env.RENDER || process.env.PORT == 10000 || process.env.NODE_ENV === 'production');
+function mirrorToLiveCloud(endpoint, method, payload) {
+  if (IS_LIVE_CLOUD) return;
+  try {
+    fetch(`https://homoeo-pulse.onrender.com${endpoint}`, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-key': ADMIN_SECRET_KEY
+      },
+      body: payload ? JSON.stringify(payload) : undefined
+    }).catch(e => console.warn(`[Live Mirror] ${endpoint} notice:`, e.message));
+  } catch (err) {}
+}
+
 // In-Memory IP Rate Limiter
 const ipRequestHistory = new Map();
 function isRateLimited(ip, limit = 200, windowMs = 60000) {
@@ -258,6 +274,18 @@ const server = http.createServer(async (req, res) => {
         }
         if (driveRes.headers.get('content-length')) {
           clientHeaders['Content-Length'] = driveRes.headers.get('content-length');
+        }
+
+        // Record student reading activity if request is initial stream
+        if (!req.headers['range'] || req.headers['range'].startsWith('bytes=0-')) {
+          const matchedDoc = (db.notes || []).find(n => n.fileUrl && n.fileUrl.includes(fileId));
+          if (matchedDoc) {
+            matchedDoc.reads = (Number(matchedDoc.reads || matchedDoc.downloads || 0)) + 1;
+            matchedDoc.downloads = matchedDoc.reads;
+            matchedDoc.lastReadAt = new Date().toISOString();
+            db.lastUpdated = Date.now();
+            saveDatabase(db);
+          }
         }
 
         res.writeHead(driveRes.status, clientHeaders);
@@ -373,6 +401,7 @@ const server = http.createServer(async (req, res) => {
         };
         db.notifications.unshift(notif);
         saveDatabase(db);
+        mirrorToLiveCloud('/api/notes', 'POST', newDoc);
         return sendJson(res, 201, { success: true, doc: newDoc, notification: notif });
       }
     }
@@ -399,6 +428,8 @@ const server = http.createServer(async (req, res) => {
       if (body.pages !== undefined) doc.pages = Number(body.pages) || doc.pages;
       if (body.size !== undefined) doc.size = body.size;
       if (body.summary !== undefined) doc.summary = body.summary;
+      if (body.downloads !== undefined) doc.downloads = Number(body.downloads);
+      if (body.reads !== undefined) doc.reads = Number(body.reads);
       doc.updatedAt = new Date().toISOString();
 
       // Also update matching topic in curriculum if it was a note
@@ -438,6 +469,7 @@ const server = http.createServer(async (req, res) => {
       };
       db.notifications.unshift(notif);
       saveDatabase(db);
+      mirrorToLiveCloud(pathname, 'PUT', body);
       return sendJson(res, 200, { success: true, doc, notification: notif });
     }
 
@@ -482,7 +514,27 @@ const server = http.createServer(async (req, res) => {
         db.notifications.unshift(notif);
       }
       saveDatabase(db);
+      mirrorToLiveCloud(pathname, 'DELETE');
       return sendJson(res, 200, { success: true, message: `Document ${docId} deleted successfully.` });
+    }
+
+    // 4d. Real-Time Document Read Tracker (Invoked when a student reads PDF)
+    if (pathname.match(/^\/api\/notes\/([^\/]+)\/read$/) && (req.method === 'POST' || req.method === 'GET')) {
+      const match = pathname.match(/^\/api\/notes\/([^\/]+)\/read$/);
+      const docId = match ? match[1] : '';
+      const doc = (db.notes || []).find(n => String(n.id) === String(docId));
+      if (!doc) {
+        return sendJson(res, 404, { error: 'Document not found' });
+      }
+
+      doc.reads = (Number(doc.reads || doc.downloads || 0)) + 1;
+      doc.downloads = doc.reads;
+      doc.lastReadAt = new Date().toISOString();
+      db.lastUpdated = Date.now();
+
+      saveDatabase(db);
+      mirrorToLiveCloud(`/api/notes/${docId}/read`, 'POST');
+      return sendJson(res, 200, { success: true, docId: doc.id, reads: doc.reads, downloads: doc.downloads });
     }
 
     // 4c. Delete Curriculum Chapter
@@ -619,10 +671,29 @@ const server = http.createServer(async (req, res) => {
       const savePath = path.join(uploadsDir, safeName);
       fs.writeFileSync(savePath, buffer);
 
+      // If running locally, automatically mirror upload to live Render server
+      if (!IS_LIVE_CLOUD) {
+        fetch('https://homoeo-pulse.onrender.com/api/upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-key': ADMIN_SECRET_KEY
+          },
+          body: JSON.stringify({
+            filename: body.filename,
+            base64Data: body.base64Data
+          })
+        }).catch(err => console.warn('[Live Mirror] Upload warning:', err.message));
+      }
+
+      const fileUrl = IS_LIVE_CLOUD 
+        ? '/uploads/' + safeName 
+        : 'https://homoeo-pulse.onrender.com/uploads/' + safeName;
+
       return sendJson(res, 201, {
         success: true,
         filename: safeName,
-        fileUrl: '/uploads/' + safeName,
+        fileUrl: fileUrl,
         size: (buffer.length / (1024 * 1024)).toFixed(1) + ' MB'
       });
     }
@@ -802,29 +873,8 @@ const server = http.createServer(async (req, res) => {
       db.notifications.unshift(notif);
 
       saveDatabase(db);
+      mirrorToLiveCloud('/api/curriculum/topic', 'POST', body);
       return sendJson(res, 201, { success: true, topic: newTopic, chapter: ch, note: newNote });
-    }
-
-    // 10c. Binary PDF File Upload
-    if (pathname === '/api/upload' && req.method === 'POST') {
-      const body = await parseBody(req);
-      const { filename, base64Data } = body;
-      if (!filename || !base64Data) {
-        return sendJson(res, 400, { error: 'Missing filename or base64Data' });
-      }
-      const safeFilename = Date.now() + '_' + path.basename(filename).replace(/[^a-zA-Z0-9._-]/g, '_');
-      const uploadsDir = path.join(__dirname, 'uploads');
-      if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
-      const filePath = path.join(uploadsDir, safeFilename);
-      const buffer = Buffer.from(base64Data, 'base64');
-      fs.writeFileSync(filePath, buffer);
-      const sizeMB = (buffer.length / (1024 * 1024)).toFixed(1) + ' MB';
-      return sendJson(res, 201, {
-        success: true,
-        fileUrl: '/uploads/' + safeFilename,
-        filename: safeFilename,
-        size: sizeMB
-      });
     }
 
     return sendJson(res, 404, { error: 'API Route Not Found' });

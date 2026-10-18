@@ -163,9 +163,9 @@
       </div>
 
       <div class="admin-top-right">
-        <div class="platform-status" id="systemLiveStatus">
-          <span class="status-indicator"></span>
-          <span id="apiStatusText">REST BACKEND • CONNECTED</span>
+        <div class="platform-status" id="systemLiveStatus" style="background:#ECFDF5;border:1px solid #A7F3D0;padding:6px 14px;border-radius:10px;display:flex;align-items:center;gap:8px;">
+          <span class="status-indicator" style="width:8px;height:8px;border-radius:50%;background:#10B981;box-shadow:0 0 8px #10B981;"></span>
+          <span id="apiStatusText" style="font-size:12px;font-weight:700;color:#047857;">LIVE CLOUD (RENDER) • DIRECT CONNECT</span>
         </div>
         <button id="btnSyncLiveCloud" onclick="syncAllToLiveCloud()" class="btn-sync-live" title="Sync all uploaded PDFs and books directly to the live mobile app on Render Cloud" style="background:linear-gradient(135deg, #10B981, #059669);color:#fff;border:none;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer;box-shadow:0 2px 8px rgba(16,185,129,0.3);">
           <span>⚡</span>
@@ -687,6 +687,12 @@
             <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Page Count</label>
             <input type="number" id="editDocPages" min="1" max="5000" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
           </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">👁️ Total Reads / Views (Live)</label>
+          <input type="number" id="editDocReads" min="0" placeholder="e.g. 54" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Students dwara is document ko padhne ka live count (real-time telemetry).</div>
         </div>
 
         <div class="form-group" style="margin-bottom:14px;background:#F0FDF4;padding:12px;border-radius:10px;border:1px solid #BBF7D0;">

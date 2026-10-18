@@ -291,6 +291,7 @@
           <div class="app-search-box">
             <span style="color:var(--text-muted);">🔍</span>
             <input type="text" placeholder="Search remedies, aphorisms, topics..." id="appSearchInput" oninput="handleAppSearch()">
+            <button type="button" id="appSearchClearBtn" onclick="clearAppSearch()" style="display:none;background:transparent;border:none;cursor:pointer;color:#94A3B8;font-size:14px;padding:2px 6px;line-height:1;" title="Clear search">✕</button>
           </div>
 
           <!-- Pending Profile Setup Notice -->
@@ -350,8 +351,8 @@
             </button>
           </div>
 
-          <!-- Section Heading -->
-          <div class="section-header-box">
+          <!-- Section Heading (Hidden to remove extra text taking up space) -->
+          <div class="section-header-box" style="display: none !important;">
             <h4 class="section-title" id="appSubjectListTitle">1st Year • Standard Textbooks</h4>
             <span class="subpart-badge-tag" id="appSubpartBadge">BOOKS CATALOG</span>
           </div>

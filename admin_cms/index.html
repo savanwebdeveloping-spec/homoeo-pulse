@@ -502,28 +502,35 @@
       const cat = document.getElementById('categorySelect').value;
       const desc = document.getElementById('docDesc').value.trim();
 
-      let fileUrl = '/uploads/organon_of_medicine.pdf';
+      const LIVE_CLOUD_API = 'https://homoeo-pulse.onrender.com';
+      let fileUrl = `${LIVE_CLOUD_API}/uploads/organon_of_medicine.pdf`;
       let sizeStr = '3.5 MB';
 
       if (cmsUploadFileBase64 && cmsUploadFileName) {
         try {
-          const upRes = await fetch('/api/upload', {
+          const upRes = await fetch(`${LIVE_CLOUD_API}/api/upload`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'x-admin-key': 'homoeopulse2025'
+            },
             body: JSON.stringify({ filename: cmsUploadFileName, base64Data: cmsUploadFileBase64 })
           });
           if (upRes.ok) {
             const upData = await upRes.json();
-            fileUrl = upData.fileUrl;
+            fileUrl = upData.fileUrl.startsWith('http') ? upData.fileUrl : `${LIVE_CLOUD_API}${upData.fileUrl}`;
             sizeStr = upData.size;
           }
         } catch (err) {}
       }
 
       try {
-        await fetch('/api/curriculum/topic', {
+        await fetch(`${LIVE_CLOUD_API}/api/curriculum/topic`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-key': 'homoeopulse2025'
+          },
           body: JSON.stringify({
             year,
             subjectName: subject,

@@ -20,6 +20,10 @@ final pdfListBySubjectProvider = StreamProvider.family<List<PdfModel>, String>((
 final searchPdfQueryProvider = StateProvider<String>((ref) => '');
 final selectedCategoryFilterProvider = StateProvider<String>((ref) => 'All Material');
 
+final globalSearchPdfsProvider = FutureProvider.family<List<PdfModel>, String>((ref, query) {
+  return ref.watch(pdfRepositoryProvider).searchPdfs(query: query);
+});
+
 class PdfRepository {
   final FirebaseFirestore _firestore;
   final PdfEncryptionService _encryptionService;

@@ -1047,14 +1047,12 @@ function switchAppTab(tabId) {
   }
 }
 
-let currentSubjectFilter = 'All';
+let currentSubjectFilter = '';
 
 function navigateSubjectCarousel(direction) {
   const subjects = BHMS_CURRICULUM[currentAppYear] || [];
-  const carouselItems = [
-    { id: 'All' },
-    ...subjects.map(s => ({ id: s.name }))
-  ];
+  if (subjects.length === 0) return;
+  const carouselItems = subjects.map(s => ({ id: s.name }));
 
   let activeIndex = carouselItems.findIndex(item => item.id === currentSubjectFilter);
   if (activeIndex === -1) activeIndex = 0;
@@ -1072,10 +1070,8 @@ function navigateSubjectCarousel(direction) {
 
 function jumpToSubjectCarouselIndex(index) {
   const subjects = BHMS_CURRICULUM[currentAppYear] || [];
-  const carouselItems = [
-    { id: 'All' },
-    ...subjects.map(s => ({ id: s.name }))
-  ];
+  if (subjects.length === 0) return;
+  const carouselItems = subjects.map(s => ({ id: s.name }));
   if (carouselItems[index]) {
     currentSubjectFilter = carouselItems[index].id;
     renderAppContentForYear(currentAppYear, currentAppSubpart);
@@ -1099,7 +1095,8 @@ function handleCenterSubjectClick(subjectId) {
 // Select Academic Year Pill
 function selectAppYear(year) {
   currentAppYear = year;
-  currentSubjectFilter = 'All'; // Reset subject filter when switching year
+  const yearSubjects = BHMS_CURRICULUM[year] || [];
+  currentSubjectFilter = yearSubjects.length > 0 ? yearSubjects[0].name : '';
   document.querySelectorAll('#appYearPills .year-pill').forEach(pill => {
     const pYear = pill.getAttribute('data-year') || pill.innerText.trim();
     pill.classList.toggle('active', pYear === year);
@@ -1135,15 +1132,19 @@ function switchYearSubpart(subpart) {
   const badgeEl = document.getElementById('appSubpartBadge');
 
   if (subpart === 'books') {
-    titleEl.innerText = `${currentAppYear} • Standard Textbooks`;
-    badgeEl.innerText = 'BOOKS CATALOG';
-    badgeEl.style.background = 'var(--brand-green-pale)';
-    badgeEl.style.color = 'var(--brand-green)';
+    if (titleEl) titleEl.innerText = `${currentAppYear} • Standard Textbooks`;
+    if (badgeEl) {
+      badgeEl.innerText = 'BOOKS CATALOG';
+      badgeEl.style.background = 'var(--brand-green-pale)';
+      badgeEl.style.color = 'var(--brand-green)';
+    }
   } else {
-    titleEl.innerText = `${currentAppYear} • Curriculum Subjects & Notes`;
-    badgeEl.innerText = 'ACADEMIC NOTES';
-    badgeEl.style.background = '#FEF3C7';
-    badgeEl.style.color = '#B45309';
+    if (titleEl) titleEl.innerText = `${currentAppYear} • Curriculum Subjects & Notes`;
+    if (badgeEl) {
+      badgeEl.innerText = 'ACADEMIC NOTES';
+      badgeEl.style.background = '#FEF3C7';
+      badgeEl.style.color = '#B45309';
+    }
   }
 
   updateYearSubpartCounts();
@@ -1156,28 +1157,34 @@ function renderAppContentForYear(year, subpart) {
   container.innerHTML = '';
 
   const subjects = BHMS_CURRICULUM[year] || [];
+  if (subjects.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);">No subjects found for this year.</div>';
+    return;
+  }
 
   // 1. Render Modern Subject Carousel with Center Display and Left/Right Navigation Arrows
   const carouselWrapper = document.createElement('div');
   carouselWrapper.className = 'subject-carousel-wrapper';
 
-  const carouselItems = [
-    { id: 'All', name: `All Subjects (${subjects.length})`, icon: '📑', countBadge: 'All Subjects' },
-    ...subjects.map((s, idx) => ({ 
-      id: s.name, 
-      name: s.name, 
-      icon: s.icon || '📖', 
-      countBadge: `Subject ${idx + 1} of ${subjects.length}` 
-    }))
-  ];
+  const carouselItems = subjects.map((s, idx) => ({ 
+    id: s.name, 
+    name: s.name, 
+    icon: s.icon || '📖', 
+    countBadge: `Subject ${idx + 1} of ${subjects.length}` 
+  }));
 
   let activeIndex = carouselItems.findIndex(item => item.id === currentSubjectFilter);
   if (activeIndex === -1) {
     activeIndex = 0;
-    currentSubjectFilter = 'All';
+    currentSubjectFilter = carouselItems[0].id;
   }
 
   const currentItem = carouselItems[activeIndex];
+  const currentSubObj = subjects.find(s => s.name === currentItem.id) || subjects[activeIndex];
+  const booksForActiveSub = notesData.filter(d => d.year === year && d.subject === currentItem.id && d.contentType === 'book');
+  const countLabel = subpart === 'books'
+    ? `${booksForActiveSub.length} Standard Books`
+    : `${(currentSubObj && currentSubObj.chapters ? currentSubObj.chapters.length : 0)} Chapters`;
 
   carouselWrapper.innerHTML = `
     <button class="subj-arrow-btn prev" type="button" aria-label="Previous Subject" title="Previous Subject" onclick="navigateSubjectCarousel(-1)">
@@ -1185,9 +1192,10 @@ function renderAppContentForYear(year, subpart) {
         <polyline points="15 18 9 12 15 6"></polyline>
       </svg>
     </button>
-    <div class="subj-center-card" onclick="handleCenterSubjectClick('${currentItem.id}')" title="${currentItem.id === 'All' ? 'Showing all curriculum subjects' : 'Click to view ' + currentItem.name}">
+    <div class="subj-center-card" onclick="handleCenterSubjectClick('${currentItem.id}')" title="Click to view ${currentItem.name}">
       <div class="subj-center-meta">
         <span class="subj-center-badge">${currentItem.countBadge}</span>
+        <span class="subj-center-count-chip">${subpart === 'books' ? '📚' : '📝'} ${countLabel}</span>
       </div>
       <div class="subj-center-info">
         <span class="subj-center-icon">${currentItem.icon}</span>
@@ -1210,36 +1218,17 @@ function renderAppContentForYear(year, subpart) {
 
   container.appendChild(carouselWrapper);
 
-  const activeSubjects = currentSubjectFilter === 'All' 
-    ? subjects 
-    : subjects.filter(s => s.name === currentSubjectFilter);
+  const activeSubjects = subjects.filter(s => s.name === currentSubjectFilter);
 
   if (subpart === 'books') {
-    // --- 1. RENDER STANDARD BOOKS BY SUBJECT ---
+    // --- 1. RENDER STANDARD BOOKS DIRECTLY UNDER CAROUSEL (No duplicate banner) ---
     activeSubjects.forEach(sub => {
       const booksForSub = notesData.filter(d => d.year === year && d.subject === sub.name && d.contentType === 'book');
 
-      // Subject Section Header Banner (Spacious, Full Title, No Truncation)
-      const banner = document.createElement('div');
-      banner.className = 'subject-section-banner';
-      banner.onclick = () => openSubjectByName(sub.name, 'books');
-      banner.style.cursor = 'pointer';
-      banner.title = `Click to view all books for ${sub.name}`;
-      banner.innerHTML = `
-        <div class="ss-header-row">
-          <div class="ss-title-box">
-            <span class="ss-icon">${sub.icon}</span>
-            <span class="ss-title">${sub.name}</span>
-          </div>
-          <span class="ss-badge">${booksForSub.length} Standard Books</span>
-        </div>
-      `;
-      container.appendChild(banner);
-
       if (booksForSub.length === 0) {
         const emptyDiv = document.createElement('div');
-        emptyDiv.style.cssText = 'font-size:11px;color:var(--text-muted);padding:10px 14px;background:#FFFFFF;border-radius:10px;border:1px dashed var(--border);margin-bottom:8px;';
-        emptyDiv.innerText = `No textbook uploaded for ${sub.name} yet.`;
+        emptyDiv.style.cssText = 'font-size:11.5px;color:var(--text-muted);padding:24px 16px;background:#FFFFFF;border-radius:12px;border:1px dashed var(--border);margin-bottom:12px;text-align:center;';
+        emptyDiv.innerHTML = `<span style="font-size:24px;display:block;margin-bottom:6px;">📚</span>No textbooks uploaded for ${sub.name} yet.`;
         container.appendChild(emptyDiv);
       } else {
         booksForSub.forEach(b => {
@@ -1250,7 +1239,7 @@ function renderAppContentForYear(year, subpart) {
               <span>📖</span>
             </div>
             <div class="book-card-details">
-              <div class="book-card-title">${b.title}</div>
+              <div class="book-card-title">${formatDocTitle(b.title)}</div>
               <div class="book-card-author">By ${b.author}</div>
               <div class="book-card-meta">
                 <span class="badge-tag year" style="font-size:9px;padding:1px 6px;">${b.subject}</span>
@@ -1258,7 +1247,7 @@ function renderAppContentForYear(year, subpart) {
                 <span>•</span>
                 <span>${b.size}</span>
                 <span>•</span>
-                <span>${b.downloads} Reads</span>
+                <span>${b.downloads || 0} Reads</span>
               </div>
               <div style="display:flex;gap:6px;margin-top:8px;">
                 <button class="btn-doc-open" style="padding:4px 12px;font-size:10px;" onclick="openPdfViewer('${b.id}')">Read Book</button>
@@ -1274,31 +1263,16 @@ function renderAppContentForYear(year, subpart) {
     });
 
   } else {
-    // --- 2. RENDER ACADEMIC NOTES BY SUBJECT (CHAPTERS & TOPICS) ---
+    // --- 2. RENDER ACADEMIC NOTES CHAPTERS DIRECTLY UNDER CAROUSEL (No duplicate tile) ---
     activeSubjects.forEach(sub => {
       const chapters = sub.chapters || [];
-      const chCount = chapters.length;
-      let topCount = 0;
-      chapters.forEach(c => topCount += (c.topics ? c.topics.length : 0));
 
-      // Subject Interactive Tile: clicking it opens Chapters Screen!
-      const tile = document.createElement('div');
-      tile.className = 'subject-tile';
-      tile.onclick = () => openSubjectChapters(sub);
-      tile.style.cursor = 'pointer';
-      tile.title = `Click to view all chapters for ${sub.name}`;
-      tile.innerHTML = `
-        <div class="subj-icon-box">${sub.icon || '📖'}</div>
-        <div style="flex:1;min-width:0;">
-          <div class="subj-title">${sub.name}</div>
-          <div class="subj-code">${sub.code} • <strong style="color:var(--brand-green);">${chCount} Chapters</strong> • ${topCount} Topics</div>
-        </div>
-        <div class="subj-arrow" style="font-size:18px;font-weight:700;color:var(--brand-green);">›</div>
-      `;
-      container.appendChild(tile);
-
-      // Render chapters under subject with drill-down
-      if (chapters.length > 0) {
+      if (chapters.length === 0) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.style.cssText = 'font-size:11.5px;color:var(--text-muted);padding:24px 16px;background:#FFFFFF;border-radius:12px;border:1px dashed var(--border);margin-bottom:12px;text-align:center;';
+        emptyDiv.innerHTML = `<span style="font-size:24px;display:block;margin-bottom:6px;">📝</span>No chapters uploaded for ${sub.name} yet.`;
+        container.appendChild(emptyDiv);
+      } else {
         chapters.forEach((ch, idx) => {
           const chCard = document.createElement('div');
           chCard.className = 'chapter-card-item';
@@ -1867,39 +1841,119 @@ function filterAppDocsByCategory(cat) {
 
 // In-App Search Handler
 function handleAppSearch() {
-  const query = document.getElementById('appSearchInput').value.toLowerCase().trim();
+  const inputEl = document.getElementById('appSearchInput');
+  const clearBtn = document.getElementById('appSearchClearBtn');
+  const query = (inputEl ? inputEl.value : '').toLowerCase().trim();
+
+  if (clearBtn) {
+    clearBtn.style.display = query ? 'block' : 'none';
+  }
+
+  const container = document.getElementById('appSubjectsContainer');
+  if (!container) return;
+
+  const yearPills = document.getElementById('appYearPills');
+  const yearHeader = document.querySelector('.year-selector-header');
+  const toggleBar = document.querySelector('.subpart-toggle-bar');
+
   if (!query) {
+    if (yearPills) yearPills.style.display = '';
+    if (yearHeader) yearHeader.style.display = '';
+    if (toggleBar) toggleBar.style.display = '';
     renderAppContentForYear(currentAppYear, currentAppSubpart);
     return;
   }
 
-  const container = document.getElementById('appSubjectsContainer');
+  // Hide year pills and toggle bar while actively searching so all matching PDFs across years are shown
+  if (yearPills) yearPills.style.display = 'none';
+  if (yearHeader) yearHeader.style.display = 'none';
+  if (toggleBar) toggleBar.style.display = 'none';
+
   container.innerHTML = '';
 
-  const matchedDocs = notesData.filter(d =>
-    d.title.toLowerCase().includes(query) ||
-    d.author.toLowerCase().includes(query) ||
-    d.summary.toLowerCase().includes(query)
-  );
+  const tokens = query.split(/\s+/).filter(Boolean);
+
+  const matchedDocs = notesData.filter(d => {
+    const title = (d.title || '').toLowerCase();
+    const cleanTitle = (formatDocTitle(d.title) || '').toLowerCase();
+    const subject = (d.subject || '').toLowerCase();
+    const author = (d.author || '').toLowerCase();
+    const category = (d.category || '').toLowerCase();
+    const year = (d.year || '').toLowerCase();
+    const summary = (d.summary || '').toLowerCase();
+    const contentType = (d.contentType === 'book' ? 'book standard textbook' : 'note academic notes study material');
+
+    const searchCorpus = `${title} ${cleanTitle} ${subject} ${author} ${category} ${year} ${summary} ${contentType}`;
+    return tokens.every(token => searchCorpus.includes(token));
+  });
+
+  // Results Header Banner
+  const resultsHeader = document.createElement('div');
+  resultsHeader.className = 'search-results-header';
+  resultsHeader.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:4px 4px 10px;border-bottom:1px solid var(--border);margin-bottom:12px;';
+  resultsHeader.innerHTML = `
+    <div>
+      <span style="font-size:12px;font-weight:800;color:var(--text);">Found ${matchedDocs.length} PDF${matchedDocs.length === 1 ? '' : 's'}</span>
+      <span style="font-size:11px;color:var(--text-muted);margin-left:4px;">for "${query}"</span>
+    </div>
+    <button type="button" onclick="clearAppSearch()" style="background:#F1F5F9;border:1px solid #E2E8F0;border-radius:6px;padding:3px 8px;font-size:10.5px;font-weight:700;color:#64748B;cursor:pointer;">Clear ✕</button>
+  `;
+  container.appendChild(resultsHeader);
 
   if (matchedDocs.length === 0) {
-    container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:12px;">No matching materials found for "${query}"</div>`;
+    const emptyBox = document.createElement('div');
+    emptyBox.style.cssText = 'text-align:center;padding:36px 16px;background:#FFF;border:1px dashed var(--border);border-radius:12px;color:var(--text-muted);margin-top:6px;';
+    emptyBox.innerHTML = `
+      <div style="font-size:32px;margin-bottom:8px;">🔍</div>
+      <div style="font-weight:700;font-size:13px;color:var(--text);">No PDFs matching "${query}"</div>
+      <div style="font-size:11px;margin-top:4px;">Try searching by subject name (e.g. Anatomy, Organon), book title, author, or BHMS year.</div>
+    `;
+    container.appendChild(emptyBox);
     return;
   }
 
   matchedDocs.forEach(doc => {
-    const tile = document.createElement('div');
-    tile.className = 'doc-tile';
-    tile.style.marginBottom = '8px';
-    tile.innerHTML = `
-      <div class="doc-title">${doc.title}</div>
-      <div class="doc-author">${doc.contentType === 'book' ? '📚 Book' : '📝 Note'} • ${doc.subject} • ${doc.year}</div>
-      <div style="margin-top:6px;display:flex;justify-content:flex-end;">
-        <button class="btn-doc-open" onclick="openPdfViewer('${doc.id}')">Read</button>
+    const card = document.createElement('div');
+    card.className = 'book-card-item';
+    card.style.cssText = 'cursor:pointer;margin-bottom:10px;';
+    card.onclick = () => openPdfViewer(doc.id);
+
+    const isBook = doc.contentType === 'book';
+    const cleanTitle = formatDocTitle(doc.title);
+
+    card.innerHTML = `
+      <div class="book-spine-cover" style="background:${isBook ? 'linear-gradient(135deg, #008744 0%, #10B981 100%)' : 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)'};border-left-color:${isBook ? '#006D37' : '#B45309'};">
+        <span>${isBook ? '📖' : '📝'}</span>
+      </div>
+      <div class="book-card-details" style="flex:1;min-width:0;">
+        <div class="book-card-title" style="font-size:12.5px;font-weight:700;line-height:1.3;">${cleanTitle}</div>
+        <div class="book-card-author" style="font-size:11px;color:var(--text-muted);margin-top:2px;">By ${doc.author || 'Faculty Admin'}</div>
+        <div class="book-card-meta" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:6px;">
+          <span class="badge-tag year" style="font-size:9px;padding:1px 6px;background:#E0F2FE;color:#0369A1;">${doc.year}</span>
+          <span class="badge-tag" style="font-size:9px;padding:1px 6px;background:#F1F5F9;color:#334155;">${doc.subject}</span>
+          <span class="badge-tag" style="font-size:9px;padding:1px 6px;background:${isBook ? '#DCFCE7' : '#FEF3C7'};color:${isBook ? '#15803D' : '#B45309'};">${isBook ? 'Standard Book' : 'Study Note'}</span>
+          ${doc.pages ? `<span style="font-size:10px;color:var(--text-muted);">${doc.pages} pgs</span>` : ''}
+          ${doc.size ? `<span style="font-size:10px;color:var(--text-muted);">• ${doc.size}</span>` : ''}
+        </div>
+        <div style="display:flex;gap:6px;margin-top:8px;">
+          <button class="btn-doc-open" style="padding:4px 12px;font-size:10.5px;" onclick="event.stopPropagation(); openPdfViewer('${doc.id}')">Read PDF</button>
+          <button class="btn-doc-download ${doc.downloaded ? 'downloaded' : ''}" style="padding:4px 8px;font-size:10.5px;" onclick="event.stopPropagation(); toggleDocDownload('${doc.id}')">
+            ${doc.downloaded ? '✓ Offline' : '📥 Save'}
+          </button>
+        </div>
       </div>
     `;
-    container.appendChild(tile);
+    container.appendChild(card);
   });
+}
+
+function clearAppSearch() {
+  const inputEl = document.getElementById('appSearchInput');
+  if (inputEl) {
+    inputEl.value = '';
+    inputEl.focus();
+  }
+  handleAppSearch();
 }
 
 // ============================================================
@@ -1911,6 +1965,12 @@ async function openPdfViewer(docId) {
 
   currentViewingDoc = doc;
   currentViewerPage = 1;
+
+  // Real-time student read telemetry
+  try {
+    const apiBase = (typeof API_BASE !== 'undefined') ? API_BASE : 'https://homoeo-pulse.onrender.com';
+    fetch(`${apiBase}/api/notes/${doc.id}/read`, { method: 'POST' }).catch(() => {});
+  } catch (e) {}
 
   document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
   document.getElementById('appScreenPdfViewer').classList.add('active');

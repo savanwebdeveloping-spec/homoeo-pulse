@@ -11,6 +11,7 @@ import '../../bookmarks_recents/domain/reading_progress_model.dart';
 import '../../notes_pdf/presentation/pdf_list_screen.dart';
 import '../../notes_pdf/presentation/secure_pdf_viewer_screen.dart';
 import '../../notes_pdf/domain/pdf_model.dart';
+import '../../notes_pdf/data/pdf_repository.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -21,6 +22,7 @@ class DashboardScreen extends ConsumerStatefulWidget {
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   IconData _getSubjectIcon(String iconName) {
     switch (iconName) {
@@ -168,22 +170,122 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: 'Search remedies, organon aphorisms, PYQs...',
+                    hintText: 'Search remedies, aphorisms, topics...',
                     prefixIcon: const Icon(Icons.search_rounded, color: AppTheme.primaryTeal),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
                             icon: const Icon(Icons.clear),
-                            onPressed: () => setState(() => _searchController.clear()),
+                            onPressed: () => setState(() {
+                              _searchController.clear();
+                              _searchQuery = '';
+                            }),
                           )
                         : const Icon(Icons.tune_rounded, size: 20),
                     fillColor: isDark ? AppTheme.surfaceDark : Colors.white,
                   ),
-                  onSubmitted: (query) {
-                    // Navigate to search
+                  onChanged: (val) {
+                    setState(() {
+                      _searchQuery = val.trim();
+                    });
                   },
                 ),
               ),
             ),
+
+            if (_searchQuery.isNotEmpty) ...[
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Search Results',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                      ),
+                      TextButton(
+                        onPressed: () => setState(() {
+                          _searchController.clear();
+                          _searchQuery = '';
+                        }),
+                        child: const Text('Clear ✕'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              ref.watch(globalSearchPdfsProvider(_searchQuery)).when(
+                data: (results) {
+                  if (results.isEmpty) {
+                    return SliverToBoxAdapter(
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(40),
+                          child: Column(
+                            children: [
+                              const Icon(Icons.search_off_rounded, size: 48, color: Colors.grey),
+                              const SizedBox(height: 12),
+                              Text('No materials found for "$_searchQuery"'),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+                  return SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final pdf = results[index];
+                          final isBook = pdf.category.toLowerCase().contains('book') || pdf.category.toLowerCase().contains('textbook');
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                            ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                              leading: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: isBook ? AppTheme.primaryTeal.withOpacity(0.12) : AppTheme.amberGold.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(isBook ? Icons.menu_book_rounded : Icons.note_alt_rounded, color: isBook ? AppTheme.primaryTeal : AppTheme.amberGold),
+                              ),
+                              title: Text(pdf.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text('${pdf.bhmsYear} • ${pdf.subjectName} • ${pdf.authorOrFaculty}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11)),
+                              ),
+                              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SecurePdfViewerScreen(pdf: pdf),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                        itemCount: results.length,
+                      ),
+                    ),
+                  );
+                },
+                loading: () => const SliverToBoxAdapter(
+                  child: Center(child: Padding(padding: EdgeInsets.all(30), child: CircularProgressIndicator())),
+                ),
+                error: (err, _) => SliverToBoxAdapter(
+                  child: Center(child: Text('Error: $err')),
+                ),
+              ),
+            ] else ...[
 
             // Continue Reading Banner (if student was reading)
             if (lastRead != null)
@@ -410,45 +512,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               ),
             ),
 
-            // Section Header
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      selectedSubpart == 'books'
-                          ? '$selectedYear • Standard Textbooks'
-                          : 'Curriculum Subjects & Notes ($selectedYear)',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: selectedSubpart == 'books'
-                            ? AppTheme.primaryTeal.withOpacity(0.15)
-                            : AppTheme.amberGold.withOpacity(0.18),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        selectedSubpart == 'books' ? 'BOOKS CATALOG' : 'ACADEMIC NOTES',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: selectedSubpart == 'books' ? AppTheme.primaryTeal : AppTheme.amberGold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
             // Subjects Grid / List
             subjectsAsync.when(
               data: (subjects) => SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.fromLTRB(20, 6, 20, 20),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
@@ -471,8 +538,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 child: Center(child: Text('Error loading subjects: $err')),
               ),
             ),
+          ],
 
-            const SliverToBoxAdapter(child: SizedBox(height: 30)),
+          const SliverToBoxAdapter(child: SizedBox(height: 30)),
           ],
         ),
       ),

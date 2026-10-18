@@ -9,7 +9,7 @@ let BHMS_CURRICULUM = (window.HOMOEO_DEFAULT_DATA && window.HOMOEO_DEFAULT_DATA.
 let notesData = (window.HOMOEO_DEFAULT_DATA && window.HOMOEO_DEFAULT_DATA.notes) ? window.HOMOEO_DEFAULT_DATA.notes : [];
 let currentAppYear = '1st Year';
 let currentAppSubpart = 'books';
-let currentSubjectFilter = 'All';
+let currentSubjectFilter = '';
 let currentSubjectCarouselIndex = 0;
 let currentSelectedSubject = null;
 let currentSelectedChapter = null;
@@ -697,7 +697,8 @@ function selectAppYear(year) {
   document.querySelectorAll('#appYearPills .year-pill').forEach(pill => {
     pill.classList.toggle('active', pill.getAttribute('data-year') === year);
   });
-  currentSubjectFilter = 'All';
+  const yearSubjects = BHMS_CURRICULUM[year] || [];
+  currentSubjectFilter = yearSubjects.length > 0 ? yearSubjects[0].name : '';
   currentSubjectCarouselIndex = 0;
   updateYearSubpartCounts();
   renderAppContentForYear(year, currentAppSubpart);
@@ -753,27 +754,33 @@ function renderAppContentForYear(year, subpart) {
   container.innerHTML = '';
 
   const subjects = BHMS_CURRICULUM[year] || [];
+  if (subjects.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);">No subjects found for this year.</div>';
+    return;
+  }
 
-  // 1. Subject Carousel
+  // 1. Subject Carousel (Curriculum Subjects Only)
   const carouselWrapper = document.createElement('div');
   carouselWrapper.className = 'subject-carousel-wrapper';
 
-  const carouselItems = [
-    { id: 'All', name: `All Subjects (${subjects.length})`, icon: '📚', countBadge: 'All Subjects' },
-    ...subjects.map((s, idx) => ({
-      id: s.name,
-      name: s.name,
-      icon: s.icon || '📖',
-      countBadge: `Subject ${idx + 1} of ${subjects.length}`
-    }))
-  ];
+  const carouselItems = subjects.map((s, idx) => ({
+    id: s.name,
+    name: s.name,
+    icon: s.icon || '📖',
+    countBadge: `Subject ${idx + 1} of ${subjects.length}`
+  }));
 
   let activeIndex = carouselItems.findIndex(item => item.id === currentSubjectFilter);
   if (activeIndex === -1) {
     activeIndex = 0;
-    currentSubjectFilter = 'All';
+    currentSubjectFilter = carouselItems[0].id;
   }
   const currentItem = carouselItems[activeIndex];
+  const currentSubObj = subjects.find(s => s.name === currentItem.id) || subjects[activeIndex];
+  const booksForActiveSub = notesData.filter(d => d.year === year && d.subject === currentItem.id && d.contentType === 'book');
+  const countLabel = subpart === 'books'
+    ? `${booksForActiveSub.length} Standard Books`
+    : `${(currentSubObj && currentSubObj.chapters ? currentSubObj.chapters.length : 0)} Chapters`;
 
   carouselWrapper.innerHTML = `
     <button class="subj-arrow-btn prev" type="button" aria-label="Previous Subject" onclick="navigateSubjectCarousel(-1)">
@@ -782,6 +789,7 @@ function renderAppContentForYear(year, subpart) {
     <div class="subj-center-card" onclick="handleCenterSubjectClick('${currentItem.id}')">
       <div class="subj-center-meta">
         <span class="subj-center-badge">${currentItem.countBadge}</span>
+        <span class="subj-center-count-chip">${subpart === 'books' ? '📚' : '📝'} ${countLabel}</span>
       </div>
       <div class="subj-center-info">
         <span class="subj-center-icon">${currentItem.icon}</span>
@@ -824,32 +832,17 @@ function renderAppContentForYear(year, subpart) {
 
   container.appendChild(carouselWrapper);
 
-  const activeSubjects = currentSubjectFilter === 'All' ? subjects : subjects.filter(s => s.name === currentSubjectFilter);
+  const activeSubjects = subjects.filter(s => s.name === currentSubjectFilter);
 
-  // 2. Render Textbooks or Notes
+  // 2. Render Textbooks or Notes directly under Subject Carousel (No duplicate banner)
   if (subpart === 'books') {
     activeSubjects.forEach(sub => {
       const booksForSub = notesData.filter(d => d.year === year && d.subject === sub.name && d.contentType === 'book');
 
-      const banner = document.createElement('div');
-      banner.className = 'subject-section-banner';
-      banner.onclick = () => openSubjectByName(sub.name, 'books');
-      banner.style.cursor = 'pointer';
-      banner.innerHTML = `
-        <div class="ss-header-row">
-          <div class="ss-title-box">
-            <span class="ss-icon">${sub.icon || '📖'}</span>
-            <span class="ss-title">${sub.name}</span>
-          </div>
-          <span class="ss-badge">${booksForSub.length} Standard Books</span>
-        </div>
-      `;
-      container.appendChild(banner);
-
       if (booksForSub.length === 0) {
         const emptyDiv = document.createElement('div');
-        emptyDiv.style.cssText = 'font-size:11px;color:var(--text-muted);padding:10px 14px;background:#FFFFFF;border-radius:10px;border:1px dashed var(--border);margin-bottom:8px;';
-        emptyDiv.innerText = `No textbook uploaded for ${sub.name} yet.`;
+        emptyDiv.style.cssText = 'font-size:11.5px;color:var(--text-muted);padding:24px 16px;background:#FFFFFF;border-radius:12px;border:1px dashed var(--border);margin-bottom:12px;text-align:center;';
+        emptyDiv.innerHTML = `<span style="font-size:24px;display:block;margin-bottom:6px;">📚</span>No textbooks uploaded for ${sub.name} yet.`;
         container.appendChild(emptyDiv);
       } else {
         booksForSub.forEach(b => {
@@ -883,28 +876,16 @@ function renderAppContentForYear(year, subpart) {
       }
     });
   } else {
-    // 3. Render Academic Notes by Subject (Chapters & Topics)
+    // 3. Render Academic Notes Chapters directly under Subject Carousel (No duplicate tile)
     activeSubjects.forEach(sub => {
       const chapters = sub.chapters || [];
-      const chCount = chapters.length;
-      let topCount = 0;
-      chapters.forEach(c => topCount += (c.topics ? c.topics.length : 0));
 
-      const tile = document.createElement('div');
-      tile.className = 'subject-tile';
-      tile.onclick = () => openSubjectChapters(sub);
-      tile.style.cursor = 'pointer';
-      tile.innerHTML = `
-        <div class="subj-icon-box">${sub.icon || '📖'}</div>
-        <div style="flex:1;min-width:0;">
-          <div class="subj-title">${sub.name}</div>
-          <div class="subj-code">${sub.code || 'AYUSH'} • <strong style="color:var(--brand-green);">${chCount} Chapters</strong> • ${topCount} Topics</div>
-        </div>
-        <div class="subj-arrow" style="font-size:18px;font-weight:700;color:var(--brand-green);">›</div>
-      `;
-      container.appendChild(tile);
-
-      if (chapters.length > 0) {
+      if (chapters.length === 0) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.style.cssText = 'font-size:11.5px;color:var(--text-muted);padding:24px 16px;background:#FFFFFF;border-radius:12px;border:1px dashed var(--border);margin-bottom:12px;text-align:center;';
+        emptyDiv.innerHTML = `<span style="font-size:24px;display:block;margin-bottom:6px;">📝</span>No chapters uploaded for ${sub.name} yet.`;
+        container.appendChild(emptyDiv);
+      } else {
         chapters.forEach(ch => {
           const chEl = document.createElement('div');
           chEl.className = 'chapter-drill-pill';
@@ -924,25 +905,19 @@ function renderAppContentForYear(year, subpart) {
 }
 
 function handleCenterSubjectClick(subjectId) {
-  if (subjectId === 'All') {
-    const subjects = BHMS_CURRICULUM[currentAppYear] || [];
-    if (subjects.length > 0) {
-      currentSubjectFilter = subjects[0].name;
-    }
-  } else {
-    const sub = (BHMS_CURRICULUM[currentAppYear] || []).find(s => s.name === subjectId);
-    if (sub) {
-      if (currentAppSubpart === 'books') openSubjectByName(sub.name, 'books');
-      else openSubjectChapters(sub);
-    }
+  const sub = (BHMS_CURRICULUM[currentAppYear] || []).find(s => s.name === subjectId);
+  if (sub) {
+    if (currentAppSubpart === 'books') openSubjectByName(sub.name, 'books');
+    else openSubjectChapters(sub);
   }
-  renderAppContentForYear(currentAppYear, currentAppSubpart);
 }
 
 function navigateSubjectCarousel(direction) {
   const subjects = BHMS_CURRICULUM[currentAppYear] || [];
-  const carouselItems = ['All', ...subjects.map(s => s.name)];
+  if (subjects.length === 0) return;
+  const carouselItems = subjects.map(s => s.name);
   let idx = carouselItems.indexOf(currentSubjectFilter);
+  if (idx === -1) idx = 0;
   idx = (idx + direction + carouselItems.length) % carouselItems.length;
   currentSubjectFilter = carouselItems[idx];
   renderAppContentForYear(currentAppYear, currentAppSubpart);
@@ -950,7 +925,8 @@ function navigateSubjectCarousel(direction) {
 
 function jumpToSubjectCarouselIndex(idx) {
   const subjects = BHMS_CURRICULUM[currentAppYear] || [];
-  const carouselItems = ['All', ...subjects.map(s => s.name)];
+  if (subjects.length === 0) return;
+  const carouselItems = subjects.map(s => s.name);
   if (idx >= 0 && idx < carouselItems.length) {
     currentSubjectFilter = carouselItems[idx];
     renderAppContentForYear(currentAppYear, currentAppSubpart);
@@ -1235,6 +1211,31 @@ function filterAppDocsByCategory(cat) {
   if (currentSelectedSubject) renderAppDocsForSubject(currentSelectedSubject, currentSubjectSubpart, cat);
 }
 
+function trackDocumentRead(docId) {
+  if (!docId) return;
+  try {
+    const doc = notesData.find(n => String(n.id) === String(docId));
+    if (doc) {
+      doc.reads = (Number(doc.reads || doc.downloads || 0)) + 1;
+      doc.downloads = doc.reads;
+      if (syncChannel) syncChannel.postMessage({ type: 'READ_COUNT_UPDATED', docId, reads: doc.reads });
+    }
+
+    const apiHost = (typeof API_BASE_URL !== 'undefined' && API_BASE_URL) ? API_BASE_URL : 'https://homoeo-pulse.onrender.com';
+    fetch(`${apiHost}/api/notes/${docId}/read`, { method: 'POST' })
+      .then(r => r.ok ? r.json() : null)
+      .then(res => {
+        if (res && res.success && doc) {
+          doc.reads = res.reads;
+          doc.downloads = res.reads;
+          if (syncChannel) syncChannel.postMessage({ type: 'READ_COUNT_UPDATED', docId, reads: res.reads });
+        }
+      })
+      .catch(() => {});
+  } catch (e) {}
+}
+window.trackDocumentRead = trackDocumentRead;
+
 // ============================================================
 // PDF VIEWER & ENGINE
 // ============================================================
@@ -1254,6 +1255,9 @@ async function openPdfViewer(docIdOrObj) {
 
   currentViewingDoc = doc;
   currentViewerPage = 1;
+
+  // Track live real-time read telemetry
+  trackDocumentRead(doc.id);
 
   // Track screen to return to
   const activeScreen = document.querySelector('.app-screen.active');
@@ -2257,52 +2261,121 @@ window.addEventListener('popstate', (e) => {
 // SEARCH & TAB NAVIGATION
 // ============================================================
 function handleAppSearch() {
-  const query = document.getElementById('appSearchInput').value.toLowerCase().trim();
-  if (!query) {
-    renderAppContentForYear(currentAppYear, currentAppSubpart);
-    return;
+  const inputEl = document.getElementById('appSearchInput');
+  const clearBtn = document.getElementById('appSearchClearBtn');
+  const query = (inputEl ? inputEl.value : '').toLowerCase().trim();
+
+  if (clearBtn) {
+    clearBtn.style.display = query ? 'block' : 'none';
   }
 
   const container = document.getElementById('appSubjectsContainer');
   if (!container) return;
-  container.innerHTML = '';
 
-  const matchedDocs = notesData.filter(d =>
-    d.title.toLowerCase().includes(query) ||
-    d.subject.toLowerCase().includes(query) ||
-    d.summary.toLowerCase().includes(query) ||
-    d.author.toLowerCase().includes(query)
-  );
+  const yearPills = document.getElementById('appYearPills');
+  const yearHeader = document.querySelector('.year-selector-header');
+  const toggleBar = document.querySelector('.subpart-toggle-bar');
 
-  if (matchedDocs.length === 0) {
-    container.innerHTML = `
-      <div style="text-align:center;padding:36px 16px;background:#FFF;border:1px dashed var(--border);border-radius:12px;color:var(--text-muted);">
-        <div style="font-size:28px;margin-bottom:6px;">🔍</div>
-        <div style="font-weight:700;">No results found for "${query}"</div>
-      </div>
-    `;
+  if (!query) {
+    if (yearPills) yearPills.style.display = '';
+    if (yearHeader) yearHeader.style.display = '';
+    if (toggleBar) toggleBar.style.display = '';
+    renderAppContentForYear(currentAppYear, currentAppSubpart);
     return;
   }
 
+  // Hide year pills and toggle bar while actively searching so all matching PDFs across years are shown
+  if (yearPills) yearPills.style.display = 'none';
+  if (yearHeader) yearHeader.style.display = 'none';
+  if (toggleBar) toggleBar.style.display = 'none';
+
+  container.innerHTML = '';
+
+  // Multi-term token matching (all keywords must match in any of title, subject, author, category, year, summary)
+  const tokens = query.split(/\s+/).filter(Boolean);
+
+  const matchedDocs = notesData.filter(d => {
+    const title = (d.title || '').toLowerCase();
+    const cleanTitle = (formatDocTitle(d.title) || '').toLowerCase();
+    const subject = (d.subject || '').toLowerCase();
+    const author = (d.author || '').toLowerCase();
+    const category = (d.category || '').toLowerCase();
+    const year = (d.year || '').toLowerCase();
+    const summary = (d.summary || '').toLowerCase();
+    const contentType = (d.contentType === 'book' ? 'book standard textbook' : 'note academic notes study material');
+
+    const searchCorpus = `${title} ${cleanTitle} ${subject} ${author} ${category} ${year} ${summary} ${contentType}`;
+    return tokens.every(token => searchCorpus.includes(token));
+  });
+
+  // Results Header Banner
+  const resultsHeader = document.createElement('div');
+  resultsHeader.className = 'search-results-header';
+  resultsHeader.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:4px 4px 10px;border-bottom:1px solid var(--border);margin-bottom:12px;';
+  resultsHeader.innerHTML = `
+    <div>
+      <span style="font-size:12px;font-weight:800;color:var(--text);">Found ${matchedDocs.length} PDF${matchedDocs.length === 1 ? '' : 's'}</span>
+      <span style="font-size:11px;color:var(--text-muted);margin-left:4px;">for "${query}"</span>
+    </div>
+    <button type="button" onclick="clearAppSearch()" style="background:#F1F5F9;border:1px solid #E2E8F0;border-radius:6px;padding:3px 8px;font-size:10.5px;font-weight:700;color:#64748B;cursor:pointer;">Clear ✕</button>
+  `;
+  container.appendChild(resultsHeader);
+
+  if (matchedDocs.length === 0) {
+    const emptyBox = document.createElement('div');
+    emptyBox.style.cssText = 'text-align:center;padding:36px 16px;background:#FFF;border:1px dashed var(--border);border-radius:12px;color:var(--text-muted);margin-top:6px;';
+    emptyBox.innerHTML = `
+      <div style="font-size:32px;margin-bottom:8px;">🔍</div>
+      <div style="font-weight:700;font-size:13px;color:var(--text);">No PDFs matching "${query}"</div>
+      <div style="font-size:11px;margin-top:4px;">Try searching by subject name (e.g. Anatomy, Organon), book title, author, or BHMS year.</div>
+    `;
+    container.appendChild(emptyBox);
+    return;
+  }
+
+  // Render nicely arranged matching PDF cards
   matchedDocs.forEach(doc => {
     const card = document.createElement('div');
     card.className = 'book-card-item';
+    card.style.cssText = 'cursor:pointer;margin-bottom:10px;';
+    card.onclick = () => openPdfViewer(doc.id);
+
+    const isBook = doc.contentType === 'book';
+    const cleanTitle = formatDocTitle(doc.title);
+
     card.innerHTML = `
-      <div class="book-spine-cover"><span>${doc.contentType === 'book' ? '📖' : '📝'}</span></div>
-      <div class="book-card-details">
-        <div class="book-card-title">${doc.title}</div>
-        <div class="book-card-author">By ${doc.author}</div>
-        <div class="book-card-meta">
-          <span class="badge-tag year" style="font-size:9px;padding:1px 6px;">${doc.year} • ${doc.subject}</span>
-          <span>${doc.pages} pgs</span>
+      <div class="book-spine-cover" style="background:${isBook ? 'linear-gradient(135deg, #008744 0%, #10B981 100%)' : 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)'};border-left-color:${isBook ? '#006D37' : '#B45309'};">
+        <span>${isBook ? '📖' : '📝'}</span>
+      </div>
+      <div class="book-card-details" style="flex:1;min-width:0;">
+        <div class="book-card-title" style="font-size:12.5px;font-weight:700;line-height:1.3;">${cleanTitle}</div>
+        <div class="book-card-author" style="font-size:11px;color:var(--text-muted);margin-top:2px;">By ${doc.author || 'Faculty Admin'}</div>
+        <div class="book-card-meta" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:6px;">
+          <span class="badge-tag year" style="font-size:9px;padding:1px 6px;background:#E0F2FE;color:#0369A1;">${doc.year}</span>
+          <span class="badge-tag" style="font-size:9px;padding:1px 6px;background:#F1F5F9;color:#334155;">${doc.subject}</span>
+          <span class="badge-tag" style="font-size:9px;padding:1px 6px;background:${isBook ? '#DCFCE7' : '#FEF3C7'};color:${isBook ? '#15803D' : '#B45309'};">${isBook ? 'Standard Book' : 'Study Note'}</span>
+          ${doc.pages ? `<span style="font-size:10px;color:var(--text-muted);">${doc.pages} pgs</span>` : ''}
+          ${doc.size ? `<span style="font-size:10px;color:var(--text-muted);">• ${doc.size}</span>` : ''}
         </div>
         <div style="display:flex;gap:6px;margin-top:8px;">
-          <button class="btn-doc-open" style="padding:4px 12px;font-size:10px;" onclick="openPdfViewer('${doc.id}')">Read</button>
+          <button class="btn-doc-open" style="padding:4px 12px;font-size:10.5px;" onclick="event.stopPropagation(); openPdfViewer('${doc.id}')">Read PDF</button>
+          <button class="btn-doc-download ${doc.downloaded ? 'downloaded' : ''}" style="padding:4px 8px;font-size:10.5px;" onclick="event.stopPropagation(); toggleDocDownload('${doc.id}')">
+            ${doc.downloaded ? '✓ Offline' : '📥 Save'}
+          </button>
         </div>
       </div>
     `;
     container.appendChild(card);
   });
+}
+
+function clearAppSearch() {
+  const inputEl = document.getElementById('appSearchInput');
+  if (inputEl) {
+    inputEl.value = '';
+    inputEl.focus();
+  }
+  handleAppSearch();
 }
 
 function switchAppTab(tabName) {

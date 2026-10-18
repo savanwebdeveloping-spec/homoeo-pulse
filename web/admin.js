@@ -24,15 +24,22 @@ let selectedUploadFileSizeStr = '3.5 MB';
 
 function formatDriveUrl(rawUrl) {
   if (!rawUrl) return '';
-  if (rawUrl.includes('/api/pdf-stream?file=')) return rawUrl;
+  if (rawUrl.includes('/api/pdf-stream?file=')) {
+    if (!rawUrl.startsWith('http')) return `${LIVE_CLOUD_API}${rawUrl.startsWith('/') ? '' : '/'}${rawUrl}`;
+    return rawUrl;
+  }
   const match = rawUrl.match(/(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?export=download&id=)|id=|file=)([a-zA-Z0-9_-]{25,})/i);
   if (match && match[1]) {
-    return `/api/pdf-stream?file=${match[1]}`;
+    return `${LIVE_CLOUD_API}/api/pdf-stream?file=${match[1]}`;
+  }
+  if (rawUrl.startsWith('/uploads/')) {
+    return `${LIVE_CLOUD_API}${rawUrl}`;
   }
   return rawUrl;
 }
 
 const LIVE_CLOUD_API = 'https://homoeo-pulse.onrender.com';
+const API_BASE = LIVE_CLOUD_API; // ALL operations permanently target Live Cloud Server
 const DEFAULT_ADMIN_PASSCODE = 'homoeopulse2025';
 
 async function syncAllToLiveCloud() {
@@ -44,6 +51,17 @@ async function syncAllToLiveCloud() {
   }
 
   try {
+    let sourceNotes = notesData;
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      try {
+        const localRes = await fetch('/api/bootstrap');
+        if (localRes.ok) {
+          const localData = await localRes.json();
+          if (Array.isArray(localData.notes)) sourceNotes = localData.notes;
+        }
+      } catch (e) {}
+    }
+
     // 1. Fetch current live notes from Render
     const liveRes = await fetch(`${LIVE_CLOUD_API}/api/bootstrap`);
     if (!liveRes.ok) throw new Error('Live cloud server not reachable');
@@ -51,7 +69,7 @@ async function syncAllToLiveCloud() {
     const liveIds = new Set((liveDb.notes || []).map(n => n.id));
 
     // 2. Upload any local notes missing on live
-    const toAdd = notesData.filter(n => !liveIds.has(n.id)).reverse();
+    const toAdd = sourceNotes.filter(n => !liveIds.has(n.id)).reverse();
     let addedCount = 0;
 
     for (let doc of toAdd) {
@@ -67,14 +85,17 @@ async function syncAllToLiveCloud() {
     }
 
     // 3. Remove from live any notes deleted locally
-    const localIds = new Set(notesData.map(n => n.id));
-    const toDelete = (liveDb.notes || []).filter(n => !localIds.has(n.id));
+    const sourceIds = new Set(sourceNotes.map(n => n.id));
+    const toDelete = (liveDb.notes || []).filter(n => !sourceIds.has(n.id));
     for (let doc of toDelete) {
       await fetch(`${LIVE_CLOUD_API}/api/notes/${doc.id}`, {
         method: 'DELETE',
         headers: { 'x-admin-key': DEFAULT_ADMIN_PASSCODE }
       });
     }
+
+    await loadAdminData(true);
+    updateLiveNotesCountBadge();
 
     alert(`✅ Synced with Live Student App!\n\nAll ${notesData.length} academic PDFs/books are now live on your phone.`);
   } catch (err) {
@@ -148,25 +169,85 @@ function getAdminHeaders() {
 // ============================================================
 // INITIALIZATION & DATA SYNC
 // ============================================================
+let syncPollInterval = null;
+
+function updateLiveNotesCountBadge() {
+  const badgeEl = document.getElementById('badge-notes-count');
+  if (badgeEl) {
+    badgeEl.innerText = notesData.length;
+    badgeEl.setAttribute('title', `Live Repository: ${notesData.length} uploaded notes & books`);
+  }
+}
+window.updateLiveNotesCountBadge = updateLiveNotesCountBadge;
+
 document.addEventListener('DOMContentLoaded', async () => {
   checkAdminAuthGate();
   await loadAdminData();
   setupSyncListener();
+  startLivePolling();
 });
 
 function setupSyncListener() {
   if (syncChannel) {
     syncChannel.onmessage = (event) => {
-      if (event.data && event.data.type === 'STUDENT_ACTIVITY') {
+      if (event.data && (event.data.type === 'STUDENT_ACTIVITY' || event.data.type === 'DATA_UPDATED')) {
         loadAdminData(true);
+      }
+      if (event.data && event.data.type === 'READ_COUNT_UPDATED') {
+        const doc = notesData.find(d => String(d.id) === String(event.data.docId));
+        if (doc) {
+          doc.reads = event.data.reads;
+          doc.downloads = event.data.reads;
+        }
+        const valEl = document.getElementById(`reads-val-${event.data.docId}`);
+        if (valEl) {
+          valEl.innerText = event.data.reads;
+          valEl.parentElement.style.transform = 'scale(1.2)';
+          valEl.parentElement.style.transition = 'transform 0.25s ease';
+          setTimeout(() => { valEl.parentElement.style.transform = 'scale(1)'; }, 350);
+        }
       }
     };
   }
+  // Auto-sync whenever admin switches back to the tab
+  window.addEventListener('focus', () => {
+    loadAdminData(true);
+  });
+}
+
+function startLivePolling() {
+  if (syncPollInterval) clearInterval(syncPollInterval);
+  // Real-time heartbeat check every 6 seconds so counts and documents are always live
+  syncPollInterval = setInterval(async () => {
+    if (document.visibilityState === 'visible') {
+      try {
+        const res = await fetch(`${API_BASE}/api/bootstrap`);
+        if (res.ok) {
+          const data = await res.json();
+          const remoteNotes = Array.isArray(data.notes) ? data.notes : [];
+          const remoteIds = remoteNotes.map(n => n.id).join(',');
+          const localIds = notesData.map(n => n.id).join(',');
+
+          if (remoteNotes.length !== notesData.length || remoteIds !== localIds) {
+            notesData = remoteNotes;
+            if (data.curriculum) BHMS_CURRICULUM = data.curriculum;
+            if (data.students) studentsData = data.students;
+            if (data.colleges) collegesData = data.colleges;
+            if (data.notifications) notificationHistory = data.notifications;
+
+            updateLiveNotesCountBadge();
+            renderAdminNotesTable();
+            updateAnalyticsStats();
+          }
+        }
+      } catch (e) {}
+    }
+  }, 6000);
 }
 
 async function loadAdminData(silent = false) {
   try {
-    const res = await fetch('/api/bootstrap');
+    const res = await fetch(`${API_BASE}/api/bootstrap`);
     if (res.ok) {
       const data = await res.json();
       notesData = Array.isArray(data.notes) ? data.notes : [];
@@ -175,6 +256,7 @@ async function loadAdminData(silent = false) {
       collegesData = Array.isArray(data.colleges) ? data.colleges : [];
       notificationHistory = Array.isArray(data.notifications) ? data.notifications : [];
 
+      updateLiveNotesCountBadge();
       populateAdminFilterSubjects();
       renderAdminNotesTable();
       renderAdminCurriculumTree(currentAdminCurriculumYear);
@@ -184,16 +266,45 @@ async function loadAdminData(silent = false) {
       updateModalSubjectDropdown();
       updateAnalyticsStats();
 
-      document.getElementById('apiStatusText').innerText = 'REST BACKEND • CONNECTED';
+      const statusText = document.getElementById('apiStatusText');
+      if (statusText) statusText.innerText = 'LIVE CLOUD (RENDER) • CONNECTED';
       const statusEl = document.getElementById('systemLiveStatus');
       if (statusEl) {
         statusEl.style.background = 'var(--brand-green-pale)';
         statusEl.style.borderColor = '#A7F3D0';
       }
+    } else {
+      throw new Error(`Server returned status: ${res.status}`);
     }
   } catch (err) {
-    console.warn('Backend load error:', err);
-    document.getElementById('apiStatusText').innerText = 'OFFLINE / STANDALONE';
+    console.warn('Live cloud load error, checking local fallback:', err);
+    try {
+      const localRes = await fetch('/api/bootstrap');
+      if (localRes.ok) {
+        const localData = await localRes.json();
+        notesData = Array.isArray(localData.notes) ? localData.notes : [];
+        BHMS_CURRICULUM = (localData.curriculum && Object.keys(localData.curriculum).length > 0) ? localData.curriculum : {};
+        studentsData = Array.isArray(localData.students) ? localData.students : [];
+        collegesData = Array.isArray(localData.colleges) ? localData.colleges : [];
+        notificationHistory = Array.isArray(localData.notifications) ? localData.notifications : [];
+
+        updateLiveNotesCountBadge();
+        populateAdminFilterSubjects();
+        renderAdminNotesTable();
+        renderAdminCurriculumTree(currentAdminCurriculumYear);
+        renderStudentTable();
+        renderCollegesGrid();
+        renderNotificationHistory();
+        updateModalSubjectDropdown();
+        updateAnalyticsStats();
+
+        const statusText = document.getElementById('apiStatusText');
+        if (statusText) statusText.innerText = 'LOCAL SERVER (FALLBACK)';
+        return;
+      }
+    } catch (e) {}
+    const statusText = document.getElementById('apiStatusText');
+    if (statusText) statusText.innerText = 'OFFLINE / STANDALONE';
   }
 }
 
@@ -325,8 +436,7 @@ function renderAdminNotesTable(filterQuery, filterType, filterYear, filterCat, f
     filtered.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
   }
 
-  const badgeEl = document.getElementById('badge-notes-count');
-  if (badgeEl) badgeEl.innerText = notesData.length;
+  updateLiveNotesCountBadge();
 
   // Status pill bar updates
   const resultsText = document.getElementById('adminNotesResultsText');
@@ -381,7 +491,12 @@ function renderAdminNotesTable(filterQuery, filterType, filterYear, filterCat, f
       <td style="padding:14px 16px;font-weight:600;">${escapeHtml(doc.subject || '—')}</td>
       <td style="padding:14px 16px;"><span class="badge-tag cat" style="background:#F1F5F9;color:#475569;padding:3px 8px;border-radius:6px;font-size:11px;">${escapeHtml(doc.category || 'General')}</span></td>
       <td style="padding:14px 16px;color:var(--text-muted);">${doc.size || '3.5 MB'} (${doc.pages || 14} pgs)</td>
-      <td style="padding:14px 16px;"><strong style="color:var(--brand-green);">${doc.downloads || 0}</strong></td>
+      <td style="padding:14px 16px;">
+        <div style="display:inline-flex;align-items:center;gap:6px;background:var(--brand-green-pale);padding:4px 10px;border-radius:8px;border:1px solid #A7F3D0;">
+          <span style="font-size:11px;">👁️</span>
+          <strong style="color:var(--brand-green);font-size:12.5px;" id="reads-val-${doc.id}">${doc.reads ?? doc.downloads ?? 0}</strong>
+        </div>
+      </td>
       <td style="padding:14px 16px;text-align:right;white-space:nowrap;">
         <button class="action-btn edit" onclick="openEditNoteModal('${doc.id}')" style="padding:6px 12px;background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;border-radius:6px;font-size:11.5px;font-weight:700;cursor:pointer;margin-right:6px;transition:all 0.2s;" title="Edit title, author, year, subject or change PDF link">
           ✏️ Edit
@@ -408,7 +523,7 @@ window.filterAdminNotes = filterAdminNotes;
 async function deleteNote(id) {
   if (!confirm('Are you sure you want to permanently delete this academic document from the repository?')) return;
   try {
-    const res = await fetch(`/api/notes/${id}`, {
+    const res = await fetch(`${API_BASE}/api/notes/${id}`, {
       method: 'DELETE',
       headers: getAdminHeaders()
     });
@@ -419,11 +534,11 @@ async function deleteNote(id) {
       updateAnalyticsStats();
       notifyStudentAppOfUpdate();
 
-      // If running on localhost, auto-sync delete to Live Cloud
+      // Mirror deletion locally if running on local development server
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        fetch(`${LIVE_CLOUD_API}/api/notes/${id}`, {
+        fetch(`/api/notes/${id}`, {
           method: 'DELETE',
-          headers: { 'x-admin-key': DEFAULT_ADMIN_PASSCODE }
+          headers: getAdminHeaders()
         }).catch(() => {});
       }
     }
@@ -704,7 +819,8 @@ async function handleModalUpload(e) {
     fileUrl = formatDriveUrl(driveUrlVal);
   } else if (selectedUploadFileBase64 && selectedUploadFileName) {
     try {
-      const upRes = await fetch('/api/upload', {
+      if (btn) btn.innerHTML = '<span>⏳</span><span>Uploading PDF to Live Cloud...</span>';
+      const upRes = await fetch(`${API_BASE}/api/upload`, {
         method: 'POST',
         headers: getAdminHeaders(),
         body: JSON.stringify({
@@ -714,11 +830,21 @@ async function handleModalUpload(e) {
       });
       if (upRes.ok) {
         const upData = await upRes.json();
-        fileUrl = upData.fileUrl;
+        // Always store absolute cloud URL so mobile apps and web can download directly
+        fileUrl = upData.fileUrl.startsWith('http') ? upData.fileUrl : `${LIVE_CLOUD_API}${upData.fileUrl}`;
         fileSize = upData.size;
+      } else {
+        const errJson = await upRes.json().catch(() => ({}));
+        throw new Error(errJson.error || `Upload failed with status ${upRes.status}`);
       }
     } catch (err) {
-      console.warn('Upload error, will proceed without local PDF binary:', err);
+      console.error('Upload error:', err);
+      alert('Upload to Live Cloud Server failed: ' + err.message);
+      if (btn) {
+        btn.disabled = false;
+        btn.innerText = 'Publish to Student Mobile App 🚀';
+      }
+      return;
     }
   }
 
@@ -738,7 +864,7 @@ async function handleModalUpload(e) {
     }
 
     try {
-      const topicRes = await fetch('/api/curriculum/topic', {
+      const topicRes = await fetch(`${API_BASE}/api/curriculum/topic`, {
         method: 'POST',
         headers: getAdminHeaders(),
         body: JSON.stringify({
@@ -782,7 +908,7 @@ async function handleModalUpload(e) {
     };
 
     try {
-      const noteRes = await fetch('/api/notes', {
+      const noteRes = await fetch(`${API_BASE}/api/notes`, {
         method: 'POST',
         headers: getAdminHeaders(),
         body: JSON.stringify(newDoc)
@@ -812,7 +938,7 @@ async function handleModalUpload(e) {
 
   notifyStudentAppOfUpdate();
 
-  // If running locally, also auto-push to Live Cloud on Render
+  // If also running a local server, keep local disk synced as well
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     try {
       const activeDoc = notesData.find(d => d.title === title) || {
@@ -831,18 +957,15 @@ async function handleModalUpload(e) {
         downloaded: false,
         currentPage: 1
       };
-      fetch(`${LIVE_CLOUD_API}/api/notes`, {
+      fetch('/api/notes', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-admin-key': DEFAULT_ADMIN_PASSCODE
-        },
+        headers: getAdminHeaders(),
         body: JSON.stringify(activeDoc)
-      }).catch(e => console.warn('Cloud auto-sync background error:', e));
+      }).catch(() => {});
     } catch (err) {}
   }
 
-  alert(`✅ Success! "${title}" has been published and is now instantly live on the Student Mobile App!`);
+  alert(`✅ Success! "${title}" has been published directly to the Live Server and is now instantly live on the Student Mobile App!`);
 }
 
 // ============================================================
@@ -869,7 +992,7 @@ async function handleChapterSubmit(e) {
   const chapterDesc = document.getElementById('chModalDesc').value.trim();
 
   try {
-    const res = await fetch('/api/curriculum/chapter', {
+    const res = await fetch(`${API_BASE}/api/curriculum/chapter`, {
       method: 'POST',
       headers: getAdminHeaders(),
       body: JSON.stringify({
@@ -948,7 +1071,7 @@ async function toggleStudentStatus(id) {
     s.status = s.status === 'Active' ? 'Suspended' : 'Active';
     renderStudentTable();
     try {
-      await fetch(`/api/students/${id}/toggle`, {
+      await fetch(`${API_BASE}/api/students/${id}/toggle`, {
         method: 'POST',
         headers: getAdminHeaders()
       });
@@ -1002,7 +1125,7 @@ async function handleCollegeSubmit(e) {
   };
 
   try {
-    const res = await fetch('/api/colleges', {
+    const res = await fetch(`${API_BASE}/api/colleges`, {
       method: 'POST',
       headers: getAdminHeaders(),
       body: JSON.stringify(newCol)
@@ -1063,7 +1186,7 @@ async function dispatchNotification(e) {
   };
 
   try {
-    const res = await fetch('/api/notifications', {
+    const res = await fetch(`${API_BASE}/api/notifications`, {
       method: 'POST',
       headers: getAdminHeaders(),
       body: JSON.stringify(newNotif)
@@ -1179,6 +1302,8 @@ function openEditNoteModal(docId) {
 
   document.getElementById('editDocCategory').value = doc.category || 'Standard Textbooks';
   document.getElementById('editDocPages').value = doc.pages || 45;
+  const readsInput = document.getElementById('editDocReads');
+  if (readsInput) readsInput.value = doc.reads ?? doc.downloads ?? 0;
   document.getElementById('editDocSummary').value = doc.summary || '';
   document.getElementById('editDocDriveUrl').value = doc.fileUrl || '';
 
@@ -1210,6 +1335,7 @@ async function handleEditNoteSubmit(e) {
   const subject = document.getElementById('editDocSubject').value;
   const category = document.getElementById('editDocCategory').value;
   const pages = parseInt(document.getElementById('editDocPages').value, 10) || 45;
+  const reads = parseInt(document.getElementById('editDocReads')?.value, 10);
   const summary = document.getElementById('editDocSummary').value.trim();
   const rawDriveUrl = document.getElementById('editDocDriveUrl').value.trim();
 
@@ -1219,7 +1345,7 @@ async function handleEditNoteSubmit(e) {
   // If a new PDF file was uploaded from local computer:
   if (selectedEditFileBase64 && selectedEditFileName) {
     try {
-      const upRes = await fetch('/api/upload', {
+      const upRes = await fetch(`${API_BASE}/api/upload`, {
         method: 'POST',
         headers: getAdminHeaders(),
         body: JSON.stringify({
@@ -1229,7 +1355,7 @@ async function handleEditNoteSubmit(e) {
       });
       if (upRes.ok) {
         const upData = await upRes.json();
-        fileUrl = upData.fileUrl;
+        fileUrl = upData.fileUrl.startsWith('http') ? upData.fileUrl : `${LIVE_CLOUD_API}${upData.fileUrl}`;
         size = upData.size;
       }
     } catch (err) {
@@ -1247,11 +1373,15 @@ async function handleEditNoteSubmit(e) {
     pages,
     summary
   };
+  if (!isNaN(reads)) {
+    updatePayload.reads = reads;
+    updatePayload.downloads = reads;
+  }
   if (fileUrl) updatePayload.fileUrl = fileUrl;
   if (size) updatePayload.size = size;
 
   try {
-    const res = await fetch(`/api/notes/${docId}`, {
+    const res = await fetch(`${API_BASE}/api/notes/${docId}`, {
       method: 'PUT',
       headers: getAdminHeaders(),
       body: JSON.stringify(updatePayload)
@@ -1267,14 +1397,11 @@ async function handleEditNoteSubmit(e) {
         notesData[idx] = Object.assign({}, notesData[idx], updatedDoc);
       }
 
-      // Also sync to Live Cloud if running locally
+      // Also sync to local if running on localhost
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        fetch(`${LIVE_CLOUD_API}/api/notes/${docId}`, {
+        fetch(`/api/notes/${docId}`, {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-admin-key': DEFAULT_ADMIN_PASSCODE
-          },
+          headers: getAdminHeaders(),
           body: JSON.stringify(updatePayload)
         }).catch(() => {});
       }
