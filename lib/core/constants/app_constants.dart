@@ -11,7 +11,7 @@ class AppConstants {
     'Internship',
   ];
 
-  // BHMS Curriculum Canonical Subjects by Year (NCH / AYUSH Syllabus)
+  // BHMS Curriculum Canonical Subjects by Year (Medical Syllabus)
   static const Map<String, List<Map<String, String>>> yearWiseSubjects = {
     '1st Year': [
       {

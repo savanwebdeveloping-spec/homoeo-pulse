@@ -461,7 +461,7 @@ function showSplashScreen() {
   el.classList.remove('hidden');
 
   if (fill) fill.style.width = '6%';
-  if (status) status.innerText = 'Connecting to AYUSH Cloud Platform...';
+  if (status) status.innerText = 'Connecting to Medical Cloud Platform...';
 
   const startTime = Date.now();
   const totalDuration = 1400; // 1.4 seconds smooth & snappy
@@ -472,7 +472,7 @@ function showSplashScreen() {
     if (fill) fill.style.width = `${pct}%`;
 
     if (elapsed < 400) {
-      if (status) status.innerText = 'Connecting to AYUSH Cloud Platform...';
+      if (status) status.innerText = 'Connecting to Medical Cloud Platform...';
     } else if (elapsed < 800) {
       if (status) status.innerText = 'Verifying Academic Curriculum & Vault...';
     } else if (elapsed < 1200) {
@@ -940,10 +940,10 @@ function openSubjectChapters(subject) {
   currentSelectedSubject = subject;
 
   document.getElementById('chaptersSubjectTitle').innerText = subject.name;
-  document.getElementById('chaptersSubjectCode').innerText = subject.code || 'AYUSH';
+  document.getElementById('chaptersSubjectCode').innerText = subject.code || 'BHMS';
   document.getElementById('chaptersIntroName').innerText = subject.name;
   document.getElementById('chaptersIntroIcon').innerText = subject.icon || '📖';
-  document.getElementById('chaptersIntroDesc').innerText = subject.desc || 'AYUSH Syllabus';
+  document.getElementById('chaptersIntroDesc').innerText = subject.desc || 'BHMS Curriculum';
 
   const container = document.getElementById('appChaptersContainer');
   if (container) {
@@ -971,7 +971,7 @@ function openSubjectChapters(subject) {
           <div class="ch-title">${ch.title}</div>
           <div class="ch-desc">${ch.desc || 'Clinical chapter lecture notes.'}</div>
           <div class="ch-footer-row">
-            <span>Verified AYUSH Syllabus</span>
+            <span>Verified BHMS Curriculum</span>
             <span class="ch-cta">Explore Topics ›</span>
           </div>
         `;
@@ -1028,7 +1028,7 @@ function openChapterTopics(chapter) {
           <div class="topic-meta-row">
             <span class="topic-meta-pill">📄 ${top.pages || 14} Pages</span>
             <span class="topic-meta-pill">💾 ${top.size || '3.5 MB'}</span>
-            <span class="topic-meta-pill" style="color:var(--brand-green);border-color:#A7F3D0;background:var(--brand-green-pale);">✓ AYUSH Standard</span>
+            <span class="topic-meta-pill" style="color:var(--brand-green);border-color:#A7F3D0;background:var(--brand-green-pale);">✓ Standard Medical Syllabus</span>
           </div>
           <div class="topic-actions-row">
             <button class="btn-topic-read" onclick="event.stopPropagation(); openTopicPdf('${top.id}')">
@@ -1133,7 +1133,7 @@ function openSubjectByName(subjectName, subpart = 'books') {
   document.getElementById('appScreenNotesList').classList.add('active');
 
   document.getElementById('subjectNotesTitle').innerText = sub.name;
-  document.getElementById('subjectNotesSub').innerText = `${sub.code || 'AYUSH'} • ${currentAppYear}`;
+  document.getElementById('subjectNotesSub').innerText = `${sub.code || 'BHMS'} • ${currentAppYear}`;
 
   switchSubjectSubpart(subpart);
 }
@@ -1279,9 +1279,9 @@ async function openPdfViewer(docIdOrObj) {
   document.getElementById('viewerDocTitle').innerText = formatDocTitle(doc.title);
   const wm = document.getElementById('pdfViewerWatermark');
   if (wm && currentUserProfile && currentUserProfile.name) {
-    wm.innerText = `HOMOEO PULSE • ${currentUserProfile.name.toUpperCase()} • VERIFIED AYUSH MATERIAL`;
+    wm.innerText = `HOMOEO PULSE • ${currentUserProfile.name.toUpperCase()} • VERIFIED MEDICAL MATERIAL`;
   } else if (wm) {
-    wm.innerText = `HOMOEO PULSE • VERIFIED AYUSH MATERIAL`;
+    wm.innerText = `HOMOEO PULSE • VERIFIED MEDICAL MATERIAL`;
   }
 
   updateViewerBookmarkBtn();
@@ -1741,9 +1741,9 @@ function renderViewerPageContent() {
   // Rich clinical curriculum pages with actual syllabus content
   const chapterTopics = [
     {
-      title: "1. Comprehensive Clinical Foundations & NCH Syllabus",
+      title: "1. Comprehensive Clinical Foundations & BHMS Syllabus",
       badge: "Syllabus Unit 1",
-      content: `This canonical edition covers the core theoretical and clinical concepts of <strong>${subject}</strong> prescribed by the National Commission for Homoeopathy (NCH) & AYUSH. In clinical practice, understanding underlying disease pathology, holistic constitutional assessment, and fundamental homeopathic principles is paramount.`
+      content: `This canonical edition covers the core theoretical and clinical concepts of <strong>${subject}</strong> prescribed for BHMS Medical Education. In clinical practice, understanding underlying disease pathology, holistic constitutional assessment, and fundamental homeopathic principles is paramount.`
     },
     {
       title: "2. Hahnemannian Principles & Organon Foundations",
@@ -1781,7 +1781,7 @@ function renderViewerPageContent() {
         ${currentChapter.badge} • ${subject.toUpperCase()}
       </span>
       <h3 style="font-size:16px;font-weight:800;color:var(--text);margin:0 0 4px 0;">${docTitle}</h3>
-      <div style="font-size:11px;color:var(--text-muted);">Authored / Curated by: <strong>${author}</strong> • Standard AYUSH Curriculum</div>
+      <div style="font-size:11px;color:var(--text-muted);">Authored / Curated by: <strong>${author}</strong> • Standard BHMS Curriculum</div>
     </div>
 
     <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:14px;margin-bottom:14px;">

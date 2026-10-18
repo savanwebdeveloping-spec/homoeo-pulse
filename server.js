@@ -306,7 +306,7 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, {
         status: 'online',
         system: 'Homoeo Pulse Live Academic Platform',
-        version: '2.5.0-AYUSH',
+        version: '2.2.0-RELEASE',
         timestamp: new Date().toISOString(),
         totalNotes: db.notes ? db.notes.length : 0,
         totalStudents: db.students ? db.students.length : 0
@@ -605,7 +605,7 @@ const server = http.createServer(async (req, res) => {
           city: body.city,
           university: body.university,
           intake: Number(body.intake) || 100,
-          accreditation: body.accreditation || 'NCH / AYUSH Approved'
+          accreditation: body.accreditation || 'Medical Council Approved'
         };
         db.colleges.push(newCollege);
         saveDatabase(db);
