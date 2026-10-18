@@ -1316,33 +1316,34 @@ async function openPdfViewer(docIdOrObj) {
     }
   }
 
-  // 2. Direct High-Speed Cloud Viewing via Native Google Drive Preview (Only if NOT streamable via API)
-  const isDirectStream = doc.fileUrl && doc.fileUrl.includes('/api/pdf-stream');
+  // 2. Ensure Google Drive external preview iframe is NEVER shown (it blocks large medical textbooks with "file too large to preview")
   const driveFrame = document.getElementById('pdfDriveFrame');
-  const footerBar = document.querySelector('.pdf-footer-bar');
-  const driveId = !isDirectStream ? (doc.driveFileId || getDriveFileId(doc.fileUrl) || getDriveFileId(doc.title)) : null;
-
-  if (driveId && driveFrame) {
-    if (spinner) spinner.style.display = 'none';
-    if (canvasContainer) canvasContainer.style.display = 'none';
-    if (fallbackViewport) fallbackViewport.style.display = 'none';
-    if (footerBar) footerBar.style.display = 'none';
-
-    driveFrame.style.display = 'block';
-    driveFrame.src = `https://drive.google.com/file/d/${driveId}/preview`;
-    updateResumeCardUI();
-    return;
+  if (driveFrame) {
+    driveFrame.style.display = 'none';
+    driveFrame.src = 'about:blank';
   }
+  const footerBar = document.querySelector('.pdf-footer-bar');
+  if (footerBar) footerBar.style.display = 'flex';
 
-  // 2. Try loading via network candidates with PDF.js Range Streaming
-  if (typeof pdfjsLib !== 'undefined' && doc.fileUrl) {
-    const directUrl = formatDriveUrl(doc.fileUrl);
+  const driveId = doc.driveFileId || getDriveFileId(doc.fileUrl) || getDriveFileId(doc.title);
+
+  // 3. Load via In-App Native PDF.js Reader with High-Speed Range Streaming
+  if (typeof pdfjsLib !== 'undefined') {
     const candidateUrls = [];
-    if (directUrl.startsWith('http')) {
-      candidateUrls.push(directUrl);
-    } else {
-      if (API_BASE_URL) candidateUrls.push(API_BASE_URL + directUrl);
-      candidateUrls.push(directUrl);
+
+    // Priority 1: High-speed cloud streaming proxy (Supports HTTP Range, zero CORS, bypasses Google virus check tokens)
+    if (driveId) {
+      if (API_BASE_URL) candidateUrls.push(`${API_BASE_URL}/api/pdf-stream?file=${driveId}`);
+      candidateUrls.push(`/api/pdf-stream?file=${driveId}`);
+    }
+
+    if (doc.fileUrl) {
+      if (doc.fileUrl.startsWith('http')) {
+        candidateUrls.push(doc.fileUrl);
+      } else {
+        if (API_BASE_URL) candidateUrls.push(API_BASE_URL + doc.fileUrl);
+        candidateUrls.push(doc.fileUrl);
+      }
     }
 
     for (const url of candidateUrls) {

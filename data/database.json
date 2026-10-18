@@ -180,14 +180,13 @@
       "category": "Handwritten Notes",
       "size": "3.5 MB",
       "pages": 26,
-      "downloads": 24,
+      "downloads": 1,
       "summary": "Clinical homoeopathic study reference notes.",
       "fileUrl": "/api/pdf-stream?file=1ZGriuXLf_8iF6qtLtrxlURAy0cLM-Gj-",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
-      "createdAt": "2026-10-15T09:21:36.829Z",
-      "reads": 24
+      "createdAt": "2026-10-15T09:21:36.829Z"
     },
     {
       "id": "book_1791969343260",
@@ -199,14 +198,16 @@
       "category": "Reference Literature",
       "size": "3.5 MB",
       "pages": 423,
-      "downloads": 41,
+      "downloads": 3,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=1Pj_7qIuGZ6nuQZ5Vyvf6241OjId8WWth&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=1Pj_7qIuGZ6nuQZ5Vyvf6241OjId8WWth",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-10-14T09:15:43.267Z",
-      "reads": 41
+      "reads": 3,
+      "lastReadAt": "2026-10-18T11:29:14.552Z",
+      "driveFileId": "1Pj_7qIuGZ6nuQZ5Vyvf6241OjId8WWth"
     },
     {
       "id": "book_1791969207626",
@@ -218,14 +219,14 @@
       "category": "Reference Literature",
       "size": "3.5 MB",
       "pages": 374,
-      "downloads": 38,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=1UIf1jTCbS6ATVj_idEp8EUdogezOd40q&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=1UIf1jTCbS6ATVj_idEp8EUdogezOd40q",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-10-14T09:13:27.633Z",
-      "reads": 38
+      "driveFileId": "1UIf1jTCbS6ATVj_idEp8EUdogezOd40q"
     },
     {
       "id": "book_1791969161756",
@@ -237,14 +238,14 @@
       "category": "Standard Textbooks",
       "size": "3.5 MB",
       "pages": 354,
-      "downloads": 44,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=1TPNQMFFO2X-KUyOgpnU3BjpcR5pJ541a&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=1TPNQMFFO2X-KUyOgpnU3BjpcR5pJ541a",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-10-14T09:12:41.764Z",
-      "reads": 44
+      "driveFileId": "1TPNQMFFO2X-KUyOgpnU3BjpcR5pJ541a"
     },
     {
       "id": "book_1791968383253",
@@ -256,14 +257,14 @@
       "category": "Reference Literature",
       "size": "3.5 MB",
       "pages": 2251,
-      "downloads": 72,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=1OXlQGRu4kdphTDpU-bfHvWpSCqZWkfQn&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=1OXlQGRu4kdphTDpU-bfHvWpSCqZWkfQn",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-10-14T08:59:43.258Z",
-      "reads": 72
+      "driveFileId": "1OXlQGRu4kdphTDpU-bfHvWpSCqZWkfQn"
     },
     {
       "id": "book_1791968248695",
@@ -275,14 +276,14 @@
       "category": "Reference Literature",
       "size": "3.5 MB",
       "pages": 425,
-      "downloads": 32,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=116uNTpJvPx-PaS0SUd-UMr6EsOTLAX6S&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=116uNTpJvPx-PaS0SUd-UMr6EsOTLAX6S",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-10-14T08:57:28.702Z",
-      "reads": 32
+      "driveFileId": "116uNTpJvPx-PaS0SUd-UMr6EsOTLAX6S"
     },
     {
       "id": "book_1791968166509",
@@ -294,14 +295,14 @@
       "category": "Standard Textbooks",
       "size": "3.5 MB",
       "pages": 433,
-      "downloads": 39,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=13DQ7GxqOj6DeFE5p2o4CLygQw3N34J8S&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=13DQ7GxqOj6DeFE5p2o4CLygQw3N34J8S",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-10-14T08:56:06.516Z",
-      "reads": 39
+      "driveFileId": "13DQ7GxqOj6DeFE5p2o4CLygQw3N34J8S"
     },
     {
       "id": "book_1791968109629",
@@ -313,14 +314,14 @@
       "category": "Standard Textbooks",
       "size": "3.5 MB",
       "pages": 339,
-      "downloads": 43,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=1VwSTLh81SJ4R3_cIQt14xDMOzKEiK6-W&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=1VwSTLh81SJ4R3_cIQt14xDMOzKEiK6-W",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-10-14T08:55:09.634Z",
-      "reads": 43
+      "driveFileId": "1VwSTLh81SJ4R3_cIQt14xDMOzKEiK6-W"
     },
     {
       "id": "book_1791968044310",
@@ -332,14 +333,14 @@
       "category": "Standard Textbooks",
       "size": "3.5 MB",
       "pages": 313,
-      "downloads": 51,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=1vZPZtMcb1sUmHiWQmbjd0-J4_Yqumlaz&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=1vZPZtMcb1sUmHiWQmbjd0-J4_Yqumlaz",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-10-14T08:54:04.316Z",
-      "reads": 51
+      "driveFileId": "1vZPZtMcb1sUmHiWQmbjd0-J4_Yqumlaz"
     },
     {
       "id": "book_1791967589021",
@@ -351,14 +352,14 @@
       "category": "Standard Textbooks",
       "size": "3.5 MB",
       "pages": 491,
-      "downloads": 61,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=10SV-JJZgrDlYr4ckBcS87HCv1siD4GKa&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=10SV-JJZgrDlYr4ckBcS87HCv1siD4GKa",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-10-14T08:46:29.030Z",
-      "reads": 61
+      "driveFileId": "10SV-JJZgrDlYr4ckBcS87HCv1siD4GKa"
     },
     {
       "id": "book_1791967538664",
@@ -370,14 +371,14 @@
       "category": "Standard Textbooks",
       "size": "3.5 MB",
       "pages": 477,
-      "downloads": 54,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=17GyKoTRKwilJBwXbYGx5i6dGYR9UExac&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=17GyKoTRKwilJBwXbYGx5i6dGYR9UExac",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-10-14T08:45:38.669Z",
-      "reads": 54
+      "driveFileId": "17GyKoTRKwilJBwXbYGx5i6dGYR9UExac"
     },
     {
       "id": "book_1791967483829",
@@ -389,14 +390,14 @@
       "category": "Standard Textbooks",
       "size": "3.5 MB",
       "pages": 312,
-      "downloads": 68,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=1Q5Mhglk3f6e5Ho8FYKRPyERIVAjgVwY7&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=1Q5Mhglk3f6e5Ho8FYKRPyERIVAjgVwY7",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-10-14T08:44:43.844Z",
-      "reads": 68
+      "driveFileId": "1Q5Mhglk3f6e5Ho8FYKRPyERIVAjgVwY7"
     },
     {
       "id": "book_1791967422389",
@@ -408,14 +409,14 @@
       "category": "Standard Textbooks",
       "size": "3.5 MB",
       "pages": 276,
-      "downloads": 47,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=17WWzxKeGSj-pKyyryp7e9UCNfeyHJxvd&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=17WWzxKeGSj-pKyyryp7e9UCNfeyHJxvd",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-10-14T08:43:42.395Z",
-      "reads": 47
+      "driveFileId": "17WWzxKeGSj-pKyyryp7e9UCNfeyHJxvd"
     },
     {
       "id": "book_1791967327446",
@@ -427,14 +428,14 @@
       "category": "Standard Textbooks",
       "size": "3.5 MB",
       "pages": 460,
-      "downloads": 53,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=1PnQvqb171rIQ2NU43DhZojXOjpItg5mM&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=1PnQvqb171rIQ2NU43DhZojXOjpItg5mM",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-10-14T08:42:07.454Z",
-      "reads": 53
+      "driveFileId": "1PnQvqb171rIQ2NU43DhZojXOjpItg5mM"
     },
     {
       "id": "book_1791967270837",
@@ -446,14 +447,14 @@
       "category": "Standard Textbooks",
       "size": "3.5 MB",
       "pages": 521,
-      "downloads": 48,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=1RdL3yxvBALKbO5Rrk5sNwGv6khqujZ1U&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=1RdL3yxvBALKbO5Rrk5sNwGv6khqujZ1U",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-10-14T08:41:10.844Z",
-      "reads": 48
+      "driveFileId": "1RdL3yxvBALKbO5Rrk5sNwGv6khqujZ1U"
     },
     {
       "id": "book_1791967202966",
@@ -465,14 +466,14 @@
       "category": "Standard Textbooks",
       "size": "3.5 MB",
       "pages": 345,
-      "downloads": 59,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=16g8cLiNM456h8CzvjR2GtCgYNwqZbk2B&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=16g8cLiNM456h8CzvjR2GtCgYNwqZbk2B",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-10-14T08:40:02.979Z",
-      "reads": 59
+      "driveFileId": "16g8cLiNM456h8CzvjR2GtCgYNwqZbk2B"
     },
     {
       "id": "book_1791966965857",
@@ -484,14 +485,14 @@
       "category": "Reference Literature",
       "size": "3.5 MB",
       "pages": 99,
-      "downloads": 36,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=1nyobX_eYehtNzCi0i16FXQQxHBxp1EAr&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=1nyobX_eYehtNzCi0i16FXQQxHBxp1EAr",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-10-14T08:36:05.893Z",
-      "reads": 36
+      "driveFileId": "1nyobX_eYehtNzCi0i16FXQQxHBxp1EAr"
     },
     {
       "id": "book_1791966773290",
@@ -503,14 +504,14 @@
       "category": "Standard Textbooks",
       "size": "3.5 MB",
       "pages": 499,
-      "downloads": 42,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=1vEMtXv80wggJrfiThUIrzM2XRRq34ky-&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=1vEMtXv80wggJrfiThUIrzM2XRRq34ky-",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-10-14T08:32:53.316Z",
-      "reads": 42
+      "driveFileId": "1vEMtXv80wggJrfiThUIrzM2XRRq34ky-"
     },
     {
       "id": "book_1790752707958",
@@ -522,14 +523,14 @@
       "category": "Standard Textbooks",
       "size": "73.9 MB",
       "pages": 957,
-      "downloads": 37,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "/uploads/1790752707745_PSM_BOOK_BY_A_H_SURYAKANTHA__1_.pdf",
+      "fileUrl": "/api/pdf-stream?file=17gXct122Z1-iYwEV_mV1qPb9C4KTl7Ym",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-30T07:18:27.960Z",
-      "reads": 37
+      "driveFileId": "17gXct122Z1-iYwEV_mV1qPb9C4KTl7Ym"
     },
     {
       "id": "book_1790686055967",
@@ -541,14 +542,14 @@
       "category": "Standard Textbooks",
       "size": "11.8 MB",
       "pages": 877,
-      "downloads": 53,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:47:35.969Z",
-      "fileUrl": "/uploads/1790686055936_Davidson_s_Essentials_of_Medicine_-_2E.pdf",
-      "reads": 53
+      "fileUrl": "/api/pdf-stream?file=1bzIfkYOLDMcgDt5rrX9smkb-lvxl7Cx4",
+      "driveFileId": "1bzIfkYOLDMcgDt5rrX9smkb-lvxl7Cx4"
     },
     {
       "id": "book_1790685752533",
@@ -560,14 +561,14 @@
       "category": "Reference Books",
       "size": "28.7 MB",
       "pages": 846,
-      "downloads": 46,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:42:32.535Z",
-      "fileUrl": "/uploads/1790685752439_R_Alagappan_-_Manual_of_Practical_Medicine_-_4th_Edition.pdf",
-      "reads": 46
+      "fileUrl": "/api/pdf-stream?file=1qqby-npnOEiOUeKbpdgZbhFb9nEfeaiQ",
+      "driveFileId": "1qqby-npnOEiOUeKbpdgZbhFb9nEfeaiQ"
     },
     {
       "id": "book_1790685623295",
@@ -579,14 +580,14 @@
       "category": "Reference Books",
       "size": "69.5 MB",
       "pages": 630,
-      "downloads": 49,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:40:23.298Z",
-      "fileUrl": "/uploads/1790685622925_Practical_Medicine_By_P._J._Maheta_20th_Edition.pdf",
-      "reads": 49
+      "fileUrl": "/api/pdf-stream?file=11Za5JjUfEBp1OHYhL0uLDE3dsToDYL_r",
+      "driveFileId": "11Za5JjUfEBp1OHYhL0uLDE3dsToDYL_r"
     },
     {
       "id": "book_1790685511360",
@@ -598,14 +599,14 @@
       "category": "Standard Textbooks",
       "size": "261.5 MB",
       "pages": 1262,
-      "downloads": 57,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:38:31.363Z",
-      "fileUrl": "/uploads/1790685510025_Medicine_exam_prep_manual_Archit_Boloor_Ramdas_nayak.pdf",
-      "reads": 57
+      "fileUrl": "/api/pdf-stream?file=1sHZ_zBe-Jb2xKe1bd8PkdLNCCnNi5mDC",
+      "driveFileId": "1sHZ_zBe-Jb2xKe1bd8PkdLNCCnNi5mDC"
     },
     {
       "id": "book_1790685013114",
@@ -617,14 +618,14 @@
       "category": "Reference Books",
       "size": "21.0 MB",
       "pages": 696,
-      "downloads": 39,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:30:13.116Z",
-      "fileUrl": "/uploads/1790685013036_Medicine_By_Manthappa_2nd_Edition.pdf",
-      "reads": 39
+      "fileUrl": "/api/pdf-stream?file=1HHqf2v8PZXz5duH30tNQ7LVFvaFZJw60",
+      "driveFileId": "1HHqf2v8PZXz5duH30tNQ7LVFvaFZJw60"
     },
     {
       "id": "book_1790684515162",
@@ -636,14 +637,14 @@
       "category": "Standard Textbooks",
       "size": "13.8 MB",
       "pages": 1241,
-      "downloads": 65,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:21:55.179Z",
-      "fileUrl": "/uploads/1790684515125_Harrison_s_Manual_Of_Medicine_19E.pdf",
-      "reads": 65
+      "fileUrl": "/api/pdf-stream?file=1XBQJSo2zHCoKxPREivjDFcvhG7s0nmvn",
+      "driveFileId": "1XBQJSo2zHCoKxPREivjDFcvhG7s0nmvn"
     },
     {
       "id": "book_1790684473020",
@@ -655,14 +656,14 @@
       "category": "Standard Textbooks",
       "size": "12.4 MB",
       "pages": 1571,
-      "downloads": 58,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:21:13.022Z",
-      "fileUrl": "/uploads/1790684472981_Harrison_s_Manual_Of_Medicine_18E.pdf",
-      "reads": 58
+      "fileUrl": "/api/pdf-stream?file=1AbR_owQCSLDTgYheM6kfta_XpW7tJr6R",
+      "driveFileId": "1AbR_owQCSLDTgYheM6kfta_XpW7tJr6R"
     },
     {
       "id": "book_1790684213088",
@@ -674,14 +675,14 @@
       "category": "Standard Textbooks",
       "size": "75.7 MB",
       "pages": 1012,
-      "downloads": 45,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:16:53.090Z",
-      "fileUrl": "/uploads/1790684212886_MEDICINE_prep_manual_for_undergraduate_Mathew.pdf",
-      "reads": 45
+      "fileUrl": "/api/pdf-stream?file=13aQ3_EWbZhlcNMLI-DYaeautOffJzG4I",
+      "driveFileId": "13aQ3_EWbZhlcNMLI-DYaeautOffJzG4I"
     },
     {
       "id": "book_1790684022909",
@@ -693,14 +694,14 @@
       "category": "Reference Books",
       "size": "16.1 MB",
       "pages": 1174,
-      "downloads": 62,
+      "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:13:42.924Z",
-      "fileUrl": "/uploads/1790684022861_Golwalla_s_Medicine_For_Students_25th_Edition.pdf",
-      "reads": 62
+      "fileUrl": "/api/pdf-stream?file=15uL8k_MFXQOwlHlQbk7t34GXymZhTKW5",
+      "driveFileId": "15uL8k_MFXQOwlHlQbk7t34GXymZhTKW5"
     }
   ],
   "students": [
@@ -819,7 +820,7 @@
       "rating": "Oldest Homoeopathic College in Asia"
     }
   ],
-  "lastUpdated": 1792056096829,
+  "lastUpdated": 1792323114619,
   "notifications": [
     {
       "id": "notif_1792056096829",
