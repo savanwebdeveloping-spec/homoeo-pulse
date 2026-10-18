@@ -8,4 +8,5 @@ android/build/
 .idea/
 *.log
 uploads/
-
+*.apk
+*.aab
