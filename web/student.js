@@ -886,16 +886,23 @@ function renderAppContentForYear(year, subpart) {
         emptyDiv.innerHTML = `<span style="font-size:24px;display:block;margin-bottom:6px;">📝</span>No chapters uploaded for ${sub.name} yet.`;
         container.appendChild(emptyDiv);
       } else {
-        chapters.forEach(ch => {
+        chapters.forEach((ch, idx) => {
           const chEl = document.createElement('div');
-          chEl.className = 'chapter-drill-pill';
-          chEl.onclick = () => openChapterTopics(ch);
+          chEl.className = 'chapter-card-item';
+          const chNum = (idx + 1).toString().padStart(2, '0');
+          const numTopics = ch.topics ? ch.topics.length : 0;
+          chEl.onclick = () => openChapterTopics(ch, 'appScreenDashboard');
           chEl.innerHTML = `
-            <div style="display:flex;align-items:center;gap:6px;overflow:hidden;">
-              <span class="chapter-number-chip">CH</span>
-              <span class="ch-pill-title">${ch.title}</span>
+            <div class="ch-header-row">
+              <span class="ch-num-badge">CHAPTER ${chNum}</span>
+              <span class="ch-topics-count">📑 ${numTopics} Topics</span>
             </div>
-            <span class="ch-pill-count">${(ch.topics ? ch.topics.length : 0)} Topics ›</span>
+            <div class="ch-title">${ch.title}</div>
+            <div class="ch-desc">${ch.desc || 'High-yield clinical study notes and lecture topics.'}</div>
+            <div class="ch-footer-row">
+              <span>Verified Medical Study Material</span>
+              <span class="ch-cta">Explore Topics ›</span>
+            </div>
           `;
           container.appendChild(chEl);
         });
@@ -985,12 +992,26 @@ function openSubjectChapters(subject) {
   if (sc) sc.classList.add('active');
 }
 
-function openChapterTopics(chapter) {
+let currentTopicsOriginScreen = 'appScreenDashboard';
+
+function openChapterTopics(chapter, originScreen = 'appScreenChapters') {
+  currentTopicsOriginScreen = originScreen;
   currentSelectedChapter = chapter;
 
-  const subjName = currentSelectedSubject ? currentSelectedSubject.name : 'Subject';
+  // Auto-detect parent subject if not selected
+  if (!currentSelectedSubject) {
+    const subjects = BHMS_CURRICULUM[currentAppYear] || [];
+    currentSelectedSubject = subjects.find(s => (s.chapters || []).some(c => c.id === chapter.id || c.title === chapter.title)) || subjects[0];
+  }
+
+  const subjName = currentSelectedSubject ? currentSelectedSubject.name : 'Community Medicine';
   const breadcrumb = document.getElementById('topicsBreadcrumb');
   if (breadcrumb) breadcrumb.innerHTML = `${subjName} <span>›</span> ${chapter.title}`;
+
+  const backLabel = document.getElementById('topicsBackLabel');
+  if (backLabel) {
+    backLabel.innerText = originScreen === 'appScreenDashboard' ? 'Dashboard' : 'Chapters';
+  }
 
   const titleEl = document.getElementById('topicsChapterTitle');
   if (titleEl) titleEl.innerText = chapter.title;
@@ -1113,7 +1134,8 @@ function navigateBackFromChapters() {
 
 function navigateBackFromTopics() {
   document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
-  const sc = document.getElementById('appScreenChapters');
+  const targetId = currentTopicsOriginScreen || 'appScreenDashboard';
+  const sc = document.getElementById(targetId) || document.getElementById('appScreenDashboard');
   if (sc) sc.classList.add('active');
 }
 

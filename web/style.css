@@ -1944,14 +1944,214 @@ body {
   line-height: 1.4;
 }
 
-/* Chapter Cards */
+/* ============================================================
+   CHAPTERS & TOPICS SCREENS - MODERN PREMIUM MEDICAL DESIGN
+   ============================================================ */
+.screen-back-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.btn-screen-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--brand-green-pale, #ECFDF5);
+  border: 1px solid #A7F3D0;
+  color: var(--brand-green-dark, #065F46);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.btn-screen-back:hover {
+  background: #D1FAE5;
+  transform: translateY(-1px);
+}
+.btn-screen-back span:first-child {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.screen-back-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chapters-intro-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 100%);
+  border: 1px solid #A7F3D0;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 135, 68, 0.05);
+}
+
+.cib-icon {
+  font-size: 26px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
+}
+
+.cib-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--brand-green-dark, #065F46);
+  margin-bottom: 2px;
+}
+
+.cib-desc {
+  font-size: 11.5px;
+  color: #047857;
+  line-height: 1.35;
+}
+
+.chapters-list-container,
+.topics-list-container,
 .app-chapters-container,
 .app-topics-container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding-bottom: 16px;
+  gap: 12px;
+  padding-bottom: 24px;
 }
+
+/* Topics Screen Specifics */
+.topics-breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: #F8FAFC;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+.topics-breadcrumb span {
+  color: var(--brand-green);
+  font-weight: 700;
+}
+
+.topics-hero-card {
+  background: linear-gradient(135deg, #064E3B 0%, #047857 100%);
+  color: #FFFFFF;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 14px rgba(6, 78, 59, 0.18);
+}
+
+.th-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin-bottom: 4px;
+  line-height: 1.35;
+}
+
+.th-sub {
+  font-size: 11px;
+  font-weight: 700;
+  color: #A7F3D0;
+  margin-bottom: 6px;
+}
+
+.th-desc {
+  font-size: 11.5px;
+  color: #ECFDF5;
+  line-height: 1.45;
+  opacity: 0.95;
+}
+
+/* Dashboard Academic Notes Chapter Pill / Card */
+.chapter-drill-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  margin-bottom: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.chapter-drill-pill:hover {
+  border-color: var(--brand-green);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 135, 68, 0.08);
+}
+
+.chapter-number-chip {
+  font-size: 10.5px;
+  font-weight: 800;
+  background: var(--brand-green-pale, #ECFDF5);
+  color: var(--brand-green);
+  border: 1px solid #A7F3D0;
+  padding: 4px 9px;
+  border-radius: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: 0.5px;
+}
+
+.ch-pill-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.35;
+  flex: 1;
+  word-break: break-word;
+}
+
+.ch-pill-count {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--brand-green);
+  background: #F0FDF4;
+  border: 1px solid #DCFCE7;
+  padding: 4px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Chapter Cards */
 
 .chapter-card-item {
   background: #FFFFFF;
