@@ -67,7 +67,16 @@ async function initMongo() {
       await currCol.insertOne({ _id: 'canonical', data: db.curriculum });
       console.log('🍃 Seeded initial curriculum to MongoDB');
     } else if (currDoc && currDoc.data) {
-      db.curriculum = currDoc.data;
+      let diskChapters = 0;
+      let mongoChapters = 0;
+      for (const y in db.curriculum) (db.curriculum[y] || []).forEach(s => diskChapters += (s.chapters || []).length);
+      for (const y in currDoc.data) (currDoc.data[y] || []).forEach(s => mongoChapters += (s.chapters || []).length);
+      if (diskChapters > mongoChapters) {
+        console.log(`🍃 Upgrading MongoDB curriculum with richer disk syllabus (${diskChapters} vs ${mongoChapters} chapters).`);
+        await currCol.updateOne({ _id: 'canonical' }, { $set: { data: db.curriculum } }, { upsert: true });
+      } else {
+        db.curriculum = currDoc.data;
+      }
     }
 
     const notesCol = mongoDbInstance.collection('notes');
@@ -77,7 +86,13 @@ async function initMongo() {
       console.log(`🍃 Seeded ${db.notes.length} initial notes to MongoDB`);
     } else if (notesCount > 0) {
       const allNotes = await notesCol.find({}).toArray();
-      db.notes = allNotes.map(({ _id, ...rest }) => rest);
+      if (allNotes.length < (db.notes || []).length) {
+        console.log(`🍃 Upgrading MongoDB with full note catalog (${db.notes.length} notes vs ${allNotes.length} in mongo).`);
+        await notesCol.deleteMany({});
+        await notesCol.insertMany(db.notes.map(n => ({ ...n })));
+      } else {
+        db.notes = allNotes.map(({ _id, ...rest }) => rest);
+      }
     }
   } catch (err) {
     console.log('🍃 MongoDB notice: Running in local file-backed mode (resilient storage active).');

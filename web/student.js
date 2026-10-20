@@ -77,6 +77,21 @@ function formatDriveUrl(rawUrl) {
 }
 window.formatDriveUrl = formatDriveUrl;
 
+function isSubjectMatch(sub, noteSubject) {
+  if (!sub || !noteSubject) return false;
+  const subName = (typeof sub === 'string') ? sub : (sub.name || '');
+  const subCode = (typeof sub === 'object' && sub.code) ? sub.code : '';
+  if (subName === noteSubject) return true;
+  if (subCode && subCode === noteSubject) return true;
+  if (subName === 'Surgery' && (noteSubject.includes('Surgery') || noteSubject.includes('SURG'))) return true;
+  if (noteSubject === 'Surgery' && (subName.includes('Surgery') || subName.includes('SURG'))) return true;
+  const s1 = subName.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const s2 = noteSubject.toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (!s1 || !s2) return false;
+  return s1 === s2 || s1.includes(s2) || s2.includes(s1);
+}
+window.isSubjectMatch = isSubjectMatch;
+
 // Offline Mozilla PDF.js Worker Configuration
 if (typeof pdfjsLib !== 'undefined') {
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
@@ -777,14 +792,14 @@ function renderAppContentForYear(year, subpart) {
   }
   const currentItem = carouselItems[activeIndex];
   const currentSubObj = subjects.find(s => s.name === currentItem.id) || subjects[activeIndex];
-  const booksForActiveSub = notesData.filter(d => d.year === year && d.subject === currentItem.id && d.contentType === 'book');
-  const directNotesForActiveSub = notesData.filter(d => d.year === year && (d.subject === currentItem.id || (currentSubObj && currentSubObj.code && d.subject === currentSubObj.code)) && d.contentType === 'note');
+  const booksForActiveSub = notesData.filter(d => d.year === year && isSubjectMatch(currentSubObj, d.subject) && d.contentType === 'book');
+  const directNotesForActiveSub = notesData.filter(d => d.year === year && isSubjectMatch(currentSubObj, d.subject) && d.contentType === 'note');
   const activeChaptersCount = (currentSubObj && currentSubObj.chapters && currentSubObj.chapters.length > 0)
     ? currentSubObj.chapters.length
-    : (directNotesForActiveSub.length > 0 ? 1 : 0);
+    : (directNotesForActiveSub.length > 0 ? directNotesForActiveSub.length : 0);
   const countLabel = subpart === 'books'
     ? `${booksForActiveSub.length} Standard Books`
-    : `${activeChaptersCount} Chapters`;
+    : `${directNotesForActiveSub.length || activeChaptersCount} Study Notes`;
 
   carouselWrapper.innerHTML = `
     <button class="subj-arrow-btn prev" type="button" aria-label="Previous Subject" onclick="navigateSubjectCarousel(-1)">
@@ -841,7 +856,7 @@ function renderAppContentForYear(year, subpart) {
   // 2. Render Textbooks or Notes directly under Subject Carousel (No duplicate banner)
   if (subpart === 'books') {
     activeSubjects.forEach(sub => {
-      const booksForSub = notesData.filter(d => d.year === year && d.subject === sub.name && d.contentType === 'book');
+      const booksForSub = notesData.filter(d => d.year === year && isSubjectMatch(sub, d.subject) && d.contentType === 'book');
 
       if (booksForSub.length === 0) {
         const emptyDiv = document.createElement('div');
@@ -887,53 +902,97 @@ function renderAppContentForYear(year, subpart) {
       // Check if there are notes uploaded under notesData for this subject
       const directNotes = notesData.filter(d =>
         d.year === year &&
-        (d.subject === sub.name || (sub.code && d.subject === sub.code)) &&
+        isSubjectMatch(sub, d.subject) &&
         d.contentType === 'note'
       );
 
-      // If no chapters exist in curriculum but direct notes exist in notesData, synthesize chapter
-      if (chapters.length === 0 && directNotes.length > 0) {
-        chapters = [
-          {
-            id: 'ch_auto_' + (sub.id || 'notes'),
-            title: 'Chapter 1: Academic Study Notes',
-            desc: 'Faculty lecture notes, question banks, and clinical topics.',
-            topics: directNotes.map(n => ({
+      // Ensure all direct notes are linked into chapters so no uploaded note is ever hidden
+      const existingTopicIds = new Set();
+      chapters.forEach(ch => {
+        (ch.topics || []).forEach(t => {
+          existingTopicIds.add(String(t.id));
+          existingTopicIds.add(String(t.title).toLowerCase());
+        });
+      });
+
+      const unassignedNotes = directNotes.filter(n =>
+        !existingTopicIds.has(String(n.id)) &&
+        !existingTopicIds.has(String(n.title).toLowerCase())
+      );
+
+      if (unassignedNotes.length > 0) {
+        if (chapters.length === 0) {
+          chapters = unassignedNotes.map((n, idx) => ({
+            id: 'ch_auto_' + (n.id || idx),
+            title: n.title.toLowerCase().startsWith('chapter') ? n.title : `Chapter ${idx + 1}: ${n.title}`,
+            desc: n.summary || 'Faculty lecture notes, question banks, and clinical topics.',
+            topics: [{
               id: n.id,
               title: n.title,
               pages: n.pages || 14,
               size: n.size || '3.5 MB',
               fileUrl: n.fileUrl,
               summary: n.summary || 'Clinical homoeopathic study reference notes.'
-            }))
-          }
-        ];
+            }]
+          }));
+        } else {
+          unassignedNotes.forEach((n, idx) => {
+            chapters.push({
+              id: 'ch_auto_' + (n.id || (chapters.length + idx + 1)),
+              title: n.title.toLowerCase().startsWith('chapter') ? n.title : `Chapter ${chapters.length + 1}: ${n.title}`,
+              desc: n.summary || 'Clinical homoeopathic study reference notes.',
+              topics: [{
+                id: n.id,
+                title: n.title,
+                pages: n.pages || 14,
+                size: n.size || '3.5 MB',
+                fileUrl: n.fileUrl,
+                summary: n.summary || 'Clinical homoeopathic study reference notes.'
+              }]
+            });
+          });
+        }
       }
 
-      if (chapters.length === 0) {
+      if (chapters.length === 0 && directNotes.length === 0) {
         const emptyDiv = document.createElement('div');
         emptyDiv.style.cssText = 'font-size:11.5px;color:var(--text-muted);padding:24px 16px;background:#FFFFFF;border-radius:12px;border:1px dashed var(--border);margin-bottom:12px;text-align:center;';
-        emptyDiv.innerHTML = `<span style="font-size:24px;display:block;margin-bottom:6px;">📝</span>No chapters uploaded for ${sub.name} yet.`;
+        emptyDiv.innerHTML = `<span style="font-size:24px;display:block;margin-bottom:6px;">📝</span>No study notes uploaded for ${sub.name} yet.`;
         container.appendChild(emptyDiv);
       } else {
         chapters.forEach((ch, idx) => {
           const chEl = document.createElement('div');
           chEl.className = 'chapter-card-item';
           const chNum = (idx + 1).toString().padStart(2, '0');
-          const numTopics = ch.topics ? ch.topics.length : 0;
-          chEl.onclick = () => openChapterTopics(ch, 'appScreenDashboard');
+          const topics = ch.topics || [];
+          const numTopics = topics.length;
+
           chEl.innerHTML = `
             <div class="ch-header-row">
               <span class="ch-num-badge">CHAPTER ${chNum}</span>
-              <span class="ch-topics-count">📑 ${numTopics} Topics</span>
+              <span class="ch-topics-count">📑 ${numTopics} ${numTopics === 1 ? 'Topic Note' : 'Topics'}</span>
             </div>
             <div class="ch-title">${ch.title}</div>
             <div class="ch-desc">${ch.desc || 'High-yield clinical study notes and lecture topics.'}</div>
+            ${topics.length > 0 ? `
+              <div class="ch-topics-preview-list" style="margin:8px 0 10px;display:flex;flex-direction:column;gap:6px;">
+                ${topics.map(top => `
+                  <div class="ch-topic-quick-row" style="display:flex;align-items:center;justify-content:space-between;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:6px 10px;font-size:11px;" onclick="event.stopPropagation(); openTopicPdf('${top.id}')">
+                    <div style="display:flex;align-items:center;gap:6px;overflow:hidden;flex:1;padding-right:8px;">
+                      <span style="font-size:13px;">📄</span>
+                      <span style="font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${top.title}</span>
+                    </div>
+                    <button class="btn-topic-read" style="padding:4px 10px;font-size:10.5px;font-weight:700;white-space:nowrap;margin:0;cursor:pointer;border-radius:6px;background:var(--brand-green);color:#FFF;border:none;" onclick="event.stopPropagation(); openTopicPdf('${top.id}')">Read PDF</button>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
             <div class="ch-footer-row">
               <span>Verified Medical Study Material</span>
               <span class="ch-cta">Explore Topics ›</span>
             </div>
           `;
+          chEl.onclick = () => openChapterTopics(ch, 'appScreenDashboard');
           container.appendChild(chEl);
         });
       }
@@ -986,32 +1045,61 @@ function openSubjectChapters(subject) {
   if (container) {
     container.innerHTML = '';
     let chapters = (subject.chapters && subject.chapters.length > 0) ? [...subject.chapters] : [];
-    if (chapters.length === 0) {
-      const directNotes = notesData.filter(d =>
-        d.year === currentAppYear &&
-        (d.subject === subject.name || (subject.code && d.subject === subject.code)) &&
-        d.contentType === 'note'
-      );
-      if (directNotes.length > 0) {
-        chapters = [
-          {
-            id: 'ch_auto_' + (subject.id || 'notes'),
-            title: 'Chapter 1: Academic Study Notes',
-            desc: 'Faculty lecture notes, question banks, and clinical topics.',
-            topics: directNotes.map(n => ({
+    
+    const directNotes = notesData.filter(d =>
+      d.year === currentAppYear &&
+      isSubjectMatch(subject, d.subject) &&
+      d.contentType === 'note'
+    );
+
+    const existingTopicIds = new Set();
+    chapters.forEach(ch => {
+      (ch.topics || []).forEach(t => {
+        existingTopicIds.add(String(t.id));
+        existingTopicIds.add(String(t.title).toLowerCase());
+      });
+    });
+
+    const unassignedNotes = directNotes.filter(n =>
+      !existingTopicIds.has(String(n.id)) &&
+      !existingTopicIds.has(String(n.title).toLowerCase())
+    );
+
+    if (unassignedNotes.length > 0) {
+      if (chapters.length === 0) {
+        chapters = unassignedNotes.map((n, idx) => ({
+          id: 'ch_auto_' + (n.id || idx),
+          title: n.title.toLowerCase().startsWith('chapter') ? n.title : `Chapter ${idx + 1}: ${n.title}`,
+          desc: n.summary || 'Faculty lecture notes, question banks, and clinical topics.',
+          topics: [{
+            id: n.id,
+            title: n.title,
+            pages: n.pages || 14,
+            size: n.size || '3.5 MB',
+            fileUrl: n.fileUrl,
+            summary: n.summary || 'Clinical homoeopathic study reference notes.'
+          }]
+        }));
+      } else {
+        unassignedNotes.forEach((n, idx) => {
+          chapters.push({
+            id: 'ch_auto_' + (n.id || (chapters.length + idx + 1)),
+            title: n.title.toLowerCase().startsWith('chapter') ? n.title : `Chapter ${chapters.length + 1}: ${n.title}`,
+            desc: n.summary || 'Clinical homoeopathic study reference notes.',
+            topics: [{
               id: n.id,
               title: n.title,
               pages: n.pages || 14,
               size: n.size || '3.5 MB',
               fileUrl: n.fileUrl,
               summary: n.summary || 'Clinical homoeopathic study reference notes.'
-            }))
-          }
-        ];
+            }]
+          });
+        });
       }
     }
 
-    if (chapters.length === 0) {
+    if (chapters.length === 0 && directNotes.length === 0) {
       container.innerHTML = `
         <div style="text-align:center;padding:36px 16px;background:#FFF;border:1px dashed var(--border);border-radius:12px;color:var(--text-muted);">
           <div style="font-size:32px;margin-bottom:8px;">📑</div>
@@ -1024,15 +1112,29 @@ function openSubjectChapters(subject) {
         const card = document.createElement('div');
         card.className = 'chapter-card-item';
         const chNum = (idx + 1).toString().padStart(2, '0');
-        const numTopics = ch.topics ? ch.topics.length : 0;
-        card.onclick = () => openChapterTopics(ch);
+        const topics = ch.topics || [];
+        const numTopics = topics.length;
+        card.onclick = () => openChapterTopics(ch, 'appScreenChapters');
         card.innerHTML = `
           <div class="ch-header-row">
             <span class="ch-num-badge">CH ${chNum}</span>
-            <span class="ch-topics-count">📑 ${numTopics} Topics</span>
+            <span class="ch-topics-count">📑 ${numTopics} ${numTopics === 1 ? 'Topic Note' : 'Topics'}</span>
           </div>
           <div class="ch-title">${ch.title}</div>
           <div class="ch-desc">${ch.desc || 'Clinical chapter lecture notes.'}</div>
+          ${topics.length > 0 ? `
+            <div class="ch-topics-preview-list" style="margin:8px 0 10px;display:flex;flex-direction:column;gap:6px;">
+              ${topics.map(top => `
+                <div class="ch-topic-quick-row" style="display:flex;align-items:center;justify-content:space-between;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:6px 10px;font-size:11px;" onclick="event.stopPropagation(); openTopicPdf('${top.id}')">
+                  <div style="display:flex;align-items:center;gap:6px;overflow:hidden;flex:1;padding-right:8px;">
+                    <span style="font-size:13px;">📄</span>
+                    <span style="font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${top.title}</span>
+                  </div>
+                  <button class="btn-topic-read" style="padding:4px 10px;font-size:10.5px;font-weight:700;white-space:nowrap;margin:0;cursor:pointer;border-radius:6px;background:var(--brand-green);color:#FFF;border:none;" onclick="event.stopPropagation(); openTopicPdf('${top.id}')">Read PDF</button>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
           <div class="ch-footer-row">
             <span>Verified BHMS Curriculum</span>
             <span class="ch-cta">Explore Topics ›</span>
@@ -1159,6 +1261,14 @@ function openTopicPdf(topicIdOrObj) {
     }
   }
 
+  if (!topic && notesData) {
+    const foundDoc = notesData.find(d => String(d.id) === String(topicIdOrObj));
+    if (foundDoc) {
+      openPdfViewer(foundDoc);
+      return;
+    }
+  }
+
   if (!topic) return;
 
   const docObj = {
@@ -1237,7 +1347,7 @@ function renderAppDocsForSubject(subject, subpart = currentSubjectSubpart, categ
   container.innerHTML = '';
 
   const docs = notesData.filter(d => {
-    const matchSub = d.subject === subject.name;
+    const matchSub = isSubjectMatch(subject, d.subject);
     const matchType = d.contentType === subpart;
     const matchCat = categoryFilter === 'All' || d.category === categoryFilter;
     return matchSub && matchType && matchCat;

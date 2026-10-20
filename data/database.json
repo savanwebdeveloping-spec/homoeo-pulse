@@ -7,7 +7,38 @@
         "code": "ANAT-101",
         "icon": "🦴",
         "desc": "Gross anatomy, neuroanatomy, osteology & histological slides",
-        "chapters": []
+        "chapters": [
+          {
+            "id": "ch_note_1st_anat_01",
+            "title": "Chapter 1: Gross Anatomy & Histology Master Revision Notes",
+            "desc": "High-yield revision notes covering upper limb, lower limb, thorax, abdomen, and general histology slide identification.",
+            "topics": [
+              {
+                "id": "note_1st_anat_01",
+                "title": "Gross Anatomy & Histology Master Revision Notes",
+                "pages": 64,
+                "size": "4.8 MB",
+                "fileUrl": "/api/pdf-stream?file=1Pj_7qIuGZ6nuQZ5Vyvf6241OjId8WWth",
+                "summary": "High-yield revision notes covering upper limb, lower limb, thorax, abdomen, and general histology slide identification."
+              }
+            ]
+          },
+          {
+            "id": "ch_note_1st_anat_02",
+            "title": "Chapter 2: Osteology & Cranial Nerves Exam Point Charts",
+            "desc": "Complete foramen, cranial nerve pathways, and muscle attachments summary tables for university viva.",
+            "topics": [
+              {
+                "id": "note_1st_anat_02",
+                "title": "Osteology & Cranial Nerves Exam Point Charts",
+                "pages": 32,
+                "size": "2.9 MB",
+                "fileUrl": "/api/pdf-stream?file=1UIf1jTCbS6ATVj_idEp8EUdogezOd40q",
+                "summary": "Complete foramen, cranial nerve pathways, and muscle attachments summary tables for university viva."
+              }
+            ]
+          }
+        ]
       },
       {
         "id": "phys_1",
@@ -15,7 +46,38 @@
         "code": "PHYS-102",
         "icon": "❤️",
         "desc": "Systemic physiology, haematology & biochemical metabolic pathways",
-        "chapters": []
+        "chapters": [
+          {
+            "id": "ch_note_1st_phys_01",
+            "title": "Chapter 1: Cardiovascular & Respiratory Physiology High-Yield Notes",
+            "desc": "Cardiac cycle, ECG vectors, blood pressure regulation, spirometry, and respiratory quotient master notes.",
+            "topics": [
+              {
+                "id": "note_1st_phys_01",
+                "title": "Cardiovascular & Respiratory Physiology High-Yield Notes",
+                "pages": 45,
+                "size": "3.7 MB",
+                "fileUrl": "/api/pdf-stream?file=1xeM1dst86UqB8Jfa18BJsoSXn_12RrJM",
+                "summary": "Cardiac cycle, ECG vectors, blood pressure regulation, spirometry, and respiratory quotient master notes."
+              }
+            ]
+          },
+          {
+            "id": "ch_note_1st_phys_02",
+            "title": "Chapter 2: Biochemistry Metabolic Pathways & Krebs Cycle Quick Charts",
+            "desc": "Glycolysis, TCA cycle, Gluconeogenesis, Beta-oxidation, and Vitamins summary charts for fast exam recall.",
+            "topics": [
+              {
+                "id": "note_1st_phys_02",
+                "title": "Biochemistry Metabolic Pathways & Krebs Cycle Quick Charts",
+                "pages": 28,
+                "size": "2.4 MB",
+                "fileUrl": "/api/pdf-stream?file=1MGTRsxiq2VLpKl1sEuUr9xxzcCyweIMg",
+                "summary": "Glycolysis, TCA cycle, Gluconeogenesis, Beta-oxidation, and Vitamins summary charts for fast exam recall."
+              }
+            ]
+          }
+        ]
       },
       {
         "id": "pharm_1",
@@ -23,7 +85,23 @@
         "code": "PHARM-103",
         "icon": "🧪",
         "desc": "Pharmacognosy, drug provings, potencies & scale preparation",
-        "chapters": []
+        "chapters": [
+          {
+            "id": "ch_note_1st_pharm_01",
+            "title": "Chapter 1: Potentisation Scales & Mother Tincture Preparation Guide",
+            "desc": "Step-by-step old and new methods of mother tincture preparation, maceration, percolation, and succussion rules.",
+            "topics": [
+              {
+                "id": "note_1st_pharm_01",
+                "title": "Potentisation Scales & Mother Tincture Preparation Guide",
+                "pages": 34,
+                "size": "2.8 MB",
+                "fileUrl": "/api/pdf-stream?file=1sSI3pE7LkfL5oOStqgwBQKgRoupMJWjM",
+                "summary": "Step-by-step old and new methods of mother tincture preparation, maceration, percolation, and succussion rules."
+              }
+            ]
+          }
+        ]
       },
       {
         "id": "mm_1",
@@ -31,7 +109,23 @@
         "code": "HMM-104",
         "icon": "🌿",
         "desc": "Polychrest remedies, introductory drug pictures & keynotes",
-        "chapters": []
+        "chapters": [
+          {
+            "id": "ch_note_1st_mm_01",
+            "title": "Chapter 1: First Year Polychrest Remedies Keynote Notes (Aconite to Silicea)",
+            "desc": "High-yield keynote notes, modalities, guiding symptoms, and triad comparisons for 1st Year BHMS syllabus remedies.",
+            "topics": [
+              {
+                "id": "note_1st_mm_01",
+                "title": "First Year Polychrest Remedies Keynote Notes (Aconite to Silicea)",
+                "pages": 58,
+                "size": "4.1 MB",
+                "fileUrl": "/api/pdf-stream?file=1fyg4GLygjU8GAHCR0caLqYmoJVoVSFEc",
+                "summary": "High-yield keynote notes, modalities, guiding symptoms, and triad comparisons for 1st Year BHMS syllabus remedies."
+              }
+            ]
+          }
+        ]
       },
       {
         "id": "org_1",
@@ -41,9 +135,24 @@
         "desc": "Aphorisms 1-70, vital force, health, disease & cure",
         "chapters": [
           {
-            "id": "ch_org_101",
-            "title": "Chapter 1: Symptomatology & Case Taking",
-            "desc": "High-yield clinical study notes and lecture topics.",
+            "id": "ch_note_1st_org_01",
+            "title": "Chapter 1: Aphorisms 1 to 70 Master Summary & Vital Force Concepts",
+            "desc": "Detailed aphorism-by-aphorism breakdown of §1 to §70: highest ideal of cure, vital force, knowledge of physician, and law of similars.",
+            "topics": [
+              {
+                "id": "note_1st_org_01",
+                "title": "Aphorisms 1 to 70 Master Summary & Vital Force Concepts",
+                "pages": 42,
+                "size": "3.2 MB",
+                "fileUrl": "/api/pdf-stream?file=1cFuil-LhGtRoMR5wb75fHNMS1UnqGDvD",
+                "summary": "Detailed aphorism-by-aphorism breakdown of §1 to §70: highest ideal of cure, vital force, knowledge of physician, and law of similars."
+              }
+            ]
+          },
+          {
+            "id": "ch_note_1792500609399",
+            "title": "Chapter 2: org - symptomatology",
+            "desc": "Faculty uploaded study notes on symptomatology and case taking.",
             "topics": [
               {
                 "id": "note_1792500609399",
@@ -51,7 +160,7 @@
                 "pages": 17,
                 "size": "3.5 MB",
                 "fileUrl": "https://homoeo-pulse.onrender.com/api/pdf-stream?file=1OUFK6wIZ-XNtzUOomHcavBY7BxNXqLGa",
-                "summary": "Faculty uploaded study notes on symptomatology."
+                "summary": "Faculty uploaded study notes on symptomatology and case taking."
               }
             ]
           }
@@ -65,7 +174,38 @@
         "code": "PATH-201",
         "icon": "🔬",
         "desc": "General pathology, bacteriology, parasitology & virology",
-        "chapters": []
+        "chapters": [
+          {
+            "id": "ch_note_2nd_path_01",
+            "title": "Chapter 1: General Pathology & Inflammation High-Yield Exam Notes",
+            "desc": "Cellular adaptations, necrosis vs apoptosis, acute & chronic inflammation, chemical mediators, and wound healing.",
+            "topics": [
+              {
+                "id": "note_2nd_path_01",
+                "title": "General Pathology & Inflammation High-Yield Exam Notes",
+                "pages": 58,
+                "size": "4.5 MB",
+                "fileUrl": "/api/pdf-stream?file=1YExYuH4e-BO7BxwfxMKaSWSy_b1SlZ7M",
+                "summary": "Cellular adaptations, necrosis vs apoptosis, acute & chronic inflammation, chemical mediators, and wound healing."
+              }
+            ]
+          },
+          {
+            "id": "ch_note_2nd_path_02",
+            "title": "Chapter 2: Medical Microbiology & Parasitology Quick Identification Charts",
+            "desc": "Gram-positive vs Gram-negative bacteria, culture media, bacterial toxins, malaria life cycle, and viral hepatitis charts.",
+            "topics": [
+              {
+                "id": "note_2nd_path_02",
+                "title": "Medical Microbiology & Parasitology Quick Identification Charts",
+                "pages": 38,
+                "size": "3.1 MB",
+                "fileUrl": "/api/pdf-stream?file=1YExYuH4e-BO7BxwfxMKaSWSy_b1SlZ7M",
+                "summary": "Gram-positive vs Gram-negative bacteria, culture media, bacterial toxins, malaria life cycle, and viral hepatitis charts."
+              }
+            ]
+          }
+        ]
       },
       {
         "id": "fmt_2",
@@ -73,7 +213,38 @@
         "code": "FMT-202",
         "icon": "⚖️",
         "desc": "Medical jurisprudence, post-mortem, toxicology & antidotes",
-        "chapters": []
+        "chapters": [
+          {
+            "id": "ch_note_2nd_fmt_01",
+            "title": "Chapter 1: Medico-Legal Procedures, Inquest & Wounds Master Guide",
+            "desc": "Difference between magistrate & police inquest, post-mortem changes (algor, livor, rigor mortis), firearms, and legal sections.",
+            "topics": [
+              {
+                "id": "note_2nd_fmt_01",
+                "title": "Medico-Legal Procedures, Inquest & Wounds Master Guide",
+                "pages": 44,
+                "size": "3.6 MB",
+                "fileUrl": "/api/pdf-stream?file=10INdmSYppTr-J6kI_gM37aZDDUwjiFS6",
+                "summary": "Difference between magistrate & police inquest, post-mortem changes (algor, livor, rigor mortis), firearms, and legal sections."
+              }
+            ]
+          },
+          {
+            "id": "ch_note_2nd_fmt_02",
+            "title": "Chapter 2: Toxicology: Fatal Doses, Fatal Periods & Antidotes Summary Table",
+            "desc": "High-yield revision chart of common poisons: Arsenic, Lead, Snakebite, OP compounds, Cyanide, and Strichnine.",
+            "topics": [
+              {
+                "id": "note_2nd_fmt_02",
+                "title": "Toxicology: Fatal Doses, Fatal Periods & Antidotes Summary Table",
+                "pages": 30,
+                "size": "2.5 MB",
+                "fileUrl": "/api/pdf-stream?file=10INdmSYppTr-J6kI_gM37aZDDUwjiFS6",
+                "summary": "High-yield revision chart of common poisons: Arsenic, Lead, Snakebite, OP compounds, Cyanide, and Strichnine."
+              }
+            ]
+          }
+        ]
       },
       {
         "id": "mm_2",
@@ -81,7 +252,23 @@
         "code": "HMM-203",
         "icon": "🌿",
         "desc": "Comparative materia medica, gastrointestinal & respiratory remedies",
-        "chapters": []
+        "chapters": [
+          {
+            "id": "ch_note_2nd_mm_01",
+            "title": "Chapter 1: 2nd Year Materia Medica Remedy Profiles & Modalities",
+            "desc": "In-depth study of Gelsemium, Baptisia, Colocynth, Mag-phos, Phosphorus, Ipecacuanha, and Rhus-tox for 2nd BHMS.",
+            "topics": [
+              {
+                "id": "note_2nd_mm_01",
+                "title": "2nd Year Materia Medica Remedy Profiles & Modalities",
+                "pages": 56,
+                "size": "4.3 MB",
+                "fileUrl": "/api/pdf-stream?file=17PuupCDHlsILQqiOiRtpTtEMAVYs0pco",
+                "summary": "In-depth study of Gelsemium, Baptisia, Colocynth, Mag-phos, Phosphorus, Ipecacuanha, and Rhus-tox for 2nd BHMS."
+              }
+            ]
+          }
+        ]
       },
       {
         "id": "org_2",
@@ -89,7 +276,23 @@
         "code": "ORG-204",
         "icon": "📖",
         "desc": "Aphorisms 71-145, acute/chronic diseases, case taking",
-        "chapters": []
+        "chapters": [
+          {
+            "id": "ch_note_2nd_org_01",
+            "title": "Chapter 1: Aphorisms 71 to 145: Classification of Diseases & Case Taking Guide",
+            "desc": "Classification of diseases (acute, chronic, indisposition), §83 to §104 rules for case taking, and epidemic diseases investigation.",
+            "topics": [
+              {
+                "id": "note_2nd_org_01",
+                "title": "Aphorisms 71 to 145: Classification of Diseases & Case Taking Guide",
+                "pages": 48,
+                "size": "3.9 MB",
+                "fileUrl": "/api/pdf-stream?file=10E-88eYJjjrGiES_4PiyV17_rWWBdBSX",
+                "summary": "Classification of diseases (acute, chronic, indisposition), §83 to §104 rules for case taking, and epidemic diseases investigation."
+              }
+            ]
+          }
+        ]
       }
     ],
     "3rd Year": [
@@ -99,7 +302,23 @@
         "code": "SURG-301",
         "icon": "🩹",
         "desc": "General surgery, orthopaedics, ophthalmology, ENT & pre/post op remedies",
-        "chapters": []
+        "chapters": [
+          {
+            "id": "ch_note_3rd_surg_01",
+            "title": "Chapter 1: Homoeopathic Therapeutics in Surgical Conditions & Pre/Post-Op Care",
+            "desc": "Remedies for trauma, surgical shock, haemorrhage, suppuration, carbuncles, fistula, gangrene, and post-anaesthetic complications.",
+            "topics": [
+              {
+                "id": "note_3rd_surg_01",
+                "title": "Homoeopathic Therapeutics in Surgical Conditions & Pre/Post-Op Care",
+                "pages": 52,
+                "size": "4.2 MB",
+                "fileUrl": "/api/pdf-stream?file=1Few1DKjNwgWzIS29Q-uTrs3qhdUvLbeM",
+                "summary": "Remedies for trauma, surgical shock, haemorrhage, suppuration, carbuncles, fistula, gangrene, and post-anaesthetic complications."
+              }
+            ]
+          }
+        ]
       },
       {
         "id": "obg_3",
@@ -107,7 +326,23 @@
         "code": "OBG-302",
         "icon": "🤰",
         "desc": "Normal/abnormal pregnancy, labor, gynaecological disorders & remedies",
-        "chapters": []
+        "chapters": [
+          {
+            "id": "ch_note_3rd_obg_01",
+            "title": "Chapter 1: Homoeopathic Therapeutics in Obstetrics & Gynaecological Disorders",
+            "desc": "Master notes on Sepia, Pulsatilla, Sabina, Secale-cor, Caulophyllum, Actea-racemosa, and Lilium-tig in female disorders.",
+            "topics": [
+              {
+                "id": "note_3rd_obg_01",
+                "title": "Homoeopathic Therapeutics in Obstetrics & Gynaecological Disorders",
+                "pages": 46,
+                "size": "3.8 MB",
+                "fileUrl": "/api/pdf-stream?file=1rY8iJOERv5uhmmN1J_mDOXEQkgSWQwtF",
+                "summary": "Master notes on Sepia, Pulsatilla, Sabina, Secale-cor, Caulophyllum, Actea-racemosa, and Lilium-tig in female disorders."
+              }
+            ]
+          }
+        ]
       },
       {
         "id": "mm_3",
@@ -115,7 +350,23 @@
         "code": "HMM-303",
         "icon": "🌿",
         "desc": "Cardiovascular, renal, nervous & snake venoms",
-        "chapters": []
+        "chapters": [
+          {
+            "id": "ch_note_3rd_mm_01",
+            "title": "Chapter 1: 3rd Year Materia Medica: Heavy Metal & Poison Remedy Portraits",
+            "desc": "Deep study of Lachesis, Crotalus-horridus, Platina, Aurum-metallicum, Plumbum-metallicum, and Staphysagria.",
+            "topics": [
+              {
+                "id": "note_3rd_mm_01",
+                "title": "3rd Year Materia Medica: Heavy Metal & Poison Remedy Portraits",
+                "pages": 50,
+                "size": "4.0 MB",
+                "fileUrl": "/api/pdf-stream?file=1fyg4GLygjU8GAHCR0caLqYmoJVoVSFEc",
+                "summary": "Deep study of Lachesis, Crotalus-horridus, Platina, Aurum-metallicum, Plumbum-metallicum, and Staphysagria."
+              }
+            ]
+          }
+        ]
       },
       {
         "id": "org_3",
@@ -123,7 +374,23 @@
         "code": "ORG-304",
         "icon": "📖",
         "desc": "Aphorisms 146-291, chronic miasms (Psora, Sycosis, Syphilis)",
-        "chapters": []
+        "chapters": [
+          {
+            "id": "ch_note_3rd_org_01",
+            "title": "Chapter 1: Chronic Diseases Theory & Miasmatic Analysis (Psora, Sycosis, Syphilis)",
+            "desc": "Comprehensive comparison of fundamental cause of chronic diseases: stigmas of Psora, Sycosis, Syphilis, and tubercular diathesis.",
+            "topics": [
+              {
+                "id": "note_3rd_org_01",
+                "title": "Chronic Diseases Theory & Miasmatic Analysis (Psora, Sycosis, Syphilis)",
+                "pages": 60,
+                "size": "4.6 MB",
+                "fileUrl": "/api/pdf-stream?file=1cFuil-LhGtRoMR5wb75fHNMS1UnqGDvD",
+                "summary": "Comprehensive comparison of fundamental cause of chronic diseases: stigmas of Psora, Sycosis, Syphilis, and tubercular diathesis."
+              }
+            ]
+          }
+        ]
       }
     ],
     "4th Year": [
@@ -133,7 +400,38 @@
         "code": "PM-401",
         "icon": "🩺",
         "desc": "Internal medicine, neurology, cardiology, differential diagnosis & therapeutics",
-        "chapters": []
+        "chapters": [
+          {
+            "id": "ch_note_4th_pm_01",
+            "title": "Chapter 1: Clinical Medicine Bedside Differential Diagnosis Master Notes",
+            "desc": "Systematic differential diagnosis for chest pain, breathlessness, jaundice, ascites, hemiplegia, and acute abdomen with clinical homoeopathy.",
+            "topics": [
+              {
+                "id": "note_4th_pm_01",
+                "title": "Clinical Medicine Bedside Differential Diagnosis Master Notes",
+                "pages": 72,
+                "size": "5.4 MB",
+                "fileUrl": "/api/pdf-stream?file=1xeM1dst86UqB8Jfa18BJsoSXn_12RrJM",
+                "summary": "Systematic differential diagnosis for chest pain, breathlessness, jaundice, ascites, hemiplegia, and acute abdomen with clinical homoeopathy."
+              }
+            ]
+          },
+          {
+            "id": "ch_note_4th_pm_02",
+            "title": "Chapter 2: Cardiology & Respiratory Diseases Clinical Homoeopathic Therapeutics",
+            "desc": "Treatment protocols for hypertension, ischemic heart disease, heart failure, asthma, COPD, and pneumonia with homoeopathic indications.",
+            "topics": [
+              {
+                "id": "note_4th_pm_02",
+                "title": "Cardiology & Respiratory Diseases Clinical Homoeopathic Therapeutics",
+                "pages": 46,
+                "size": "3.7 MB",
+                "fileUrl": "/api/pdf-stream?file=1MGTRsxiq2VLpKl1sEuUr9xxzcCyweIMg",
+                "summary": "Treatment protocols for hypertension, ischemic heart disease, heart failure, asthma, COPD, and pneumonia with homoeopathic indications."
+              }
+            ]
+          }
+        ]
       },
       {
         "id": "rep_4",
@@ -141,7 +439,38 @@
         "code": "REP-402",
         "icon": "📑",
         "desc": "Kent, Boenninghausen, Boger repertories, rubric analysis & computer repertorisation",
-        "chapters": []
+        "chapters": [
+          {
+            "id": "ch_note_4th_rep_01",
+            "title": "Chapter 1: Repertorisation Methods: Kentian vs Boenninghausen Comparison",
+            "desc": "Case analysis techniques, evaluation of symptoms, totality of symptoms, elimination method, and computer repertorisation guides.",
+            "topics": [
+              {
+                "id": "note_4th_rep_01",
+                "title": "Repertorisation Methods: Kentian vs Boenninghausen Comparison",
+                "pages": 42,
+                "size": "3.5 MB",
+                "fileUrl": "/api/pdf-stream?file=1cFuil-LhGtRoMR5wb75fHNMS1UnqGDvD",
+                "summary": "Case analysis techniques, evaluation of symptoms, totality of symptoms, elimination method, and computer repertorisation guides."
+              }
+            ]
+          },
+          {
+            "id": "ch_note_4th_rep_02",
+            "title": "Chapter 2: Important Repertory Rubrics & Mind Section Master Chart",
+            "desc": "Cross-references of obscure mind rubrics, delusions, fears, and generalities commonly tested in university exam case papers.",
+            "topics": [
+              {
+                "id": "note_4th_rep_02",
+                "title": "Important Repertory Rubrics & Mind Section Master Chart",
+                "pages": 36,
+                "size": "2.9 MB",
+                "fileUrl": "/api/pdf-stream?file=1cFuil-LhGtRoMR5wb75fHNMS1UnqGDvD",
+                "summary": "Cross-references of obscure mind rubrics, delusions, fears, and generalities commonly tested in university exam case papers."
+              }
+            ]
+          }
+        ]
       },
       {
         "id": "mm_4",
@@ -149,7 +478,23 @@
         "code": "HMM-403",
         "icon": "🌿",
         "desc": "Rare remedies, nosodes, sarcodes & clinical comparisons",
-        "chapters": []
+        "chapters": [
+          {
+            "id": "ch_note_4th_mm_01",
+            "title": "Chapter 1: Nosodes, Sarcodes & Rare Remedies Master Study Notes",
+            "desc": "Clinical indications for Psorinum, Medorrhinum, Syphilinum, Tuberculinum, Carcinosin, Bacillinum, and Thyroidinum.",
+            "topics": [
+              {
+                "id": "note_4th_mm_01",
+                "title": "Nosodes, Sarcodes & Rare Remedies Master Study Notes",
+                "pages": 62,
+                "size": "4.7 MB",
+                "fileUrl": "/api/pdf-stream?file=17PuupCDHlsILQqiOiRtpTtEMAVYs0pco",
+                "summary": "Clinical indications for Psorinum, Medorrhinum, Syphilinum, Tuberculinum, Carcinosin, Bacillinum, and Thyroidinum."
+              }
+            ]
+          }
+        ]
       },
       {
         "id": "org_4",
@@ -157,7 +502,23 @@
         "code": "ORG-404",
         "icon": "📖",
         "desc": "Kent's Lectures, Stuart Close, H.A. Roberts & Miasmatic prescribing",
-        "chapters": []
+        "chapters": [
+          {
+            "id": "ch_note_4th_org_01",
+            "title": "Chapter 1: Kent's Twelve Observations, Remedy Reactions & Second Prescription",
+            "desc": "Comprehensive guide to post-prescription prognosis, aggravation vs amelioration, and when to repeat or change the remedy.",
+            "topics": [
+              {
+                "id": "note_4th_org_01",
+                "title": "Kent's Twelve Observations, Remedy Reactions & Second Prescription",
+                "pages": 40,
+                "size": "3.4 MB",
+                "fileUrl": "/api/pdf-stream?file=10E-88eYJjjrGiES_4PiyV17_rWWBdBSX",
+                "summary": "Comprehensive guide to post-prescription prognosis, aggravation vs amelioration, and when to repeat or change the remedy."
+              }
+            ]
+          }
+        ]
       },
       {
         "id": "cm_4",
@@ -167,17 +528,32 @@
         "desc": "Epidemiology, public health, national health programs & biostatistics",
         "chapters": [
           {
-            "id": "ch_1792056096829",
-            "title": "Chapter : 3 Principles of Epidemiology and Epidemiologic Methods",
-            "desc": "Clinical chapter study syllabus",
+            "id": "ch_note_4th_cm_01",
+            "title": "Chapter 1: National Health Programmes of India & Epidemiology Exam Notes",
+            "desc": "Epidemiological triad, biostatistics, RCH, immunization schedules, AYUSH national health mission, and water purification.",
             "topics": [
               {
-                "id": "top_1792056096829",
-                "title": "CM studies.. by M",
+                "id": "note_4th_cm_01",
+                "title": "National Health Programmes of India & Epidemiology Exam Notes",
+                "pages": 54,
+                "size": "4.1 MB",
+                "fileUrl": "/api/pdf-stream?file=1sSI3pE7LkfL5oOStqgwBQKgRoupMJWjM",
+                "summary": "Epidemiological triad, biostatistics, RCH, immunization schedules, AYUSH national health mission, and water purification."
+              }
+            ]
+          },
+          {
+            "id": "ch_note_top_1792056096829",
+            "title": "Chapter : 3 Principles of Epidemiology and Epidemiologic Methods - CM studies.. by M",
+            "desc": "Clinical homoeopathic study reference notes on epidemiology.",
+            "topics": [
+              {
+                "id": "note_top_1792056096829",
+                "title": "Chapter : 3 Principles of Epidemiology and Epidemiologic Methods - CM studies.. by M",
                 "pages": 26,
                 "size": "3.5 MB",
                 "fileUrl": "/api/pdf-stream?file=1ZGriuXLf_8iF6qtLtrxlURAy0cLM-Gj-",
-                "summary": "Clinical homoeopathic study reference notes."
+                "summary": "Clinical homoeopathic study reference notes on epidemiology."
               }
             ]
           }
@@ -186,42 +562,6 @@
     ]
   },
   "notes": [
-    {
-      "id": "note_1792500609399",
-      "contentType": "note",
-      "title": "org - symptomatology",
-      "author": "-",
-      "year": "1st Year",
-      "subject": "Organon of Medicine and Homeopathic Philosophy",
-      "category": "Handwritten Notes",
-      "size": "3.5 MB",
-      "pages": 17,
-      "downloads": 1,
-      "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://homoeo-pulse.onrender.com/api/pdf-stream?file=1OUFK6wIZ-XNtzUOomHcavBY7BxNXqLGa",
-      "bookmarked": false,
-      "downloaded": false,
-      "currentPage": 1,
-      "createdAt": "2026-10-20T12:56:04.031Z"
-    },
-    {
-      "id": "note_top_1792056096829",
-      "contentType": "note",
-      "title": "Chapter : 3 Principles of Epidemiology and Epidemiologic Methods - CM studies.. by M",
-      "author": "Faculty Department",
-      "year": "4th Year",
-      "subject": "Community Medicine",
-      "category": "Handwritten Notes",
-      "size": "3.5 MB",
-      "pages": 26,
-      "downloads": 1,
-      "summary": "Clinical homoeopathic study reference notes.",
-      "fileUrl": "/api/pdf-stream?file=1ZGriuXLf_8iF6qtLtrxlURAy0cLM-Gj-",
-      "bookmarked": false,
-      "downloaded": false,
-      "currentPage": 1,
-      "createdAt": "2026-10-15T09:21:36.829Z"
-    },
     {
       "id": "book_1791969343260",
       "contentType": "book",
@@ -234,7 +574,7 @@
       "pages": 423,
       "downloads": 3,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=1Pj_7qIuGZ6nuQZ5Vyvf6241OjId8WWth&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=1Pj_7qIuGZ6nuQZ5Vyvf6241OjId8WWth",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
@@ -254,7 +594,7 @@
       "pages": 374,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=1UIf1jTCbS6ATVj_idEp8EUdogezOd40q&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=1UIf1jTCbS6ATVj_idEp8EUdogezOd40q",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
@@ -272,7 +612,7 @@
       "pages": 354,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=1TPNQMFFO2X-KUyOgpnU3BjpcR5pJ541a&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=1TPNQMFFO2X-KUyOgpnU3BjpcR5pJ541a",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
@@ -290,7 +630,7 @@
       "pages": 2251,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=1OXlQGRu4kdphTDpU-bfHvWpSCqZWkfQn&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=1OXlQGRu4kdphTDpU-bfHvWpSCqZWkfQn",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
@@ -308,7 +648,7 @@
       "pages": 425,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=116uNTpJvPx-PaS0SUd-UMr6EsOTLAX6S&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=116uNTpJvPx-PaS0SUd-UMr6EsOTLAX6S",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
@@ -326,7 +666,7 @@
       "pages": 433,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=13DQ7GxqOj6DeFE5p2o4CLygQw3N34J8S&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=13DQ7GxqOj6DeFE5p2o4CLygQw3N34J8S",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
@@ -344,7 +684,7 @@
       "pages": 339,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=1VwSTLh81SJ4R3_cIQt14xDMOzKEiK6-W&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=1VwSTLh81SJ4R3_cIQt14xDMOzKEiK6-W",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
@@ -362,7 +702,7 @@
       "pages": 313,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=1vZPZtMcb1sUmHiWQmbjd0-J4_Yqumlaz&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=1vZPZtMcb1sUmHiWQmbjd0-J4_Yqumlaz",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
@@ -380,7 +720,7 @@
       "pages": 491,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=10SV-JJZgrDlYr4ckBcS87HCv1siD4GKa&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=10SV-JJZgrDlYr4ckBcS87HCv1siD4GKa",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
@@ -398,7 +738,7 @@
       "pages": 477,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=17GyKoTRKwilJBwXbYGx5i6dGYR9UExac&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=17GyKoTRKwilJBwXbYGx5i6dGYR9UExac",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
@@ -416,7 +756,7 @@
       "pages": 312,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=1Q5Mhglk3f6e5Ho8FYKRPyERIVAjgVwY7&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=1Q5Mhglk3f6e5Ho8FYKRPyERIVAjgVwY7",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
@@ -434,7 +774,7 @@
       "pages": 276,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=17WWzxKeGSj-pKyyryp7e9UCNfeyHJxvd&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=17WWzxKeGSj-pKyyryp7e9UCNfeyHJxvd",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
@@ -452,7 +792,7 @@
       "pages": 460,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=1PnQvqb171rIQ2NU43DhZojXOjpItg5mM&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=1PnQvqb171rIQ2NU43DhZojXOjpItg5mM",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
@@ -470,7 +810,7 @@
       "pages": 521,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=1RdL3yxvBALKbO5Rrk5sNwGv6khqujZ1U&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=1RdL3yxvBALKbO5Rrk5sNwGv6khqujZ1U",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
@@ -488,7 +828,7 @@
       "pages": 345,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=16g8cLiNM456h8CzvjR2GtCgYNwqZbk2B&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=16g8cLiNM456h8CzvjR2GtCgYNwqZbk2B",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
@@ -506,7 +846,7 @@
       "pages": 99,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=1nyobX_eYehtNzCi0i16FXQQxHBxp1EAr&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=1nyobX_eYehtNzCi0i16FXQQxHBxp1EAr",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
@@ -515,7 +855,7 @@
     {
       "id": "book_1791966773290",
       "contentType": "book",
-      "title": "hutchisons_clinical_methods_an_integrated_approach_to_clinical_practice",
+      "title": "Hutchison Clinical Methods - Integrated Approach to Clinical Practice",
       "author": "Dr. Hutchisons",
       "year": "4th Year",
       "subject": "Practice of Medicine",
@@ -524,7 +864,7 @@
       "pages": 499,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "https://drive.usercontent.google.com/download?id=1vEMtXv80wggJrfiThUIrzM2XRRq34ky-&export=download&authuser=0",
+      "fileUrl": "/api/pdf-stream?file=1vEMtXv80wggJrfiThUIrzM2XRRq34ky-",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
@@ -542,7 +882,7 @@
       "pages": 957,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "/uploads/1790752707745_PSM_BOOK_BY_A_H_SURYAKANTHA__1_.pdf",
+      "fileUrl": "/api/pdf-stream?file=1sSI3pE7LkfL5oOStqgwBQKgRoupMJWjM",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
@@ -564,7 +904,7 @@
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:47:35.969Z",
-      "fileUrl": "/uploads/1790686055936_Davidson_s_Essentials_of_Medicine_-_2E.pdf"
+      "fileUrl": "/api/pdf-stream?file=1xeM1dst86UqB8Jfa18BJsoSXn_12RrJM"
     },
     {
       "id": "book_1790685752533",
@@ -582,7 +922,7 @@
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:42:32.535Z",
-      "fileUrl": "/uploads/1790685752439_R_Alagappan_-_Manual_of_Practical_Medicine_-_4th_Edition.pdf"
+      "fileUrl": "/api/pdf-stream?file=1fyg4GLygjU8GAHCR0caLqYmoJVoVSFEc"
     },
     {
       "id": "book_1790685623295",
@@ -600,7 +940,7 @@
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:40:23.298Z",
-      "fileUrl": "/uploads/1790685622925_Practical_Medicine_By_P._J._Maheta_20th_Edition.pdf"
+      "fileUrl": "/api/pdf-stream?file=1cFuil-LhGtRoMR5wb75fHNMS1UnqGDvD"
     },
     {
       "id": "book_1790685511360",
@@ -618,7 +958,7 @@
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:38:31.363Z",
-      "fileUrl": "/uploads/1790685510025_Medicine_exam_prep_manual_Archit_Boloor_Ramdas_nayak.pdf"
+      "fileUrl": "/api/pdf-stream?file=1YExYuH4e-BO7BxwfxMKaSWSy_b1SlZ7M"
     },
     {
       "id": "book_1790685013114",
@@ -636,7 +976,7 @@
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:30:13.116Z",
-      "fileUrl": "/uploads/1790685013036_Medicine_By_Manthappa_2nd_Edition.pdf"
+      "fileUrl": "/api/pdf-stream?file=10INdmSYppTr-J6kI_gM37aZDDUwjiFS6"
     },
     {
       "id": "book_1790684515162",
@@ -654,7 +994,7 @@
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:21:55.179Z",
-      "fileUrl": "/uploads/1790684515125_Harrison_s_Manual_Of_Medicine_19E.pdf"
+      "fileUrl": "/api/pdf-stream?file=17PuupCDHlsILQqiOiRtpTtEMAVYs0pco"
     },
     {
       "id": "book_1790684473020",
@@ -672,7 +1012,7 @@
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:21:13.022Z",
-      "fileUrl": "/uploads/1790684472981_Harrison_s_Manual_Of_Medicine_18E.pdf"
+      "fileUrl": "/api/pdf-stream?file=10E-88eYJjjrGiES_4PiyV17_rWWBdBSX"
     },
     {
       "id": "book_1790684213088",
@@ -690,7 +1030,7 @@
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:16:53.090Z",
-      "fileUrl": "/uploads/1790684212886_MEDICINE_prep_manual_for_undergraduate_Mathew.pdf"
+      "fileUrl": "/api/pdf-stream?file=1Few1DKjNwgWzIS29Q-uTrs3qhdUvLbeM"
     },
     {
       "id": "book_1790684022909",
@@ -708,7 +1048,817 @@
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:13:42.924Z",
-      "fileUrl": "/uploads/1790684022861_Golwalla_s_Medicine_For_Students_25th_Edition.pdf"
+      "fileUrl": "/api/pdf-stream?file=1rY8iJOERv5uhmmN1J_mDOXEQkgSWQwtF"
+    },
+    {
+      "id": "note_1st_anat_01",
+      "contentType": "note",
+      "title": "Gross Anatomy & Histology Master Revision Notes",
+      "author": "Homoeo Pulse Academic Cell",
+      "year": "1st Year",
+      "subject": "Anatomy",
+      "category": "Handwritten Notes",
+      "size": "4.8 MB",
+      "pages": 64,
+      "downloads": 38,
+      "summary": "High-yield revision notes covering upper limb, lower limb, thorax, abdomen, and general histology slide identification.",
+      "fileUrl": "/api/pdf-stream?file=1Pj_7qIuGZ6nuQZ5Vyvf6241OjId8WWth",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-12T10:00:00.000Z"
+    },
+    {
+      "id": "note_1st_anat_02",
+      "contentType": "note",
+      "title": "Osteology & Cranial Nerves Exam Point Charts",
+      "author": "Dr. Mrunali Chavada",
+      "year": "1st Year",
+      "subject": "Anatomy",
+      "category": "Important Rubrics & Charts",
+      "size": "2.9 MB",
+      "pages": 32,
+      "downloads": 42,
+      "summary": "Complete foramen, cranial nerve pathways, and muscle attachments summary tables for university viva.",
+      "fileUrl": "/api/pdf-stream?file=1UIf1jTCbS6ATVj_idEp8EUdogezOd40q",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-12T10:15:00.000Z"
+    },
+    {
+      "id": "book_1st_phys_01",
+      "contentType": "book",
+      "title": "Guyton and Hall Textbook of Medical Physiology",
+      "author": "John E. Hall, Ph.D.",
+      "year": "1st Year",
+      "subject": "Physiology & Biochemistry",
+      "category": "Standard Textbooks",
+      "size": "18.5 MB",
+      "pages": 1145,
+      "downloads": 54,
+      "summary": "Gold-standard worldwide reference textbook for cardiovascular, renal, endocrine, and neurophysiology.",
+      "fileUrl": "/api/pdf-stream?file=1xeM1dst86UqB8Jfa18BJsoSXn_12RrJM",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-10T08:30:00.000Z"
+    },
+    {
+      "id": "book_1st_phys_02",
+      "contentType": "book",
+      "title": "Essentials of Medical Physiology",
+      "author": "K. Sembulingam & Prema Sembulingam",
+      "year": "1st Year",
+      "subject": "Physiology & Biochemistry",
+      "category": "Standard Textbooks",
+      "size": "14.2 MB",
+      "pages": 1070,
+      "downloads": 48,
+      "summary": "Clear, point-wise explanation of physiological mechanisms tailored for undergraduate medical and BHMS examinations.",
+      "fileUrl": "/api/pdf-stream?file=1MGTRsxiq2VLpKl1sEuUr9xxzcCyweIMg",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-10T09:00:00.000Z"
+    },
+    {
+      "id": "note_1st_phys_01",
+      "contentType": "note",
+      "title": "Cardiovascular & Respiratory Physiology High-Yield Notes",
+      "author": "Faculty of Physiology",
+      "year": "1st Year",
+      "subject": "Physiology & Biochemistry",
+      "category": "Handwritten Notes",
+      "size": "3.7 MB",
+      "pages": 45,
+      "downloads": 36,
+      "summary": "Cardiac cycle, ECG vectors, blood pressure regulation, spirometry, and respiratory quotient master notes.",
+      "fileUrl": "/api/pdf-stream?file=1xeM1dst86UqB8Jfa18BJsoSXn_12RrJM",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-10T10:00:00.000Z"
+    },
+    {
+      "id": "note_1st_phys_02",
+      "contentType": "note",
+      "title": "Biochemistry Metabolic Pathways & Krebs Cycle Quick Charts",
+      "author": "Homoeo Pulse Academic Cell",
+      "year": "1st Year",
+      "subject": "Physiology & Biochemistry",
+      "category": "Important Rubrics & Charts",
+      "size": "2.4 MB",
+      "pages": 28,
+      "downloads": 29,
+      "summary": "Glycolysis, TCA cycle, Gluconeogenesis, Beta-oxidation, and Vitamins summary charts for fast exam recall.",
+      "fileUrl": "/api/pdf-stream?file=1MGTRsxiq2VLpKl1sEuUr9xxzcCyweIMg",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-10T10:30:00.000Z"
+    },
+    {
+      "id": "book_1st_pharm_01",
+      "contentType": "book",
+      "title": "Art and Science of Homoeopathic Pharmacy",
+      "author": "Dr. Sumit Goel",
+      "year": "1st Year",
+      "subject": "Pharmacy",
+      "category": "Standard Textbooks",
+      "size": "8.6 MB",
+      "pages": 480,
+      "downloads": 41,
+      "summary": "Comprehensive guide to pharmacognosy, homoeopathic pharmacopoeias, posology, drug proving, and dynamization.",
+      "fileUrl": "/api/pdf-stream?file=1sSI3pE7LkfL5oOStqgwBQKgRoupMJWjM",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-09T08:00:00.000Z"
+    },
+    {
+      "id": "book_1st_pharm_02",
+      "contentType": "book",
+      "title": "A Textbook of Homoeopathic Pharmacy",
+      "author": "Dr. Partha P. Mandal & Dr. B. Mandal",
+      "year": "1st Year",
+      "subject": "Pharmacy",
+      "category": "Standard Textbooks",
+      "size": "7.1 MB",
+      "pages": 390,
+      "downloads": 35,
+      "summary": "Official syllabus-based textbook covering HPI, USP, BHP, decimal, centesimal, and 50-millesimal scales.",
+      "fileUrl": "/api/pdf-stream?file=1sSI3pE7LkfL5oOStqgwBQKgRoupMJWjM",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-09T08:30:00.000Z"
+    },
+    {
+      "id": "note_1st_pharm_01",
+      "contentType": "note",
+      "title": "Potentisation Scales & Mother Tincture Preparation Guide",
+      "author": "Dr. Mrunali Chavada",
+      "year": "1st Year",
+      "subject": "Pharmacy",
+      "category": "Handwritten Notes",
+      "size": "2.8 MB",
+      "pages": 34,
+      "downloads": 32,
+      "summary": "Step-by-step old and new methods of mother tincture preparation, maceration, percolation, and succussion rules.",
+      "fileUrl": "/api/pdf-stream?file=1sSI3pE7LkfL5oOStqgwBQKgRoupMJWjM",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-09T09:00:00.000Z"
+    },
+    {
+      "id": "book_1st_mm_01",
+      "contentType": "book",
+      "title": "Pocket Manual of Homoeopathic Materia Medica & Repertory",
+      "author": "William Boericke, M.D.",
+      "year": "1st Year",
+      "subject": "Materia Medica",
+      "category": "Standard Textbooks",
+      "size": "15.4 MB",
+      "pages": 1042,
+      "downloads": 67,
+      "summary": "The quintessential clinical Materia Medica containing symptoms, modalities, dose, and affinities of all major remedies.",
+      "fileUrl": "/api/pdf-stream?file=1xeM1dst86UqB8Jfa18BJsoSXn_12RrJM",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-08T07:30:00.000Z"
+    },
+    {
+      "id": "book_1st_mm_02",
+      "contentType": "book",
+      "title": "Keynotes and Characteristics with Comparisons",
+      "author": "H.C. Allen, M.D.",
+      "year": "1st Year",
+      "subject": "Materia Medica",
+      "category": "Reference Literature",
+      "size": "6.8 MB",
+      "pages": 385,
+      "downloads": 58,
+      "summary": "Invaluable keynote guide highlighting the characteristic and guiding symptoms of polychrest remedies.",
+      "fileUrl": "/api/pdf-stream?file=1fyg4GLygjU8GAHCR0caLqYmoJVoVSFEc",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-08T08:00:00.000Z"
+    },
+    {
+      "id": "note_1st_mm_01",
+      "contentType": "note",
+      "title": "First Year Polychrest Remedies Keynote Notes (Aconite to Silicea)",
+      "author": "Homoeo Pulse Academic Cell",
+      "year": "1st Year",
+      "subject": "Materia Medica",
+      "category": "Handwritten Notes",
+      "size": "4.1 MB",
+      "pages": 58,
+      "downloads": 49,
+      "summary": "High-yield keynote notes, modalities, guiding symptoms, and triad comparisons for 1st Year BHMS syllabus remedies.",
+      "fileUrl": "/api/pdf-stream?file=1fyg4GLygjU8GAHCR0caLqYmoJVoVSFEc",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-08T08:30:00.000Z"
+    },
+    {
+      "id": "book_1st_org_01",
+      "contentType": "book",
+      "title": "Organon of Medicine - 6th Edition with Introduction",
+      "author": "Dr. Samuel Hahnemann",
+      "year": "1st Year",
+      "subject": "Organon of Medicine and Homeopathic Philosophy",
+      "category": "Standard Textbooks",
+      "size": "5.5 MB",
+      "pages": 320,
+      "downloads": 62,
+      "summary": "Original translated 6th edition of the Organon by William Boericke, detailing the fundamental principles of the Art of Healing.",
+      "fileUrl": "/api/pdf-stream?file=1cFuil-LhGtRoMR5wb75fHNMS1UnqGDvD",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-07T07:00:00.000Z"
+    },
+    {
+      "id": "book_1st_org_02",
+      "contentType": "book",
+      "title": "Essays on Homoeopathy & Commentary on Organon",
+      "author": "B.K. Sarkar, M.B., D.M.S.",
+      "year": "1st Year",
+      "subject": "Organon of Medicine and Homeopathic Philosophy",
+      "category": "Reference Literature",
+      "size": "9.2 MB",
+      "pages": 620,
+      "downloads": 46,
+      "summary": "In-depth philosophical commentary and historical background on Hahnemannian aphorisms and vitalistic philosophy.",
+      "fileUrl": "/api/pdf-stream?file=1cFuil-LhGtRoMR5wb75fHNMS1UnqGDvD",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-07T07:30:00.000Z"
+    },
+    {
+      "id": "note_1st_org_01",
+      "contentType": "note",
+      "title": "Aphorisms 1 to 70 Master Summary & Vital Force Concepts",
+      "author": "Homoeo Pulse Academic Cell",
+      "year": "1st Year",
+      "subject": "Organon of Medicine and Homeopathic Philosophy",
+      "category": "Handwritten Notes",
+      "size": "3.2 MB",
+      "pages": 42,
+      "downloads": 51,
+      "summary": "Detailed aphorism-by-aphorism breakdown of §1 to §70: highest ideal of cure, vital force, knowledge of physician, and law of similars.",
+      "fileUrl": "/api/pdf-stream?file=1cFuil-LhGtRoMR5wb75fHNMS1UnqGDvD",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-07T08:00:00.000Z"
+    },
+    {
+      "id": "book_2nd_path_01",
+      "contentType": "book",
+      "title": "Harsh Mohan Textbook of Pathology",
+      "author": "Harsh Mohan, MD, FICP, FICPath",
+      "year": "2nd Year",
+      "subject": "Pathology & Microbiology",
+      "category": "Standard Textbooks",
+      "size": "22.4 MB",
+      "pages": 980,
+      "downloads": 53,
+      "summary": "Leading textbook of pathology with vivid full-color illustrations, clinical correlations, and systemic pathology.",
+      "fileUrl": "/api/pdf-stream?file=1YExYuH4e-BO7BxwfxMKaSWSy_b1SlZ7M",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-06T09:00:00.000Z"
+    },
+    {
+      "id": "book_2nd_path_02",
+      "contentType": "book",
+      "title": "Robbins & Cotran Pathologic Basis of Disease",
+      "author": "Vinay Kumar, Abul Abbas, Jon Aster",
+      "year": "2nd Year",
+      "subject": "Pathology & Microbiology",
+      "category": "Reference Literature",
+      "size": "28.1 MB",
+      "pages": 1400,
+      "downloads": 45,
+      "summary": "The definitive global authority on disease pathogenesis, cellular injury, inflammation, and molecular genetics.",
+      "fileUrl": "/api/pdf-stream?file=1YExYuH4e-BO7BxwfxMKaSWSy_b1SlZ7M",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-06T09:30:00.000Z"
+    },
+    {
+      "id": "note_2nd_path_01",
+      "contentType": "note",
+      "title": "General Pathology & Inflammation High-Yield Exam Notes",
+      "author": "Faculty of Pathology",
+      "year": "2nd Year",
+      "subject": "Pathology & Microbiology",
+      "category": "Handwritten Notes",
+      "size": "4.5 MB",
+      "pages": 58,
+      "downloads": 40,
+      "summary": "Cellular adaptations, necrosis vs apoptosis, acute & chronic inflammation, chemical mediators, and wound healing.",
+      "fileUrl": "/api/pdf-stream?file=1YExYuH4e-BO7BxwfxMKaSWSy_b1SlZ7M",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-06T10:00:00.000Z"
+    },
+    {
+      "id": "note_2nd_path_02",
+      "contentType": "note",
+      "title": "Medical Microbiology & Parasitology Quick Identification Charts",
+      "author": "Academic Cell",
+      "year": "2nd Year",
+      "subject": "Pathology & Microbiology",
+      "category": "Important Rubrics & Charts",
+      "size": "3.1 MB",
+      "pages": 38,
+      "downloads": 33,
+      "summary": "Gram-positive vs Gram-negative bacteria, culture media, bacterial toxins, malaria life cycle, and viral hepatitis charts.",
+      "fileUrl": "/api/pdf-stream?file=1YExYuH4e-BO7BxwfxMKaSWSy_b1SlZ7M",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-06T10:30:00.000Z"
+    },
+    {
+      "id": "book_2nd_fmt_01",
+      "contentType": "book",
+      "title": "Parikh's Textbook of Medical Jurisprudence, Forensic Medicine and Toxicology",
+      "author": "Dr. C.K. Parikh",
+      "year": "2nd Year",
+      "subject": "Forensic Medicine & Toxicology",
+      "category": "Standard Textbooks",
+      "size": "16.8 MB",
+      "pages": 820,
+      "downloads": 47,
+      "summary": "Classic reference on Indian medical jurisprudence, legal procedures, inquest, identity, post-mortem, and toxicology.",
+      "fileUrl": "/api/pdf-stream?file=10INdmSYppTr-J6kI_gM37aZDDUwjiFS6",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-05T08:00:00.000Z"
+    },
+    {
+      "id": "book_2nd_fmt_02",
+      "contentType": "book",
+      "title": "The Essentials of Forensic Medicine and Toxicology",
+      "author": "Dr. K.S. Narayan Reddy",
+      "year": "2nd Year",
+      "subject": "Forensic Medicine & Toxicology",
+      "category": "Standard Textbooks",
+      "size": "12.3 MB",
+      "pages": 610,
+      "downloads": 39,
+      "summary": "Student-friendly textbook covering injuries, mechanical asphyxia, sexual offences, infanticide, and poisons.",
+      "fileUrl": "/api/pdf-stream?file=10INdmSYppTr-J6kI_gM37aZDDUwjiFS6",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-05T08:30:00.000Z"
+    },
+    {
+      "id": "note_2nd_fmt_01",
+      "contentType": "note",
+      "title": "Medico-Legal Procedures, Inquest & Wounds Master Guide",
+      "author": "Homoeo Pulse Legal Cell",
+      "year": "2nd Year",
+      "subject": "Forensic Medicine & Toxicology",
+      "category": "Handwritten Notes",
+      "size": "3.6 MB",
+      "pages": 44,
+      "downloads": 35,
+      "summary": "Difference between magistrate & police inquest, post-mortem changes (algor, livor, rigor mortis), firearms, and legal sections.",
+      "fileUrl": "/api/pdf-stream?file=10INdmSYppTr-J6kI_gM37aZDDUwjiFS6",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-05T09:00:00.000Z"
+    },
+    {
+      "id": "note_2nd_fmt_02",
+      "contentType": "note",
+      "title": "Toxicology: Fatal Doses, Fatal Periods & Antidotes Summary Table",
+      "author": "Dr. Mrunali Chavada",
+      "year": "2nd Year",
+      "subject": "Forensic Medicine & Toxicology",
+      "category": "Important Rubrics & Charts",
+      "size": "2.5 MB",
+      "pages": 30,
+      "downloads": 44,
+      "summary": "High-yield revision chart of common poisons: Arsenic, Lead, Snakebite, OP compounds, Cyanide, and Strichnine.",
+      "fileUrl": "/api/pdf-stream?file=10INdmSYppTr-J6kI_gM37aZDDUwjiFS6",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-05T09:30:00.000Z"
+    },
+    {
+      "id": "note_2nd_mm_01",
+      "contentType": "note",
+      "title": "2nd Year Materia Medica Remedy Profiles & Modalities",
+      "author": "Homoeo Pulse Academic Cell",
+      "year": "2nd Year",
+      "subject": "Materia Medica",
+      "category": "Handwritten Notes",
+      "size": "4.3 MB",
+      "pages": 56,
+      "downloads": 38,
+      "summary": "In-depth study of Gelsemium, Baptisia, Colocynth, Mag-phos, Phosphorus, Ipecacuanha, and Rhus-tox for 2nd BHMS.",
+      "fileUrl": "/api/pdf-stream?file=17PuupCDHlsILQqiOiRtpTtEMAVYs0pco",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-04T08:00:00.000Z"
+    },
+    {
+      "id": "note_2nd_org_01",
+      "contentType": "note",
+      "title": "Aphorisms 71 to 145: Classification of Diseases & Case Taking Guide",
+      "author": "Faculty of Organon",
+      "year": "2nd Year",
+      "subject": "Organon of Medicine and Homeopathic Philosophy",
+      "category": "Handwritten Notes",
+      "size": "3.9 MB",
+      "pages": 48,
+      "downloads": 41,
+      "summary": "Classification of diseases (acute, chronic, indisposition), §83 to §104 rules for case taking, and epidemic diseases investigation.",
+      "fileUrl": "/api/pdf-stream?file=10E-88eYJjjrGiES_4PiyV17_rWWBdBSX",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-04T08:30:00.000Z"
+    },
+    {
+      "id": "book_3rd_surg_01",
+      "contentType": "book",
+      "title": "SRB's Manual of Surgery",
+      "author": "Sriram Bhat M., MS",
+      "year": "3rd Year",
+      "subject": "Surgery",
+      "category": "Standard Textbooks",
+      "size": "26.5 MB",
+      "pages": 1320,
+      "downloads": 50,
+      "summary": "Comprehensive manual of clinical and operative surgery, surgical pathology, shock, burns, wounds, and systemic surgery.",
+      "fileUrl": "/api/pdf-stream?file=1Few1DKjNwgWzIS29Q-uTrs3qhdUvLbeM",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-03T09:00:00.000Z"
+    },
+    {
+      "id": "book_3rd_surg_02",
+      "contentType": "book",
+      "title": "Bailey & Love's Short Practice of Surgery",
+      "author": "Norman S. Williams, P. Ronan O'Connell",
+      "year": "3rd Year",
+      "subject": "Surgery",
+      "category": "Reference Literature",
+      "size": "31.2 MB",
+      "pages": 1610,
+      "downloads": 42,
+      "summary": "Internationally renowned surgical text providing fundamental principles of surgical practice, diagnosis, and operative technique.",
+      "fileUrl": "/api/pdf-stream?file=1Few1DKjNwgWzIS29Q-uTrs3qhdUvLbeM",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-03T09:30:00.000Z"
+    },
+    {
+      "id": "note_3rd_surg_01",
+      "contentType": "note",
+      "title": "Homoeopathic Therapeutics in Surgical Conditions & Pre/Post-Op Care",
+      "author": "Dr. Mrunali Chavada",
+      "year": "3rd Year",
+      "subject": "Surgery",
+      "category": "Handwritten Notes",
+      "size": "4.2 MB",
+      "pages": 52,
+      "downloads": 46,
+      "summary": "Remedies for trauma, surgical shock, haemorrhage, suppuration, carbuncles, fistula, gangrene, and post-anaesthetic complications.",
+      "fileUrl": "/api/pdf-stream?file=1Few1DKjNwgWzIS29Q-uTrs3qhdUvLbeM",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-03T10:00:00.000Z"
+    },
+    {
+      "id": "book_3rd_obg_01",
+      "contentType": "book",
+      "title": "DC Dutta's Textbook of Obstetrics",
+      "author": "Hiralal Konar, MBBS, MD, DNB",
+      "year": "3rd Year",
+      "subject": "Obstetrics & Gynaecology",
+      "category": "Standard Textbooks",
+      "size": "18.3 MB",
+      "pages": 720,
+      "downloads": 55,
+      "summary": "Premier textbook of obstetrics with clinical protocols for normal labour, antepartum haemorrhage, toxaemia of pregnancy, and puerperium.",
+      "fileUrl": "/api/pdf-stream?file=1rY8iJOERv5uhmmN1J_mDOXEQkgSWQwtF",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-02T08:00:00.000Z"
+    },
+    {
+      "id": "book_3rd_obg_02",
+      "contentType": "book",
+      "title": "DC Dutta's Textbook of Gynaecology",
+      "author": "Hiralal Konar, MBBS, MD, DNB",
+      "year": "3rd Year",
+      "subject": "Obstetrics & Gynaecology",
+      "category": "Standard Textbooks",
+      "size": "17.1 MB",
+      "pages": 680,
+      "downloads": 49,
+      "summary": "Standard curriculum textbook on gynaecological disorders, infertility, PCOS, uterine fibroids, endometriosis, and surgical procedures.",
+      "fileUrl": "/api/pdf-stream?file=1rY8iJOERv5uhmmN1J_mDOXEQkgSWQwtF",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-02T08:30:00.000Z"
+    },
+    {
+      "id": "note_3rd_obg_01",
+      "contentType": "note",
+      "title": "Homoeopathic Therapeutics in Obstetrics & Gynaecological Disorders",
+      "author": "Homoeo Pulse Academic Cell",
+      "year": "3rd Year",
+      "subject": "Obstetrics & Gynaecology",
+      "category": "Handwritten Notes",
+      "size": "3.8 MB",
+      "pages": 46,
+      "downloads": 43,
+      "summary": "Master notes on Sepia, Pulsatilla, Sabina, Secale-cor, Caulophyllum, Actea-racemosa, and Lilium-tig in female disorders.",
+      "fileUrl": "/api/pdf-stream?file=1rY8iJOERv5uhmmN1J_mDOXEQkgSWQwtF",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-02T09:00:00.000Z"
+    },
+    {
+      "id": "note_3rd_mm_01",
+      "contentType": "note",
+      "title": "3rd Year Materia Medica: Heavy Metal & Poison Remedy Portraits",
+      "author": "Faculty of Materia Medica",
+      "year": "3rd Year",
+      "subject": "Materia Medica",
+      "category": "Handwritten Notes",
+      "size": "4.0 MB",
+      "pages": 50,
+      "downloads": 37,
+      "summary": "Deep study of Lachesis, Crotalus-horridus, Platina, Aurum-metallicum, Plumbum-metallicum, and Staphysagria.",
+      "fileUrl": "/api/pdf-stream?file=1fyg4GLygjU8GAHCR0caLqYmoJVoVSFEc",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-01T08:00:00.000Z"
+    },
+    {
+      "id": "note_3rd_org_01",
+      "contentType": "note",
+      "title": "Chronic Diseases Theory & Miasmatic Analysis (Psora, Sycosis, Syphilis)",
+      "author": "Homoeo Pulse Academic Cell",
+      "year": "3rd Year",
+      "subject": "Organon of Medicine and Homeopathic Philosophy",
+      "category": "Handwritten Notes",
+      "size": "4.6 MB",
+      "pages": 60,
+      "downloads": 48,
+      "summary": "Comprehensive comparison of fundamental cause of chronic diseases: stigmas of Psora, Sycosis, Syphilis, and tubercular diathesis.",
+      "fileUrl": "/api/pdf-stream?file=1cFuil-LhGtRoMR5wb75fHNMS1UnqGDvD",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-01T08:30:00.000Z"
+    },
+    {
+      "id": "note_4th_pm_01",
+      "contentType": "note",
+      "title": "Clinical Medicine Bedside Differential Diagnosis Master Notes",
+      "author": "Dr. Mrunali Chavada & Faculty Team",
+      "year": "4th Year",
+      "subject": "Practice of Medicine",
+      "category": "Handwritten Notes",
+      "size": "5.4 MB",
+      "pages": 72,
+      "downloads": 59,
+      "summary": "Systematic differential diagnosis for chest pain, breathlessness, jaundice, ascites, hemiplegia, and acute abdomen with clinical homoeopathy.",
+      "fileUrl": "/api/pdf-stream?file=1xeM1dst86UqB8Jfa18BJsoSXn_12RrJM",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-09-30T10:00:00.000Z"
+    },
+    {
+      "id": "note_4th_pm_02",
+      "contentType": "note",
+      "title": "Cardiology & Respiratory Diseases Clinical Homoeopathic Therapeutics",
+      "author": "Homoeo Pulse Clinical Team",
+      "year": "4th Year",
+      "subject": "Practice of Medicine",
+      "category": "Important Rubrics & Charts",
+      "size": "3.7 MB",
+      "pages": 46,
+      "downloads": 45,
+      "summary": "Treatment protocols for hypertension, ischemic heart disease, heart failure, asthma, COPD, and pneumonia with homoeopathic indications.",
+      "fileUrl": "/api/pdf-stream?file=1MGTRsxiq2VLpKl1sEuUr9xxzcCyweIMg",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-09-30T10:30:00.000Z"
+    },
+    {
+      "id": "book_4th_rep_01",
+      "contentType": "book",
+      "title": "Repertory of the Homoeopathic Materia Medica",
+      "author": "James Tyler Kent, A.M., M.D.",
+      "year": "4th Year",
+      "subject": "Repertory",
+      "category": "Standard Textbooks",
+      "size": "19.8 MB",
+      "pages": 1460,
+      "downloads": 64,
+      "summary": "The master reference work of homoeopathic symptoms and rubrics, from Mind to Generalities, with typography gradation.",
+      "fileUrl": "/api/pdf-stream?file=1cFuil-LhGtRoMR5wb75fHNMS1UnqGDvD",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-09-29T10:00:00.000Z"
+    },
+    {
+      "id": "book_4th_rep_02",
+      "contentType": "book",
+      "title": "Boenninghausen's Therapeutic Pocket Book",
+      "author": "C.M. Boger, M.D.",
+      "year": "4th Year",
+      "subject": "Repertory",
+      "category": "Reference Literature",
+      "size": "8.4 MB",
+      "pages": 520,
+      "downloads": 52,
+      "summary": "Classical repertory based on doctrine of complete symptom, concomitant symptoms, and relationship of remedies.",
+      "fileUrl": "/api/pdf-stream?file=1cFuil-LhGtRoMR5wb75fHNMS1UnqGDvD",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-09-29T10:30:00.000Z"
+    },
+    {
+      "id": "note_4th_rep_01",
+      "contentType": "note",
+      "title": "Repertorisation Methods: Kentian vs Boenninghausen Comparison",
+      "author": "Homoeo Pulse Academic Cell",
+      "year": "4th Year",
+      "subject": "Repertory",
+      "category": "Handwritten Notes",
+      "size": "3.5 MB",
+      "pages": 42,
+      "downloads": 47,
+      "summary": "Case analysis techniques, evaluation of symptoms, totality of symptoms, elimination method, and computer repertorisation guides.",
+      "fileUrl": "/api/pdf-stream?file=1cFuil-LhGtRoMR5wb75fHNMS1UnqGDvD",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-09-29T11:00:00.000Z"
+    },
+    {
+      "id": "note_4th_rep_02",
+      "contentType": "note",
+      "title": "Important Repertory Rubrics & Mind Section Master Chart",
+      "author": "Dr. Mrunali Chavada",
+      "year": "4th Year",
+      "subject": "Repertory",
+      "category": "Important Rubrics & Charts",
+      "size": "2.9 MB",
+      "pages": 36,
+      "downloads": 50,
+      "summary": "Cross-references of obscure mind rubrics, delusions, fears, and generalities commonly tested in university exam case papers.",
+      "fileUrl": "/api/pdf-stream?file=1cFuil-LhGtRoMR5wb75fHNMS1UnqGDvD",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-09-29T11:30:00.000Z"
+    },
+    {
+      "id": "note_4th_mm_01",
+      "contentType": "note",
+      "title": "Nosodes, Sarcodes & Rare Remedies Master Study Notes",
+      "author": "Homoeo Pulse Academic Cell",
+      "year": "4th Year",
+      "subject": "Materia Medica",
+      "category": "Handwritten Notes",
+      "size": "4.7 MB",
+      "pages": 62,
+      "downloads": 44,
+      "summary": "Clinical indications for Psorinum, Medorrhinum, Syphilinum, Tuberculinum, Carcinosin, Bacillinum, and Thyroidinum.",
+      "fileUrl": "/api/pdf-stream?file=17PuupCDHlsILQqiOiRtpTtEMAVYs0pco",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-09-28T09:00:00.000Z"
+    },
+    {
+      "id": "book_4th_org_01",
+      "contentType": "book",
+      "title": "Lectures on Homoeopathic Philosophy",
+      "author": "James Tyler Kent, A.M., M.D.",
+      "year": "4th Year",
+      "subject": "Organon of Medicine and Homeopathic Philosophy",
+      "category": "Standard Textbooks",
+      "size": "6.2 MB",
+      "pages": 290,
+      "downloads": 56,
+      "summary": "Masterful commentary on Hahnemann's Organon elucidating vital principles, cure vs recovery, and the 12 Kentian observations.",
+      "fileUrl": "/api/pdf-stream?file=10E-88eYJjjrGiES_4PiyV17_rWWBdBSX",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-09-28T09:30:00.000Z"
+    },
+    {
+      "id": "note_4th_org_01",
+      "contentType": "note",
+      "title": "Kent's Twelve Observations, Remedy Reactions & Second Prescription",
+      "author": "Faculty of Philosophy",
+      "year": "4th Year",
+      "subject": "Organon of Medicine and Homeopathic Philosophy",
+      "category": "Handwritten Notes",
+      "size": "3.4 MB",
+      "pages": 40,
+      "downloads": 51,
+      "summary": "Comprehensive guide to post-prescription prognosis, aggravation vs amelioration, and when to repeat or change the remedy.",
+      "fileUrl": "/api/pdf-stream?file=10E-88eYJjjrGiES_4PiyV17_rWWBdBSX",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-09-28T10:00:00.000Z"
+    },
+    {
+      "id": "note_4th_cm_01",
+      "contentType": "note",
+      "title": "National Health Programmes of India & Epidemiology Exam Notes",
+      "author": "Homoeo Pulse Public Health Cell",
+      "year": "4th Year",
+      "subject": "Community Medicine",
+      "category": "Handwritten Notes",
+      "size": "4.1 MB",
+      "pages": 54,
+      "downloads": 38,
+      "summary": "Epidemiological triad, biostatistics, RCH, immunization schedules, AYUSH national health mission, and water purification.",
+      "fileUrl": "/api/pdf-stream?file=1sSI3pE7LkfL5oOStqgwBQKgRoupMJWjM",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-09-27T08:00:00.000Z"
+    },
+    {
+      "id": "note_1792500609399",
+      "contentType": "note",
+      "title": "org - symptomatology",
+      "author": "Faculty Department",
+      "year": "1st Year",
+      "subject": "Organon of Medicine and Homeopathic Philosophy",
+      "category": "Handwritten Notes",
+      "size": "3.5 MB",
+      "pages": 17,
+      "downloads": 1,
+      "summary": "Faculty uploaded study notes on symptomatology and case taking.",
+      "fileUrl": "https://homoeo-pulse.onrender.com/api/pdf-stream?file=1OUFK6wIZ-XNtzUOomHcavBY7BxNXqLGa",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-20T12:56:04.031Z"
+    },
+    {
+      "id": "note_top_1792056096829",
+      "contentType": "note",
+      "title": "Chapter : 3 Principles of Epidemiology and Epidemiologic Methods - CM studies.. by M",
+      "author": "Faculty Department",
+      "year": "4th Year",
+      "subject": "Community Medicine",
+      "category": "Handwritten Notes",
+      "size": "3.5 MB",
+      "pages": 26,
+      "downloads": 1,
+      "summary": "Clinical homoeopathic study reference notes on epidemiology.",
+      "fileUrl": "/api/pdf-stream?file=1ZGriuXLf_8iF6qtLtrxlURAy0cLM-Gj-",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-15T09:21:36.829Z"
     }
   ],
   "students": [
@@ -827,8 +1977,65 @@
       "rating": "Oldest Homoeopathic College in Asia"
     }
   ],
-  "lastUpdated": 1792500964031,
   "notifications": [
+    {
+      "id": "notif_1792509422127",
+      "title": "📚 New Study Note Published!",
+      "target": "3rd Year",
+      "type": "Study Note Upload",
+      "time": "Just now",
+      "body": "\"org - symptomatology\" for Surgery (3rd Year) is now available in your academic repository.",
+      "timestamp": 1792509422127,
+      "docId": "note_1792509417756"
+    },
+    {
+      "id": "notif_1792509393918",
+      "title": "📚 New Study Note Published!",
+      "target": "2nd Year",
+      "type": "Study Note Upload",
+      "time": "Just now",
+      "body": "\"org - symptomatology\" for Organon of Medicine and Homeopathic Philosophy (2nd Year) is now available in your academic repository.",
+      "timestamp": 1792509393918,
+      "docId": "note_1792509389471"
+    },
+    {
+      "id": "notif_1792509360417",
+      "title": "🔄 Library Repository Updated",
+      "target": "All Years",
+      "type": "Curriculum Maintenance",
+      "time": "Just now",
+      "body": "Academic repository has been updated by faculty administrators.",
+      "timestamp": 1792509360417
+    },
+    {
+      "id": "notif_1792509354647",
+      "title": "🔄 Library Repository Updated",
+      "target": "All Years",
+      "type": "Curriculum Maintenance",
+      "time": "Just now",
+      "body": "Academic repository has been updated by faculty administrators.",
+      "timestamp": 1792509354647
+    },
+    {
+      "id": "notif_1792509329032",
+      "title": "📚 New Study Note Published!",
+      "target": "3rd Year",
+      "type": "Study Note Upload",
+      "time": "Just now",
+      "body": "\"org - symptomatology\" for Organon of Medicine and Homeopathic Philosophy (3rd Year) is now available in your academic repository.",
+      "timestamp": 1792509329032,
+      "docId": "note_1792509324810"
+    },
+    {
+      "id": "notif_1792509254317",
+      "title": "📚 New Study Note Published!",
+      "target": "2nd Year",
+      "type": "Study Note Upload",
+      "time": "Just now",
+      "body": "\"org - symptomatology\" for Organon of Medicine and Homeopathic Philosophy (2nd Year) is now available in your academic repository.",
+      "timestamp": 1792509254317,
+      "docId": "note_1792509250321"
+    },
     {
       "id": "notif_1792500964031",
       "title": "📚 New Study Note Published!",
@@ -868,12 +2075,5 @@
       "timestamp": 1791978800000
     }
   ],
-  "userProfile": {
-    "name": "Dr. Student Scholar",
-    "year": "1st Year",
-    "college": "Homoeopathic Medical College & Hospital",
-    "email": "student@homoeopulse.ayush.gov.in",
-    "rollNo": "BHMS-2024-001",
-    "isSetupDone": true
-  }
+  "lastUpdated": 1792509846115
 }
