@@ -94,6 +94,18 @@ async function syncAllToLiveCloud() {
       });
     }
 
+    // 4. Sync curriculum structure to live server
+    if (curriculumData && Object.keys(curriculumData).length > 0) {
+      await fetch(`${LIVE_CLOUD_API}/api/admin/sync-db`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-key': DEFAULT_ADMIN_PASSCODE
+        },
+        body: JSON.stringify({ curriculum: curriculumData })
+      }).catch(() => {});
+    }
+
     await loadAdminData(true);
     updateLiveNotesCountBadge();
 

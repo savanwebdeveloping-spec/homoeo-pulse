@@ -387,6 +387,37 @@ const server = http.createServer(async (req, res) => {
 
         db.notes.unshift(newDoc);
         db.lastUpdated = Date.now();
+
+        // Also link note to curriculum topics if it's a study note
+        if (newDoc.contentType === 'note' && db.curriculum && db.curriculum[newDoc.year]) {
+          const sub = db.curriculum[newDoc.year].find(s => s.name === newDoc.subject || (s.code && s.code === newDoc.subject));
+          if (sub) {
+            sub.chapters = sub.chapters || [];
+            let ch = sub.chapters.find(c => c.title.toLowerCase().includes((newDoc.category || '').toLowerCase()) || c.title.toLowerCase().includes('study notes'));
+            if (!ch && sub.chapters.length > 0) ch = sub.chapters[0];
+            if (!ch) {
+              ch = {
+                id: 'ch_' + Date.now(),
+                title: newDoc.category || `${newDoc.subject} Study Notes`,
+                desc: 'High-yield clinical study notes and lecture topics.',
+                topics: []
+              };
+              sub.chapters.push(ch);
+            }
+            ch.topics = ch.topics || [];
+            if (!ch.topics.some(t => t.id === newDoc.id || t.title === newDoc.title)) {
+              ch.topics.push({
+                id: newDoc.id,
+                title: newDoc.title,
+                pages: newDoc.pages || 14,
+                size: newDoc.size || '3.5 MB',
+                fileUrl: newDoc.fileUrl,
+                summary: newDoc.summary || 'Clinical homoeopathic study reference notes.'
+              });
+            }
+          }
+        }
+
         db.notifications = db.notifications || [];
         const isBook = newDoc.contentType === 'book';
         const notif = {
@@ -537,7 +568,141 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { success: true, docId: doc.id, reads: doc.reads, downloads: doc.downloads });
     }
 
-    // 4c. Delete Curriculum Chapter
+    // 4c. Curriculum Chapter & Topic Management
+    if (pathname === '/api/curriculum/chapter' && req.method === 'POST') {
+      if (!verifyAdminAuth(req)) {
+        return sendJson(res, 401, { error: 'Unauthorized: Admin security passcode required.' });
+      }
+      const body = await parseBody(req);
+      const { year, subjectName, chapterTitle, chapterDesc } = body;
+      if (!year || !subjectName || !chapterTitle) {
+        return sendJson(res, 400, { error: 'Missing required fields: year, subjectName, chapterTitle' });
+      }
+      db.curriculum = db.curriculum || {};
+      db.curriculum[year] = db.curriculum[year] || [];
+      let sub = db.curriculum[year].find(s => s.name === subjectName || (s.code && s.code === subjectName));
+      if (!sub) {
+        sub = {
+          id: 'sub_' + Date.now(),
+          name: subjectName,
+          code: 'BHMS',
+          icon: '📖',
+          desc: 'Academic curriculum subject',
+          chapters: []
+        };
+        db.curriculum[year].push(sub);
+      }
+      sub.chapters = sub.chapters || [];
+      const newChapter = {
+        id: 'ch_' + Date.now(),
+        title: chapterTitle,
+        desc: chapterDesc || 'High-yield clinical study notes and lecture topics.',
+        topics: []
+      };
+      sub.chapters.push(newChapter);
+      db.lastUpdated = Date.now();
+      saveDatabase(db);
+      mirrorToLiveCloud('/api/curriculum/chapter', 'POST', body);
+      return sendJson(res, 201, { success: true, chapter: newChapter });
+    }
+
+    if (pathname === '/api/curriculum/topic' && req.method === 'POST') {
+      if (!verifyAdminAuth(req)) {
+        return sendJson(res, 401, { error: 'Unauthorized: Admin security passcode required.' });
+      }
+      const body = await parseBody(req);
+      const { year, subjectName, chapterId, chapterTitle, title, pages, size, fileUrl, summary } = body;
+      if (!year || !subjectName || !title) {
+        return sendJson(res, 400, { error: 'Missing required fields: year, subjectName, title' });
+      }
+
+      db.curriculum = db.curriculum || {};
+      db.curriculum[year] = db.curriculum[year] || [];
+      let sub = db.curriculum[year].find(s => s.name === subjectName || (s.code && s.code === subjectName));
+      if (!sub) {
+        sub = {
+          id: 'sub_' + Date.now(),
+          name: subjectName,
+          code: 'BHMS',
+          icon: '📖',
+          desc: 'Academic curriculum subject',
+          chapters: []
+        };
+        db.curriculum[year].push(sub);
+      }
+      sub.chapters = sub.chapters || [];
+
+      let ch = null;
+      if (chapterId) {
+        ch = sub.chapters.find(c => c.id === chapterId);
+      }
+      if (!ch && chapterTitle) {
+        ch = sub.chapters.find(c => c.title.toLowerCase() === chapterTitle.toLowerCase());
+      }
+      if (!ch) {
+        ch = {
+          id: 'ch_' + Date.now(),
+          title: chapterTitle || `Chapter ${sub.chapters.length + 1}: Study Notes`,
+          desc: 'High-yield clinical study notes and lecture topics.',
+          topics: []
+        };
+        sub.chapters.push(ch);
+      }
+      ch.topics = ch.topics || [];
+
+      const topicId = 'note_' + Date.now();
+      const newTopic = {
+        id: topicId,
+        title: title,
+        pages: Number(pages) || 14,
+        size: size || '3.5 MB',
+        fileUrl: fileUrl || '',
+        summary: summary || 'Clinical homoeopathic study reference notes.'
+      };
+      ch.topics.push(newTopic);
+
+      // Also create note in notes collection for global indexing
+      const newNote = {
+        id: topicId,
+        contentType: 'note',
+        title: title,
+        author: 'Faculty Department',
+        year: year,
+        subject: subjectName,
+        category: ch.title,
+        size: newTopic.size,
+        pages: newTopic.pages,
+        downloads: 1,
+        summary: newTopic.summary,
+        fileUrl: newTopic.fileUrl,
+        bookmarked: false,
+        downloaded: false,
+        currentPage: 1,
+        createdAt: new Date().toISOString()
+      };
+      db.notes = db.notes || [];
+      db.notes.unshift(newNote);
+
+      db.lastUpdated = Date.now();
+      db.notifications = db.notifications || [];
+      const notif = {
+        id: 'notif_' + Date.now(),
+        title: '📚 New Study Note Published!',
+        target: year || 'All Years',
+        type: 'Study Note Upload',
+        time: 'Just now',
+        body: `"${newNote.title}" for ${newNote.subject} (${newNote.year}) is now available in your academic repository.`,
+        timestamp: Date.now(),
+        docId: newNote.id
+      };
+      db.notifications.unshift(notif);
+
+      saveDatabase(db);
+      mirrorToLiveCloud('/api/curriculum/topic', 'POST', body);
+      return sendJson(res, 201, { success: true, chapter: ch, topic: newTopic, note: newNote, notification: notif });
+    }
+
+    // 4d. Delete Curriculum Chapter
     if (pathname.startsWith('/api/curriculum/chapter/') && req.method === 'DELETE') {
       if (!verifyAdminAuth(req)) {
         return sendJson(res, 401, { error: 'Unauthorized: Admin security passcode required.' });
@@ -555,7 +720,52 @@ const server = http.createServer(async (req, res) => {
         }
       }
       saveDatabase(db);
+      mirrorToLiveCloud(pathname, 'DELETE');
       return sendJson(res, 200, { success: true, message: `Chapter ${chId} deleted.` });
+    }
+
+    // 4e. Delete Curriculum Topic
+    if (pathname.startsWith('/api/curriculum/topic/') && req.method === 'DELETE') {
+      if (!verifyAdminAuth(req)) {
+        return sendJson(res, 401, { error: 'Unauthorized: Admin security passcode required.' });
+      }
+      const topId = pathname.replace('/api/curriculum/topic/', '');
+      if (db.curriculum) {
+        for (const y in db.curriculum) {
+          if (Array.isArray(db.curriculum[y])) {
+            for (const s of db.curriculum[y]) {
+              if (s.chapters && Array.isArray(s.chapters)) {
+                for (const ch of s.chapters) {
+                  if (ch.topics && Array.isArray(ch.topics)) {
+                    ch.topics = ch.topics.filter(t => t.id !== topId);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      // Also remove from notes collection if exists
+      if (db.notes) {
+        db.notes = db.notes.filter(n => n.id !== topId);
+      }
+      saveDatabase(db);
+      mirrorToLiveCloud(pathname, 'DELETE');
+      return sendJson(res, 200, { success: true, message: `Topic ${topId} deleted.` });
+    }
+
+    // 4f. Full Database Sync Endpoint (For instant Live Cloud replication)
+    if (pathname === '/api/admin/sync-db' && req.method === 'POST') {
+      if (!verifyAdminAuth(req)) {
+        return sendJson(res, 401, { error: 'Unauthorized: Admin security passcode required.' });
+      }
+      const body = await parseBody(req);
+      if (body.curriculum) db.curriculum = body.curriculum;
+      if (body.notes) db.notes = body.notes;
+      if (body.notifications) db.notifications = body.notifications;
+      db.lastUpdated = Date.now();
+      saveDatabase(db);
+      return sendJson(res, 200, { success: true, message: 'Database synced successfully.', lastUpdated: db.lastUpdated });
     }
 
     // 5. Students Collection

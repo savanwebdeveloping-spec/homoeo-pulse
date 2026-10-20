@@ -1,5 +1,5 @@
 // Homoeo Pulse Offline Academic Fallback Database
-// Auto-synchronized with database.json (2026-10-18T11:31:54.624Z)
+// Auto-synchronized with database.json (2026-10-20T15:00:49.218Z)
 window.HOMOEO_DEFAULT_DATA = {
   "curriculum": {
     "1st Year": [
@@ -41,7 +41,23 @@ window.HOMOEO_DEFAULT_DATA = {
         "code": "ORG-105",
         "icon": "📖",
         "desc": "Aphorisms 1-70, vital force, health, disease & cure",
-        "chapters": []
+        "chapters": [
+          {
+            "id": "ch_org_101",
+            "title": "Chapter 1: Symptomatology & Case Taking",
+            "desc": "High-yield clinical study notes and lecture topics.",
+            "topics": [
+              {
+                "id": "note_1792500609399",
+                "title": "org - symptomatology",
+                "pages": 17,
+                "size": "3.5 MB",
+                "fileUrl": "https://homoeo-pulse.onrender.com/api/pdf-stream?file=1OUFK6wIZ-XNtzUOomHcavBY7BxNXqLGa",
+                "summary": "Faculty uploaded study notes on symptomatology."
+              }
+            ]
+          }
+        ]
       }
     ],
     "2nd Year": [
@@ -173,6 +189,24 @@ window.HOMOEO_DEFAULT_DATA = {
   },
   "notes": [
     {
+      "id": "note_1792500609399",
+      "contentType": "note",
+      "title": "org - symptomatology",
+      "author": "-",
+      "year": "1st Year",
+      "subject": "Organon of Medicine and Homeopathic Philosophy",
+      "category": "Handwritten Notes",
+      "size": "3.5 MB",
+      "pages": 17,
+      "downloads": 1,
+      "summary": "Faculty uploaded standard textbook.",
+      "fileUrl": "https://homoeo-pulse.onrender.com/api/pdf-stream?file=1OUFK6wIZ-XNtzUOomHcavBY7BxNXqLGa",
+      "bookmarked": false,
+      "downloaded": false,
+      "currentPage": 1,
+      "createdAt": "2026-10-20T12:56:04.031Z"
+    },
+    {
       "id": "note_top_1792056096829",
       "contentType": "note",
       "title": "Chapter : 3 Principles of Epidemiology and Epidemiologic Methods - CM studies.. by M",
@@ -202,14 +236,13 @@ window.HOMOEO_DEFAULT_DATA = {
       "pages": 423,
       "downloads": 3,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "/api/pdf-stream?file=1Pj_7qIuGZ6nuQZ5Vyvf6241OjId8WWth",
+      "fileUrl": "https://drive.usercontent.google.com/download?id=1Pj_7qIuGZ6nuQZ5Vyvf6241OjId8WWth&export=download&authuser=0",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-10-14T09:15:43.267Z",
       "reads": 3,
-      "lastReadAt": "2026-10-18T11:29:14.552Z",
-      "driveFileId": "1Pj_7qIuGZ6nuQZ5Vyvf6241OjId8WWth"
+      "lastReadAt": "2026-10-18T11:29:14.552Z"
     },
     {
       "id": "book_1791969207626",
@@ -223,12 +256,11 @@ window.HOMOEO_DEFAULT_DATA = {
       "pages": 374,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "/api/pdf-stream?file=1UIf1jTCbS6ATVj_idEp8EUdogezOd40q",
+      "fileUrl": "https://drive.usercontent.google.com/download?id=1UIf1jTCbS6ATVj_idEp8EUdogezOd40q&export=download&authuser=0",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
-      "createdAt": "2026-10-14T09:13:27.633Z",
-      "driveFileId": "1UIf1jTCbS6ATVj_idEp8EUdogezOd40q"
+      "createdAt": "2026-10-14T09:13:27.633Z"
     },
     {
       "id": "book_1791969161756",
@@ -242,12 +274,11 @@ window.HOMOEO_DEFAULT_DATA = {
       "pages": 354,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "/api/pdf-stream?file=1TPNQMFFO2X-KUyOgpnU3BjpcR5pJ541a",
+      "fileUrl": "https://drive.usercontent.google.com/download?id=1TPNQMFFO2X-KUyOgpnU3BjpcR5pJ541a&export=download&authuser=0",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
-      "createdAt": "2026-10-14T09:12:41.764Z",
-      "driveFileId": "1TPNQMFFO2X-KUyOgpnU3BjpcR5pJ541a"
+      "createdAt": "2026-10-14T09:12:41.764Z"
     },
     {
       "id": "book_1791968383253",
@@ -261,12 +292,11 @@ window.HOMOEO_DEFAULT_DATA = {
       "pages": 2251,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "/api/pdf-stream?file=1OXlQGRu4kdphTDpU-bfHvWpSCqZWkfQn",
+      "fileUrl": "https://drive.usercontent.google.com/download?id=1OXlQGRu4kdphTDpU-bfHvWpSCqZWkfQn&export=download&authuser=0",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
-      "createdAt": "2026-10-14T08:59:43.258Z",
-      "driveFileId": "1OXlQGRu4kdphTDpU-bfHvWpSCqZWkfQn"
+      "createdAt": "2026-10-14T08:59:43.258Z"
     },
     {
       "id": "book_1791968248695",
@@ -280,12 +310,11 @@ window.HOMOEO_DEFAULT_DATA = {
       "pages": 425,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "/api/pdf-stream?file=116uNTpJvPx-PaS0SUd-UMr6EsOTLAX6S",
+      "fileUrl": "https://drive.usercontent.google.com/download?id=116uNTpJvPx-PaS0SUd-UMr6EsOTLAX6S&export=download&authuser=0",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
-      "createdAt": "2026-10-14T08:57:28.702Z",
-      "driveFileId": "116uNTpJvPx-PaS0SUd-UMr6EsOTLAX6S"
+      "createdAt": "2026-10-14T08:57:28.702Z"
     },
     {
       "id": "book_1791968166509",
@@ -299,12 +328,11 @@ window.HOMOEO_DEFAULT_DATA = {
       "pages": 433,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "/api/pdf-stream?file=13DQ7GxqOj6DeFE5p2o4CLygQw3N34J8S",
+      "fileUrl": "https://drive.usercontent.google.com/download?id=13DQ7GxqOj6DeFE5p2o4CLygQw3N34J8S&export=download&authuser=0",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
-      "createdAt": "2026-10-14T08:56:06.516Z",
-      "driveFileId": "13DQ7GxqOj6DeFE5p2o4CLygQw3N34J8S"
+      "createdAt": "2026-10-14T08:56:06.516Z"
     },
     {
       "id": "book_1791968109629",
@@ -318,12 +346,11 @@ window.HOMOEO_DEFAULT_DATA = {
       "pages": 339,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "/api/pdf-stream?file=1VwSTLh81SJ4R3_cIQt14xDMOzKEiK6-W",
+      "fileUrl": "https://drive.usercontent.google.com/download?id=1VwSTLh81SJ4R3_cIQt14xDMOzKEiK6-W&export=download&authuser=0",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
-      "createdAt": "2026-10-14T08:55:09.634Z",
-      "driveFileId": "1VwSTLh81SJ4R3_cIQt14xDMOzKEiK6-W"
+      "createdAt": "2026-10-14T08:55:09.634Z"
     },
     {
       "id": "book_1791968044310",
@@ -337,12 +364,11 @@ window.HOMOEO_DEFAULT_DATA = {
       "pages": 313,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "/api/pdf-stream?file=1vZPZtMcb1sUmHiWQmbjd0-J4_Yqumlaz",
+      "fileUrl": "https://drive.usercontent.google.com/download?id=1vZPZtMcb1sUmHiWQmbjd0-J4_Yqumlaz&export=download&authuser=0",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
-      "createdAt": "2026-10-14T08:54:04.316Z",
-      "driveFileId": "1vZPZtMcb1sUmHiWQmbjd0-J4_Yqumlaz"
+      "createdAt": "2026-10-14T08:54:04.316Z"
     },
     {
       "id": "book_1791967589021",
@@ -356,12 +382,11 @@ window.HOMOEO_DEFAULT_DATA = {
       "pages": 491,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "/api/pdf-stream?file=10SV-JJZgrDlYr4ckBcS87HCv1siD4GKa",
+      "fileUrl": "https://drive.usercontent.google.com/download?id=10SV-JJZgrDlYr4ckBcS87HCv1siD4GKa&export=download&authuser=0",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
-      "createdAt": "2026-10-14T08:46:29.030Z",
-      "driveFileId": "10SV-JJZgrDlYr4ckBcS87HCv1siD4GKa"
+      "createdAt": "2026-10-14T08:46:29.030Z"
     },
     {
       "id": "book_1791967538664",
@@ -375,12 +400,11 @@ window.HOMOEO_DEFAULT_DATA = {
       "pages": 477,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "/api/pdf-stream?file=17GyKoTRKwilJBwXbYGx5i6dGYR9UExac",
+      "fileUrl": "https://drive.usercontent.google.com/download?id=17GyKoTRKwilJBwXbYGx5i6dGYR9UExac&export=download&authuser=0",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
-      "createdAt": "2026-10-14T08:45:38.669Z",
-      "driveFileId": "17GyKoTRKwilJBwXbYGx5i6dGYR9UExac"
+      "createdAt": "2026-10-14T08:45:38.669Z"
     },
     {
       "id": "book_1791967483829",
@@ -394,12 +418,11 @@ window.HOMOEO_DEFAULT_DATA = {
       "pages": 312,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "/api/pdf-stream?file=1Q5Mhglk3f6e5Ho8FYKRPyERIVAjgVwY7",
+      "fileUrl": "https://drive.usercontent.google.com/download?id=1Q5Mhglk3f6e5Ho8FYKRPyERIVAjgVwY7&export=download&authuser=0",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
-      "createdAt": "2026-10-14T08:44:43.844Z",
-      "driveFileId": "1Q5Mhglk3f6e5Ho8FYKRPyERIVAjgVwY7"
+      "createdAt": "2026-10-14T08:44:43.844Z"
     },
     {
       "id": "book_1791967422389",
@@ -413,12 +436,11 @@ window.HOMOEO_DEFAULT_DATA = {
       "pages": 276,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "/api/pdf-stream?file=17WWzxKeGSj-pKyyryp7e9UCNfeyHJxvd",
+      "fileUrl": "https://drive.usercontent.google.com/download?id=17WWzxKeGSj-pKyyryp7e9UCNfeyHJxvd&export=download&authuser=0",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
-      "createdAt": "2026-10-14T08:43:42.395Z",
-      "driveFileId": "17WWzxKeGSj-pKyyryp7e9UCNfeyHJxvd"
+      "createdAt": "2026-10-14T08:43:42.395Z"
     },
     {
       "id": "book_1791967327446",
@@ -432,12 +454,11 @@ window.HOMOEO_DEFAULT_DATA = {
       "pages": 460,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "/api/pdf-stream?file=1PnQvqb171rIQ2NU43DhZojXOjpItg5mM",
+      "fileUrl": "https://drive.usercontent.google.com/download?id=1PnQvqb171rIQ2NU43DhZojXOjpItg5mM&export=download&authuser=0",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
-      "createdAt": "2026-10-14T08:42:07.454Z",
-      "driveFileId": "1PnQvqb171rIQ2NU43DhZojXOjpItg5mM"
+      "createdAt": "2026-10-14T08:42:07.454Z"
     },
     {
       "id": "book_1791967270837",
@@ -451,12 +472,11 @@ window.HOMOEO_DEFAULT_DATA = {
       "pages": 521,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "/api/pdf-stream?file=1RdL3yxvBALKbO5Rrk5sNwGv6khqujZ1U",
+      "fileUrl": "https://drive.usercontent.google.com/download?id=1RdL3yxvBALKbO5Rrk5sNwGv6khqujZ1U&export=download&authuser=0",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
-      "createdAt": "2026-10-14T08:41:10.844Z",
-      "driveFileId": "1RdL3yxvBALKbO5Rrk5sNwGv6khqujZ1U"
+      "createdAt": "2026-10-14T08:41:10.844Z"
     },
     {
       "id": "book_1791967202966",
@@ -470,12 +490,11 @@ window.HOMOEO_DEFAULT_DATA = {
       "pages": 345,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "/api/pdf-stream?file=16g8cLiNM456h8CzvjR2GtCgYNwqZbk2B",
+      "fileUrl": "https://drive.usercontent.google.com/download?id=16g8cLiNM456h8CzvjR2GtCgYNwqZbk2B&export=download&authuser=0",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
-      "createdAt": "2026-10-14T08:40:02.979Z",
-      "driveFileId": "16g8cLiNM456h8CzvjR2GtCgYNwqZbk2B"
+      "createdAt": "2026-10-14T08:40:02.979Z"
     },
     {
       "id": "book_1791966965857",
@@ -489,12 +508,11 @@ window.HOMOEO_DEFAULT_DATA = {
       "pages": 99,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "/api/pdf-stream?file=1nyobX_eYehtNzCi0i16FXQQxHBxp1EAr",
+      "fileUrl": "https://drive.usercontent.google.com/download?id=1nyobX_eYehtNzCi0i16FXQQxHBxp1EAr&export=download&authuser=0",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
-      "createdAt": "2026-10-14T08:36:05.893Z",
-      "driveFileId": "1nyobX_eYehtNzCi0i16FXQQxHBxp1EAr"
+      "createdAt": "2026-10-14T08:36:05.893Z"
     },
     {
       "id": "book_1791966773290",
@@ -508,12 +526,11 @@ window.HOMOEO_DEFAULT_DATA = {
       "pages": 499,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "/api/pdf-stream?file=1vEMtXv80wggJrfiThUIrzM2XRRq34ky-",
+      "fileUrl": "https://drive.usercontent.google.com/download?id=1vEMtXv80wggJrfiThUIrzM2XRRq34ky-&export=download&authuser=0",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
-      "createdAt": "2026-10-14T08:32:53.316Z",
-      "driveFileId": "1vEMtXv80wggJrfiThUIrzM2XRRq34ky-"
+      "createdAt": "2026-10-14T08:32:53.316Z"
     },
     {
       "id": "book_1790752707958",
@@ -527,12 +544,11 @@ window.HOMOEO_DEFAULT_DATA = {
       "pages": 957,
       "downloads": 1,
       "summary": "Faculty uploaded standard textbook.",
-      "fileUrl": "/api/pdf-stream?file=17gXct122Z1-iYwEV_mV1qPb9C4KTl7Ym",
+      "fileUrl": "/uploads/1790752707745_PSM_BOOK_BY_A_H_SURYAKANTHA__1_.pdf",
       "bookmarked": false,
       "downloaded": false,
       "currentPage": 1,
-      "createdAt": "2026-09-30T07:18:27.960Z",
-      "driveFileId": "17gXct122Z1-iYwEV_mV1qPb9C4KTl7Ym"
+      "createdAt": "2026-09-30T07:18:27.960Z"
     },
     {
       "id": "book_1790686055967",
@@ -550,8 +566,7 @@ window.HOMOEO_DEFAULT_DATA = {
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:47:35.969Z",
-      "fileUrl": "/api/pdf-stream?file=1bzIfkYOLDMcgDt5rrX9smkb-lvxl7Cx4",
-      "driveFileId": "1bzIfkYOLDMcgDt5rrX9smkb-lvxl7Cx4"
+      "fileUrl": "/uploads/1790686055936_Davidson_s_Essentials_of_Medicine_-_2E.pdf"
     },
     {
       "id": "book_1790685752533",
@@ -569,8 +584,7 @@ window.HOMOEO_DEFAULT_DATA = {
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:42:32.535Z",
-      "fileUrl": "/api/pdf-stream?file=1qqby-npnOEiOUeKbpdgZbhFb9nEfeaiQ",
-      "driveFileId": "1qqby-npnOEiOUeKbpdgZbhFb9nEfeaiQ"
+      "fileUrl": "/uploads/1790685752439_R_Alagappan_-_Manual_of_Practical_Medicine_-_4th_Edition.pdf"
     },
     {
       "id": "book_1790685623295",
@@ -588,8 +602,7 @@ window.HOMOEO_DEFAULT_DATA = {
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:40:23.298Z",
-      "fileUrl": "/api/pdf-stream?file=11Za5JjUfEBp1OHYhL0uLDE3dsToDYL_r",
-      "driveFileId": "11Za5JjUfEBp1OHYhL0uLDE3dsToDYL_r"
+      "fileUrl": "/uploads/1790685622925_Practical_Medicine_By_P._J._Maheta_20th_Edition.pdf"
     },
     {
       "id": "book_1790685511360",
@@ -607,8 +620,7 @@ window.HOMOEO_DEFAULT_DATA = {
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:38:31.363Z",
-      "fileUrl": "/api/pdf-stream?file=1sHZ_zBe-Jb2xKe1bd8PkdLNCCnNi5mDC",
-      "driveFileId": "1sHZ_zBe-Jb2xKe1bd8PkdLNCCnNi5mDC"
+      "fileUrl": "/uploads/1790685510025_Medicine_exam_prep_manual_Archit_Boloor_Ramdas_nayak.pdf"
     },
     {
       "id": "book_1790685013114",
@@ -626,8 +638,7 @@ window.HOMOEO_DEFAULT_DATA = {
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:30:13.116Z",
-      "fileUrl": "/api/pdf-stream?file=1HHqf2v8PZXz5duH30tNQ7LVFvaFZJw60",
-      "driveFileId": "1HHqf2v8PZXz5duH30tNQ7LVFvaFZJw60"
+      "fileUrl": "/uploads/1790685013036_Medicine_By_Manthappa_2nd_Edition.pdf"
     },
     {
       "id": "book_1790684515162",
@@ -645,8 +656,7 @@ window.HOMOEO_DEFAULT_DATA = {
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:21:55.179Z",
-      "fileUrl": "/api/pdf-stream?file=1XBQJSo2zHCoKxPREivjDFcvhG7s0nmvn",
-      "driveFileId": "1XBQJSo2zHCoKxPREivjDFcvhG7s0nmvn"
+      "fileUrl": "/uploads/1790684515125_Harrison_s_Manual_Of_Medicine_19E.pdf"
     },
     {
       "id": "book_1790684473020",
@@ -664,8 +674,7 @@ window.HOMOEO_DEFAULT_DATA = {
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:21:13.022Z",
-      "fileUrl": "/api/pdf-stream?file=1AbR_owQCSLDTgYheM6kfta_XpW7tJr6R",
-      "driveFileId": "1AbR_owQCSLDTgYheM6kfta_XpW7tJr6R"
+      "fileUrl": "/uploads/1790684472981_Harrison_s_Manual_Of_Medicine_18E.pdf"
     },
     {
       "id": "book_1790684213088",
@@ -683,8 +692,7 @@ window.HOMOEO_DEFAULT_DATA = {
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:16:53.090Z",
-      "fileUrl": "/api/pdf-stream?file=13aQ3_EWbZhlcNMLI-DYaeautOffJzG4I",
-      "driveFileId": "13aQ3_EWbZhlcNMLI-DYaeautOffJzG4I"
+      "fileUrl": "/uploads/1790684212886_MEDICINE_prep_manual_for_undergraduate_Mathew.pdf"
     },
     {
       "id": "book_1790684022909",
@@ -702,8 +710,7 @@ window.HOMOEO_DEFAULT_DATA = {
       "downloaded": false,
       "currentPage": 1,
       "createdAt": "2026-09-29T12:13:42.924Z",
-      "fileUrl": "/api/pdf-stream?file=15uL8k_MFXQOwlHlQbk7t34GXymZhTKW5",
-      "driveFileId": "15uL8k_MFXQOwlHlQbk7t34GXymZhTKW5"
+      "fileUrl": "/uploads/1790684022861_Golwalla_s_Medicine_For_Students_25th_Edition.pdf"
     }
   ],
   "students": [
@@ -822,8 +829,18 @@ window.HOMOEO_DEFAULT_DATA = {
       "rating": "Oldest Homoeopathic College in Asia"
     }
   ],
-  "lastUpdated": 1792323114619,
+  "lastUpdated": 1792500964031,
   "notifications": [
+    {
+      "id": "notif_1792500964031",
+      "title": "📚 New Study Note Published!",
+      "target": "1st Year",
+      "type": "Study Note Upload",
+      "time": "Just now",
+      "body": "\"org - symptomatology\" for Organon of Medicine and Homeopathic Philosophy (1st Year) is now available in your academic repository.",
+      "timestamp": 1792500964031,
+      "docId": "note_1792500609399"
+    },
     {
       "id": "notif_1792056096829",
       "title": "📚 New Topic Notes Published!",

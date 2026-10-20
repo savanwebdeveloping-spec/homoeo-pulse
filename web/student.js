@@ -778,9 +778,13 @@ function renderAppContentForYear(year, subpart) {
   const currentItem = carouselItems[activeIndex];
   const currentSubObj = subjects.find(s => s.name === currentItem.id) || subjects[activeIndex];
   const booksForActiveSub = notesData.filter(d => d.year === year && d.subject === currentItem.id && d.contentType === 'book');
+  const directNotesForActiveSub = notesData.filter(d => d.year === year && (d.subject === currentItem.id || (currentSubObj && currentSubObj.code && d.subject === currentSubObj.code)) && d.contentType === 'note');
+  const activeChaptersCount = (currentSubObj && currentSubObj.chapters && currentSubObj.chapters.length > 0)
+    ? currentSubObj.chapters.length
+    : (directNotesForActiveSub.length > 0 ? 1 : 0);
   const countLabel = subpart === 'books'
     ? `${booksForActiveSub.length} Standard Books`
-    : `${(currentSubObj && currentSubObj.chapters ? currentSubObj.chapters.length : 0)} Chapters`;
+    : `${activeChaptersCount} Chapters`;
 
   carouselWrapper.innerHTML = `
     <button class="subj-arrow-btn prev" type="button" aria-label="Previous Subject" onclick="navigateSubjectCarousel(-1)">
@@ -878,7 +882,33 @@ function renderAppContentForYear(year, subpart) {
   } else {
     // 3. Render Academic Notes Chapters directly under Subject Carousel (No duplicate tile)
     activeSubjects.forEach(sub => {
-      const chapters = sub.chapters || [];
+      let chapters = (sub.chapters && sub.chapters.length > 0) ? [...sub.chapters] : [];
+
+      // Check if there are notes uploaded under notesData for this subject
+      const directNotes = notesData.filter(d =>
+        d.year === year &&
+        (d.subject === sub.name || (sub.code && d.subject === sub.code)) &&
+        d.contentType === 'note'
+      );
+
+      // If no chapters exist in curriculum but direct notes exist in notesData, synthesize chapter
+      if (chapters.length === 0 && directNotes.length > 0) {
+        chapters = [
+          {
+            id: 'ch_auto_' + (sub.id || 'notes'),
+            title: 'Chapter 1: Academic Study Notes',
+            desc: 'Faculty lecture notes, question banks, and clinical topics.',
+            topics: directNotes.map(n => ({
+              id: n.id,
+              title: n.title,
+              pages: n.pages || 14,
+              size: n.size || '3.5 MB',
+              fileUrl: n.fileUrl,
+              summary: n.summary || 'Clinical homoeopathic study reference notes.'
+            }))
+          }
+        ];
+      }
 
       if (chapters.length === 0) {
         const emptyDiv = document.createElement('div');
@@ -955,7 +985,33 @@ function openSubjectChapters(subject) {
   const container = document.getElementById('appChaptersContainer');
   if (container) {
     container.innerHTML = '';
-    if (!subject.chapters || subject.chapters.length === 0) {
+    let chapters = (subject.chapters && subject.chapters.length > 0) ? [...subject.chapters] : [];
+    if (chapters.length === 0) {
+      const directNotes = notesData.filter(d =>
+        d.year === currentAppYear &&
+        (d.subject === subject.name || (subject.code && d.subject === subject.code)) &&
+        d.contentType === 'note'
+      );
+      if (directNotes.length > 0) {
+        chapters = [
+          {
+            id: 'ch_auto_' + (subject.id || 'notes'),
+            title: 'Chapter 1: Academic Study Notes',
+            desc: 'Faculty lecture notes, question banks, and clinical topics.',
+            topics: directNotes.map(n => ({
+              id: n.id,
+              title: n.title,
+              pages: n.pages || 14,
+              size: n.size || '3.5 MB',
+              fileUrl: n.fileUrl,
+              summary: n.summary || 'Clinical homoeopathic study reference notes.'
+            }))
+          }
+        ];
+      }
+    }
+
+    if (chapters.length === 0) {
       container.innerHTML = `
         <div style="text-align:center;padding:36px 16px;background:#FFF;border:1px dashed var(--border);border-radius:12px;color:var(--text-muted);">
           <div style="font-size:32px;margin-bottom:8px;">📑</div>
@@ -964,7 +1020,7 @@ function openSubjectChapters(subject) {
         </div>
       `;
     } else {
-      subject.chapters.forEach((ch, idx) => {
+      chapters.forEach((ch, idx) => {
         const card = document.createElement('div');
         card.className = 'chapter-card-item';
         const chNum = (idx + 1).toString().padStart(2, '0');
@@ -1487,11 +1543,9 @@ async function setupContinuousPdfFeed(pdfDoc) {
     card.dataset.page = String(i);
     card.style.minHeight = `${estimatedCardHeight}px`;
 
+    // Seamless background rendering: clean paper card with fading-in canvas, no intrusive dark loading box
     card.innerHTML = `
-      <div class="pdf-page-skeleton" id="pdfSkeleton_${i}">
-        <span>Loading Page ${i} of ${totalPages}...</span>
-      </div>
-      <canvas id="pdfCanvas_${i}" style="display:none;"></canvas>
+      <canvas id="pdfCanvas_${i}" style="width:100%;height:auto;display:block;opacity:0;transition:opacity 0.25s ease-in;"></canvas>
       <span class="pdf-page-chip">Page ${i} / ${totalPages}</span>
     `;
 
@@ -1504,6 +1558,7 @@ async function setupContinuousPdfFeed(pdfDoc) {
     try { pdfFeedObserver.disconnect(); } catch (e) {}
   }
 
+  // Preload generously (800px margin) so pages are already rendered in the background before entering view
   pdfFeedObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       const pageNum = parseInt(entry.target.dataset.page, 10);
@@ -1522,8 +1577,8 @@ async function setupContinuousPdfFeed(pdfDoc) {
     });
   }, {
     root: feed,
-    rootMargin: '350px 0px 350px 0px',
-    threshold: [0.1, 0.45, 0.8]
+    rootMargin: '800px 0px 800px 0px',
+    threshold: [0.05, 0.45, 0.8]
   });
 
   // Observe all page cards
@@ -1531,19 +1586,20 @@ async function setupContinuousPdfFeed(pdfDoc) {
     pdfFeedObserver.observe(card);
   });
 
-  // Render first 2 pages immediately
+  // Render first 3 pages immediately in background
   renderPageOnDemand(1);
   if (totalPages >= 2) renderPageOnDemand(2);
+  if (totalPages >= 3) renderPageOnDemand(3);
 }
 
 async function renderPageOnDemand(pageNum) {
-  if (!currentPdfDoc || renderedPdfPages.has(pageNum) || renderingPdfPages.has(pageNum)) return;
+  if (!currentPdfDoc || pageNum < 1 || pageNum > currentPdfDoc.numPages) return;
+  if (renderedPdfPages.has(pageNum) || renderingPdfPages.has(pageNum)) return;
   renderingPdfPages.add(pageNum);
 
   try {
     const card = document.getElementById(`pdfPageCard_${pageNum}`);
     const canvas = document.getElementById(`pdfCanvas_${pageNum}`);
-    const skeleton = document.getElementById(`pdfSkeleton_${pageNum}`);
     if (!canvas || !card) return;
 
     const page = await currentPdfDoc.getPage(pageNum);
@@ -1564,11 +1620,20 @@ async function renderPageOnDemand(pageNum) {
     const renderTask = page.render({ canvasContext: ctx, viewport: viewport });
     await renderTask.promise;
 
-    if (skeleton) skeleton.style.display = 'none';
-    canvas.style.display = 'block';
+    // Smoothly reveal the rendered page canvas
+    canvas.style.opacity = '1';
     card.style.minHeight = 'auto';
 
+    // Remove any leftover skeleton element if present
+    const skeleton = document.getElementById(`pdfSkeleton_${pageNum}`);
+    if (skeleton) skeleton.remove();
+
     renderedPdfPages.add(pageNum);
+
+    // Proactively pre-render the next page in the background
+    if (pageNum + 1 <= currentPdfDoc.numPages && !renderedPdfPages.has(pageNum + 1) && !renderingPdfPages.has(pageNum + 1)) {
+      setTimeout(() => renderPageOnDemand(pageNum + 1), 60);
+    }
   } catch (err) {
     console.warn(`Render error on page ${pageNum}:`, err);
   } finally {
