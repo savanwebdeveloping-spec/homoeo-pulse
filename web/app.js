@@ -343,7 +343,9 @@ async function handleProfileSubmit(e) {
 async function syncWithBackend() {
   const statusEl = document.querySelector('.platform-status');
   try {
-    const res = await fetch('/api/bootstrap');
+    const res = await fetch('/api/bootstrap', {
+      headers: { 'x-app-client': 'homoeo-pulse-student' }
+    });
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data.notes)) notesData = data.notes;
@@ -1096,7 +1098,22 @@ function handleCenterSubjectClick(subjectId) {
 function selectAppYear(year) {
   currentAppYear = year;
   const yearSubjects = BHMS_CURRICULUM[year] || [];
-  currentSubjectFilter = yearSubjects.length > 0 ? yearSubjects[0].name : '';
+
+  // Smart subject selection: Choose the subject that has content for currentAppSubpart
+  let preferredSub = null;
+  if (currentAppSubpart === 'notes') {
+    preferredSub = yearSubjects.find(s => {
+      const hasDirect = notesData.some(d => d.year === year && (d.subject === s.name || d.subject === s.code) && d.contentType === 'note');
+      const hasTopics = (s.chapters || []).some(c => c.topics && c.topics.length > 0);
+      return hasDirect || hasTopics;
+    });
+  } else {
+    preferredSub = yearSubjects.find(s => {
+      return notesData.some(d => d.year === year && (d.subject === s.name || d.subject === s.code) && d.contentType === 'book');
+    });
+  }
+
+  currentSubjectFilter = preferredSub ? preferredSub.name : (yearSubjects.length > 0 ? yearSubjects[0].name : '');
   document.querySelectorAll('#appYearPills .year-pill').forEach(pill => {
     const pYear = pill.getAttribute('data-year') || pill.innerText.trim();
     pill.classList.toggle('active', pYear === year);
@@ -1114,11 +1131,25 @@ function selectAppYear(year) {
 
 // Update Books & Notes counts on the two-part toggle
 function updateYearSubpartCounts() {
-  const books = notesData.filter(d => d.year === currentAppYear && d.contentType === 'book');
-  const notes = notesData.filter(d => d.year === currentAppYear && d.contentType === 'note');
+  const year = currentAppYear;
+  const booksInYear = notesData.filter(d => d.year === year && d.contentType === 'book');
+  const directNotesInYear = notesData.filter(d => d.year === year && d.contentType === 'note');
 
-  document.getElementById('badgeBooksCount').innerText = books.length;
-  document.getElementById('badgeNotesCount').innerText = notes.length;
+  const yearSubjects = (BHMS_CURRICULUM && BHMS_CURRICULUM[year]) ? BHMS_CURRICULUM[year] : [];
+  let curriculumTopicsCount = 0;
+  yearSubjects.forEach(s => {
+    (s.chapters || []).forEach(ch => {
+      curriculumTopicsCount += (ch.topics ? ch.topics.length : 0);
+    });
+  });
+
+  const bCountVal = booksInYear.length;
+  const nCountVal = Math.max(directNotesInYear.length, curriculumTopicsCount);
+
+  const bEl = document.getElementById('badgeBooksCount');
+  const nEl = document.getElementById('badgeNotesCount');
+  if (bEl) bEl.innerText = bCountVal;
+  if (nEl) nEl.innerText = nCountVal;
 }
 
 // Switch between the 2 Parts: "books" vs "notes"
@@ -1144,6 +1175,39 @@ function switchYearSubpart(subpart) {
       badgeEl.innerText = 'ACADEMIC NOTES';
       badgeEl.style.background = '#FEF3C7';
       badgeEl.style.color = '#B45309';
+    }
+  }
+
+  // Smart subject switch: If currently selected subject has 0 items in chosen mode, switch to one with items
+  const yearSubjects = BHMS_CURRICULUM[currentAppYear] || [];
+  const currentSub = yearSubjects.find(s => s.name === currentSubjectFilter);
+  let countForCurrent = 0;
+  if (currentSub) {
+    if (subpart === 'books') {
+      countForCurrent = notesData.filter(d => d.year === currentAppYear && (d.subject === currentSub.name || d.subject === currentSub.code) && d.contentType === 'book').length;
+    } else {
+      const direct = notesData.filter(d => d.year === currentAppYear && (d.subject === currentSub.name || d.subject === currentSub.code) && d.contentType === 'note').length;
+      let topCount = 0;
+      (currentSub.chapters || []).forEach(c => { topCount += (c.topics ? c.topics.length : 0); });
+      countForCurrent = Math.max(direct, topCount);
+    }
+  }
+
+  if (countForCurrent === 0) {
+    let subWithItems = null;
+    if (subpart === 'notes') {
+      subWithItems = yearSubjects.find(s => {
+        const hasDirect = notesData.some(d => d.year === currentAppYear && (d.subject === s.name || d.subject === s.code) && d.contentType === 'note');
+        const hasTopics = (s.chapters || []).some(c => c.topics && c.topics.length > 0);
+        return hasDirect || hasTopics;
+      });
+    } else {
+      subWithItems = yearSubjects.find(s => {
+        return notesData.some(d => d.year === currentAppYear && (d.subject === s.name || d.subject === s.code) && d.contentType === 'book');
+      });
+    }
+    if (subWithItems) {
+      currentSubjectFilter = subWithItems.name;
     }
   }
 
@@ -1969,7 +2033,10 @@ async function openPdfViewer(docId) {
   // Real-time student read telemetry
   try {
     const apiBase = (typeof API_BASE !== 'undefined') ? API_BASE : 'https://homoeo-pulse.onrender.com';
-    fetch(`${apiBase}/api/notes/${doc.id}/read`, { method: 'POST' }).catch(() => {});
+    fetch(`${apiBase}/api/notes/${doc.id}/read`, {
+      method: 'POST',
+      headers: { 'x-app-client': 'homoeo-pulse-student' }
+    }).catch(() => {});
   } catch (e) {}
 
   document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));

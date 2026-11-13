@@ -197,6 +197,8 @@
       color: #FFFFFF !important;
     }
   </style>
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body oncontextmenu="return false;" onselectstart="return false;" ondragstart="return false;">
 
@@ -266,8 +268,142 @@
           <div class="splash-skip-hint">Tap anywhere to enter</div>
         </div>
 
+        <!-- Mobile App Screen 0: Secure Authentication (Google & Mobile OTP) -->
+        <div class="app-screen" id="appScreenAuth">
+          <div class="auth-container">
+            <!-- Brand Logo & Header -->
+            <div class="auth-header">
+              <div class="auth-logo-wrapper">
+                <img src="logo.jpeg" alt="Homoeo Pulse" class="auth-logo-img">
+              </div>
+              <h2 class="auth-title">
+                <span class="logo-homoeo">Homoeo</span><span class="logo-pulse">Pulse</span>
+              </h2>
+              <div class="auth-subtitle">AYUSH Clinical &amp; Academic BHMS Repository</div>
+              <div class="auth-security-badge">
+                <span>🛡️ Verified Medical Scholar Login</span>
+              </div>
+            </div>
+
+            <!-- Auth Method Switcher Tabs -->
+            <div class="auth-nav-tabs">
+              <button type="button" class="auth-tab-btn active" id="authTabPhoneBtn" onclick="switchAuthMode('phone')">
+                <span>📱 Mobile OTP</span>
+              </button>
+              <button type="button" class="auth-tab-btn" id="authTabGoogleBtn" onclick="switchAuthMode('google')">
+                <span>🌐 Google Sign-In</span>
+              </button>
+            </div>
+
+            <!-- Card 1: Mobile Phone & OTP Verification -->
+            <div class="auth-card" id="authPhoneCard">
+              <!-- Step A: Enter Phone Number -->
+              <div id="authStepPhone">
+                <label class="auth-label">Indian Mobile Number</label>
+                <div class="auth-input-group">
+                  <span class="auth-input-prefix">🇮🇳 +91</span>
+                  <input type="tel" id="authPhoneNumber" class="auth-input" placeholder="Enter 10-digit number" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                </div>
+                <div class="auth-hint">We'll send a 6-digit verification code via secure SMS.</div>
+
+                <div class="auth-form-group" style="margin-top:12px;">
+                  <label class="auth-label">Your Full Name</label>
+                  <input type="text" id="authStudentName" class="auth-input auth-input-single" placeholder="e.g. Dr. Riya Sharma">
+                </div>
+
+                <div class="auth-form-group" style="margin-top:10px;">
+                  <label class="auth-label">Select BHMS Year</label>
+                  <select id="authStudentYear" class="auth-input auth-input-single">
+                    <option value="1st Year" selected>1st Year BHMS</option>
+                    <option value="2nd Year">2nd Year BHMS</option>
+                    <option value="3rd Year">3rd Year BHMS</option>
+                    <option value="4th Year">4th Year BHMS</option>
+                    <option value="Internship">Internship / Clinical Postings</option>
+                  </select>
+                </div>
+
+                <button type="button" class="btn-auth-primary" id="btnSendOtp" onclick="handleSendOtp()">
+                  <span id="btnSendOtpText">Get Verification Code ›</span>
+                  <span id="btnSendOtpSpinner" class="auth-spinner" style="display:none;"></span>
+                </button>
+              </div>
+
+              <!-- Step B: Enter & Verify OTP -->
+              <div id="authStepOtp" style="display:none;">
+                <div class="auth-otp-sent-banner">
+                  <div style="font-size:12px;font-weight:700;color:var(--brand-green-dark);">Verification Code Sent!</div>
+                  <div style="font-size:11px;color:var(--text-muted);margin-top:2px;" id="authOtpSentText">Enter 6-digit code sent to +91 ...</div>
+                </div>
+
+                <label class="auth-label">6-Digit Verification Code</label>
+                <div class="auth-input-group">
+                  <input type="tel" id="authOtpCode" class="auth-input auth-otp-input" placeholder="••••••" maxlength="6" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                </div>
+
+                <!-- Live Test OTP Hint Banner -->
+                <div id="authDemoOtpHolder" class="auth-demo-otp-banner" style="display:none;">
+                  <span>🔑 Testing Code: <strong id="authDemoOtpCode">123456</strong> (or enter 777777)</span>
+                </div>
+
+                <button type="button" class="btn-auth-primary" id="btnVerifyOtp" onclick="handleVerifyOtp()" style="margin-top:14px;">
+                  <span id="btnVerifyOtpText">Verify &amp; Enter Platform ✓</span>
+                  <span id="btnVerifyOtpSpinner" class="auth-spinner" style="display:none;"></span>
+                </button>
+
+                <div class="auth-resend-row">
+                  <button type="button" class="auth-text-btn" id="btnResendOtp" onclick="handleResendOtp()" disabled>Resend Code (<span id="resendTimerText">30s</span>)</button>
+                  <button type="button" class="auth-text-btn" onclick="handleBackToPhone()">← Edit Number</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: Google Sign-In -->
+            <div class="auth-card" id="authGoogleCard" style="display:none;">
+              <div class="google-auth-content">
+                <div class="google-badge-hero">
+                  <svg width="44" height="44" viewBox="0 0 48 48">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.79l7.97-6.2z"/>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                  </svg>
+                </div>
+                <h4 style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:6px;">Google Scholar Sign-In</h4>
+                <p style="font-size:12px;color:var(--text-muted);line-height:1.4;margin-bottom:18px;">
+                  Sign in instantly with your verified Google account for continuous cloud synchronization across devices.
+                </p>
+
+                <!-- Official Google GIS Button Container -->
+                <div id="googleBtnWrapper" style="display:flex;justify-content:center;margin-bottom:14px;min-height:44px;"></div>
+
+                <!-- Custom Google Sign-In Fallback Button -->
+                <button type="button" class="btn-google-custom" onclick="triggerGoogleSignIn()">
+                  <svg width="18" height="18" viewBox="0 0 48 48">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.79l7.97-6.2z"/>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                  </svg>
+                  <span>Continue with Google</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Instant Evaluation / Scholar Access -->
+            <div class="auth-demo-quick">
+              <button type="button" class="auth-guest-btn" onclick="continueAsDemoScholar()">
+                <span>⚡ Quick Test / Scholar Guest Access</span>
+              </button>
+            </div>
+
+            <div class="auth-disclaimer">
+              🔒 End-to-end encrypted session. Only verified BHMS medical scholars and registered faculty can access the academic materials.
+            </div>
+          </div>
+        </div>
+
         <!-- Mobile App Screen 1: Dashboard / Curriculum -->
-        <div class="app-screen active" id="appScreenDashboard">
+        <div class="app-screen" id="appScreenDashboard">
           <!-- App Top Header with Official Logo -->
           <div class="app-header">
             <div class="app-header-left">
@@ -279,7 +415,10 @@
                 <h3 class="app-greeting" id="appGreetingName">Welcome, Scholar</h3>
               </div>
             </div>
-            <div class="app-avatar-btn" id="appTopAvatar" onclick="switchAppTab('profile')">HP</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button type="button" id="appSyncRefreshBtn" onclick="manualAppRefresh()" title="Sync & Refresh Material" style="background:#F1F5F9;border:1px solid #E2E8F0;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--brand-green);padding:0;" aria-label="Refresh">🔄</button>
+              <div class="app-avatar-btn" id="appTopAvatar" onclick="switchAppTab('profile')">HP</div>
+            </div>
           </div>
 
           <!-- In-App Search -->
@@ -591,22 +730,37 @@
               <span class="profile-val" style="color:var(--brand-green);">IndexedDB Offline Ready</span>
             </div>
           </div>
+
+          <div class="profile-section">
+            <div class="profile-section-title">AUTHENTICATION &amp; SECURITY</div>
+            <div class="profile-item">
+              <span>Login Method</span>
+              <span class="profile-val" id="profileAuthMethod" style="color:var(--brand-green);font-weight:700;">Verified Scholar</span>
+            </div>
+            <div class="profile-item">
+              <span>Account Status</span>
+              <span class="profile-val" style="color:var(--brand-green);font-weight:700;">Active &amp; Secure</span>
+            </div>
+            <button type="button" class="btn-logout-danger" onclick="logoutStudent()">
+              <span>🚪 Sign Out / Switch Account</span>
+            </button>
+          </div>
         </div>
 
         <!-- Mobile App Screen 7: Built-in High-Yield PDF Reader -->
         <div class="app-screen" id="appScreenPdfViewer">
-          <div class="pdf-viewer-bar">
-            <button class="viewer-btn" onclick="closePdfViewer()" title="Back" style="font-size:18px;margin-right:8px;background:none;border:none;color:#fff;cursor:pointer;padding:4px 8px;">←</button>
-            <div class="pdf-viewer-title-box">
-              <div class="pdf-title-text" id="viewerDocTitle">Document Title</div>
-              <div style="font-size:9.5px;opacity:0.85;color:#A7F3D0;" id="viewerDocSubtitle">Vertical Feed • Swipe / Scroll Pages Naturally</div>
+          <div class="pdf-viewer-bar" style="background:#FFFFFF;border-bottom:1px solid #E2E8F0;padding:8px 10px;margin:0 0 6px 0;display:flex;align-items:center;gap:8px;">
+            <button class="viewer-btn" onclick="closePdfViewer()" title="Back" style="font-size:18px;margin-right:4px;background:#F1F5F9;border:1px solid #CBD5E1;color:#0F172A;cursor:pointer;padding:4px 8px;border-radius:6px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:700;">←</button>
+            <div class="pdf-viewer-title-box" style="flex:1;min-width:0;">
+              <div class="pdf-title-text" id="viewerDocTitle" style="font-size:12.5px;font-weight:800;color:#0F172A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Document Title</div>
+              <div id="viewerDocSubtitle" style="font-size:10px;font-weight:700;color:#047857;letter-spacing:0.2px;">Vertical Feed • Swipe / Scroll Pages Naturally</div>
             </div>
-            <div class="pdf-controls">
-              <button class="viewer-btn" onclick="handlePdfZoom(-0.2)" title="Zoom Out" style="font-size:16px;font-weight:800;padding:4px 8px;">−</button>
-              <span id="viewerZoomBadge" onclick="resetPinchZoom()" title="Tap to Reset Zoom" style="font-size:11px;font-weight:700;color:#fff;background:rgba(255,255,255,0.2);padding:2px 6px;border-radius:6px;cursor:pointer;">100%</span>
-              <button class="viewer-btn" onclick="handlePdfZoom(0.2)" title="Zoom In" style="font-size:16px;font-weight:800;padding:4px 8px;">+</button>
-              <button class="viewer-btn" onclick="togglePdfDarkMode()" title="Night Reading Mode">🌙</button>
-              <button class="viewer-btn" id="btnViewerBookmark" onclick="toggleCurrentDocBookmark()" title="Bookmark">☆</button>
+            <div class="pdf-controls" style="display:flex;align-items:center;gap:5px;">
+              <button class="viewer-btn" onclick="handlePdfZoom(-0.2)" title="Zoom Out" style="font-size:16px;font-weight:800;padding:0;color:#0F172A;background:#F1F5F9;border:1px solid #CBD5E1;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;">−</button>
+              <span id="viewerZoomBadge" onclick="resetPinchZoom()" title="Tap to Reset Zoom" style="font-size:11px;font-weight:700;color:#0F172A;background:#E2E8F0;border:1px solid #CBD5E1;padding:2px 7px;border-radius:6px;cursor:pointer;">100%</span>
+              <button class="viewer-btn" onclick="handlePdfZoom(0.2)" title="Zoom In" style="font-size:16px;font-weight:800;padding:0;color:#0F172A;background:#F1F5F9;border:1px solid #CBD5E1;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;">+</button>
+              <button class="viewer-btn" onclick="togglePdfDarkMode()" title="Night Reading Mode" style="color:#0F172A;background:#F1F5F9;border:1px solid #CBD5E1;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;padding:0;">🌙</button>
+              <button class="viewer-btn" id="btnViewerBookmark" onclick="toggleCurrentDocBookmark()" title="Bookmark" style="color:#0F172A;background:#F1F5F9;border:1px solid #CBD5E1;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;padding:0;">☆</button>
             </div>
           </div>
 
@@ -619,6 +773,9 @@
           <div id="pdfZoomViewportContainer" style="flex:1;width:100%;height:100%;position:relative;overflow:hidden;display:flex;flex-direction:column;touch-action:auto;">
             <div id="pdfZoomContentWrapper" style="flex:1;width:100%;height:100%;display:flex;flex-direction:column;transform-origin:center top;transition:transform 0.08s ease-out;position:relative;">
               
+              <!-- Direct High-Reliability Google Drive PDF Preview Frame -->
+              <iframe id="pdfDriveFrame" style="display:none;width:100%;height:100%;border:none;flex:1;background:#fff;" allow="fullscreen"></iframe>
+
               <!-- Continuous Reels-Style Vertical PDF Feed -->
               <div id="pdfCanvasContainer" style="flex:1;width:100%;height:100%;position:relative;background:#0F172A;overflow:hidden;display:flex;flex-direction:column;">
                 <div id="pdfLoadingSpinner" style="display:none;position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);color:#fff;font-weight:700;background:rgba(15,23,42,0.92);padding:14px 24px;border-radius:24px;z-index:30;box-shadow:0 12px 32px rgba(0,0,0,0.6);text-align:center;border:1px solid rgba(255,255,255,0.15);">

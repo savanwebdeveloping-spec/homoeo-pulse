@@ -549,10 +549,10 @@
 
         <div class="grid-2-col" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
           <div class="form-group">
-            <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Content Type (Section)</label>
-            <select id="mDocType" onchange="updateModalCategoryOptions()" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;">
-              <option value="note" selected>📝 Chapter Lecture Topic &amp; Notes</option>
-              <option value="book">📚 Standard Textbook / Reference</option>
+            <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Resource Category (Strict Separation)</label>
+            <select id="mDocType" onchange="updateModalCategoryOptions()" style="width:100%;padding:10px;border:1.5px solid var(--brand-green);border-radius:8px;font-weight:700;">
+              <option value="book" selected>📚 Textbook (Standard Reference Book)</option>
+              <option value="note">📝 Notes (Study Material / Lecture Notes / PYQs)</option>
             </select>
           </div>
           <div class="form-group">
@@ -645,10 +645,10 @@
             <input type="text" id="editDocAuthor" required placeholder="e.g. Dr. William Boericke" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
           </div>
           <div class="form-group">
-            <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Content Type</label>
-            <select id="editDocType" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
-              <option value="book">📚 Standard Textbook / Reference</option>
-              <option value="note">📝 Academic Study Notes / Chapter Topic</option>
+            <label style="display:block;font-size:12px;font-weight:700;margin-bottom:6px;">Resource Category (Strict)</label>
+            <select id="editDocType" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-weight:700;">
+              <option value="textbook">📚 Textbook (Standard Reference Book)</option>
+              <option value="notes">📝 Notes (Study Material / Lecture Notes / PYQs)</option>
             </select>
           </div>
         </div>

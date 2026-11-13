@@ -38,8 +38,15 @@ function formatDriveUrl(rawUrl) {
   return rawUrl;
 }
 
-const LIVE_CLOUD_API = 'https://homoeo-pulse.onrender.com';
-const API_BASE = LIVE_CLOUD_API; // ALL operations permanently target Live Cloud Server
+const PRODUCTION_BACKEND_URL = 'https://homoeo-pulse.onrender.com';
+const API_BASE = (function() {
+  if (window.HOMOEO_PULSE_API_URL) return window.HOMOEO_PULSE_API_URL;
+  if (typeof window !== 'undefined' && window.location.origin && !window.location.origin.startsWith('file:') && !window.location.origin.startsWith('capacitor:')) {
+    return window.location.origin;
+  }
+  return PRODUCTION_BACKEND_URL;
+})();
+const LIVE_CLOUD_API = API_BASE;
 const DEFAULT_ADMIN_PASSCODE = 'homoeopulse2025';
 
 async function syncAllToLiveCloud() {
@@ -51,67 +58,24 @@ async function syncAllToLiveCloud() {
   }
 
   try {
-    let sourceNotes = notesData;
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      try {
-        const localRes = await fetch('/api/bootstrap');
-        if (localRes.ok) {
-          const localData = await localRes.json();
-          if (Array.isArray(localData.notes)) sourceNotes = localData.notes;
-        }
-      } catch (e) {}
+    const res = await fetch(`${API_BASE}/api/bootstrap`);
+    if (!res.ok) throw new Error('Backend server is not reachable on ' + API_BASE);
+    const data = await res.json();
+    if (Array.isArray(data.notes)) notesData = data.notes;
+    if (data.curriculum) BHMS_CURRICULUM = data.curriculum;
+
+    // Broadcast update to phone app / student app tabs
+    if (syncChannel) {
+      syncChannel.postMessage({ type: 'DATA_UPDATED', timestamp: Date.now() });
     }
-
-    // 1. Fetch current live notes from Render
-    const liveRes = await fetch(`${LIVE_CLOUD_API}/api/bootstrap`);
-    if (!liveRes.ok) throw new Error('Live cloud server not reachable');
-    const liveDb = await liveRes.json();
-    const liveIds = new Set((liveDb.notes || []).map(n => n.id));
-
-    // 2. Upload any local notes missing on live
-    const toAdd = sourceNotes.filter(n => !liveIds.has(n.id)).reverse();
-    let addedCount = 0;
-
-    for (let doc of toAdd) {
-      const res = await fetch(`${LIVE_CLOUD_API}/api/notes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-admin-key': DEFAULT_ADMIN_PASSCODE
-        },
-        body: JSON.stringify(doc)
-      });
-      if (res.ok) addedCount++;
-    }
-
-    // 3. Remove from live any notes deleted locally
-    const sourceIds = new Set(sourceNotes.map(n => n.id));
-    const toDelete = (liveDb.notes || []).filter(n => !sourceIds.has(n.id));
-    for (let doc of toDelete) {
-      await fetch(`${LIVE_CLOUD_API}/api/notes/${doc.id}`, {
-        method: 'DELETE',
-        headers: { 'x-admin-key': DEFAULT_ADMIN_PASSCODE }
-      });
-    }
-
-    // 4. Sync curriculum structure to live server
-    if (curriculumData && Object.keys(curriculumData).length > 0) {
-      await fetch(`${LIVE_CLOUD_API}/api/admin/sync-db`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-admin-key': DEFAULT_ADMIN_PASSCODE
-        },
-        body: JSON.stringify({ curriculum: curriculumData })
-      }).catch(() => {});
-    }
+    localStorage.setItem('hp_last_synced_at', String(Date.now()));
 
     await loadAdminData(true);
     updateLiveNotesCountBadge();
 
-    alert(`✅ Synced with Live Student App!\n\nAll ${notesData.length} academic PDFs/books are now live on your phone.`);
+    alert(`✅ Synced with Live Student App!\n\nAll ${notesData.length} academic PDFs/books are now live and connected with the app.`);
   } catch (err) {
-    alert('Live Cloud Sync Notice: ' + err.message);
+    alert('Sync Notice: ' + err.message);
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -229,7 +193,7 @@ function setupSyncListener() {
 
 function startLivePolling() {
   if (syncPollInterval) clearInterval(syncPollInterval);
-  // Real-time heartbeat check every 6 seconds so counts and documents are always live
+  // Real-time heartbeat check every 20 seconds when tab is active
   syncPollInterval = setInterval(async () => {
     if (document.visibilityState === 'visible') {
       try {
@@ -254,7 +218,7 @@ function startLivePolling() {
         }
       } catch (e) {}
     }
-  }, 6000);
+  }, 20000);
 }
 
 async function loadAdminData(silent = false) {
@@ -427,13 +391,15 @@ function renderAdminNotesTable(filterQuery, filterType, filterYear, filterCat, f
   const sort = sortOrder !== undefined ? sortOrder : (document.getElementById('adminSortOrder')?.value || 'default');
 
   let filtered = notesData.filter(doc => {
+    const isBook = doc.category === 'textbook' || doc.contentType === 'book';
+    const isNote = doc.category === 'notes' || doc.contentType === 'note';
     const matchesQ = q === '' ||
       (doc.title && doc.title.toLowerCase().includes(q)) ||
       (doc.subject && doc.subject.toLowerCase().includes(q)) ||
       (doc.author && doc.author.toLowerCase().includes(q));
-    const matchesT = t === 'All' || doc.contentType === t;
+    const matchesT = t === 'All' || (t === 'book' || t === 'textbook' ? isBook : isNote);
     const matchesY = y === 'All' || doc.year === y;
-    const matchesC = c === 'All' || doc.category === c;
+    const matchesC = c === 'All' || doc.subCategory === c || doc.category === c;
     const matchesS = s === 'All' || doc.subject === s;
     return matchesQ && matchesT && matchesY && matchesC && matchesS;
   });
@@ -458,14 +424,14 @@ function renderAdminNotesTable(filterQuery, filterType, filterYear, filterCat, f
   if (resultsText) {
     if (hasActiveFilter) {
       let filterDesc = [];
-      if (t !== 'All') filterDesc.push(t === 'book' ? '📚 Standard Books' : '📝 Study Notes');
+      if (t !== 'All') filterDesc.push((t === 'book' || t === 'textbook') ? '📚 Standard Textbooks' : '📝 Academic Notes');
       if (y !== 'All') filterDesc.push(y);
       if (s !== 'All') filterDesc.push(s);
       if (c !== 'All') filterDesc.push(c);
       if (q !== '') filterDesc.push(`"${q}"`);
       resultsText.innerHTML = `Showing <strong>${filtered.length}</strong> of <strong>${notesData.length}</strong> academic documents (${filterDesc.join(' • ')})`;
     } else {
-      resultsText.innerHTML = `Showing all <strong>${notesData.length}</strong> documents in repository (Books &amp; Notes across All BHMS Years)`;
+      resultsText.innerHTML = `Showing all <strong>${notesData.length}</strong> documents in repository (Textbooks &amp; Notes across All BHMS Years)`;
     }
   }
   if (clearBtn) {
@@ -486,7 +452,8 @@ function renderAdminNotesTable(filterQuery, filterType, filterYear, filterCat, f
   }
 
   filtered.forEach(doc => {
-    const isBook = doc.contentType === 'book';
+    const isBook = doc.category === 'textbook' || doc.contentType === 'book';
+    const subCatLabel = doc.subCategory || (isBook ? 'Standard Textbooks' : 'Handwritten Notes');
     const tr = document.createElement('tr');
     tr.style.borderBottom = '1px solid var(--border)';
     tr.innerHTML = `
@@ -496,12 +463,12 @@ function renderAdminNotesTable(filterQuery, filterType, filterYear, filterCat, f
       </td>
       <td style="padding:14px 16px;">
         <span class="badge-tag" style="${isBook ? 'background:var(--brand-green-pale);color:var(--brand-green);border:1px solid #A7F3D0;' : 'background:#FEF3C7;color:#B45309;border:1px solid #FDE68A;'} font-weight:700;padding:3px 8px;border-radius:6px;font-size:11px;">
-          ${isBook ? '📚 Standard Book' : '📝 Study Note'}
+          ${isBook ? '📚 Textbook' : '📝 Notes'}
         </span>
       </td>
       <td style="padding:14px 16px;"><span class="badge-tag year" style="background:#EFF6FF;color:#1D4ED8;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;">${doc.year}</span></td>
       <td style="padding:14px 16px;font-weight:600;">${escapeHtml(doc.subject || '—')}</td>
-      <td style="padding:14px 16px;"><span class="badge-tag cat" style="background:#F1F5F9;color:#475569;padding:3px 8px;border-radius:6px;font-size:11px;">${escapeHtml(doc.category || 'General')}</span></td>
+      <td style="padding:14px 16px;"><span class="badge-tag cat" style="background:#F1F5F9;color:#475569;padding:3px 8px;border-radius:6px;font-size:11px;">${escapeHtml(subCatLabel)}</span></td>
       <td style="padding:14px 16px;color:var(--text-muted);">${doc.size || '3.5 MB'} (${doc.pages || 14} pgs)</td>
       <td style="padding:14px 16px;">
         <div style="display:inline-flex;align-items:center;gap:6px;background:var(--brand-green-pale);padding:4px 10px;border-radius:8px;border:1px solid #A7F3D0;">
@@ -533,29 +500,43 @@ function filterAdminNotes() {
 window.filterAdminNotes = filterAdminNotes;
 
 async function deleteNote(id) {
-  if (!confirm('Are you sure you want to permanently delete this academic document from the repository?')) return;
+  if (!confirm('Are you sure you want to permanently delete this academic document from the repository? This action cannot be undone.')) return;
   try {
-    const res = await fetch(`${API_BASE}/api/notes/${id}`, {
+    let res = await fetch(`${API_BASE}/api/admin/resources/${id}`, {
       method: 'DELETE',
       headers: getAdminHeaders()
     });
+    if (!res.ok) {
+      res = await fetch(`${API_BASE}/api/notes/${id}`, {
+        method: 'DELETE',
+        headers: getAdminHeaders()
+      });
+    }
     if (res.ok) {
-      notesData = notesData.filter(d => d.id !== id);
+      notesData = notesData.filter(d => String(d.id) !== String(id));
       renderAdminNotesTable();
       renderAdminCurriculumTree(currentAdminCurriculumYear);
       updateAnalyticsStats();
       notifyStudentAppOfUpdate();
 
-      // Mirror deletion locally if running on local development server
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        fetch(`/api/notes/${id}`, {
+        fetch(`/api/admin/resources/${id}`, {
           method: 'DELETE',
           headers: getAdminHeaders()
-        }).catch(() => {});
+        }).catch(() => {
+          fetch(`/api/notes/${id}`, {
+            method: 'DELETE',
+            headers: getAdminHeaders()
+          }).catch(() => {});
+        });
       }
+    } else {
+      const err = await res.json().catch(() => ({}));
+      alert('Delete failed: ' + (err.error || 'Server error'));
     }
   } catch (err) {
     console.error('Delete error:', err);
+    alert('Failed to connect to server: ' + err.message);
   }
 }
 
@@ -860,78 +841,62 @@ async function handleModalUpload(e) {
     }
   }
 
-  // 2. If Note: Post to curriculum topic & create note
-  if (type === 'note') {
-    const chSelect = document.getElementById('mDocChapter');
-    const newChInput = document.getElementById('mDocNewChapterTitle');
-    let chapterId = chSelect ? chSelect.value : '';
-    let chapterTitle = '';
+  const normCategory = (type === 'book' || type === 'textbook') ? 'textbook' : 'notes';
+  const chSelect = document.getElementById('mDocChapter');
+  const newChInput = document.getElementById('mDocNewChapterTitle');
+  let chapterId = chSelect ? chSelect.value : '';
+  let chapterTitle = '';
 
+  if (normCategory === 'notes') {
     if (chapterId === '__NEW__' || !chapterId) {
       chapterTitle = newChInput ? newChInput.value.trim() : '';
       if (!chapterTitle) chapterTitle = `Chapter 1: Study Notes`;
       chapterId = null;
     } else {
-      chapterTitle = chSelect.options[chSelect.selectedIndex].text;
+      chapterTitle = chSelect.options[chSelect.selectedIndex] ? chSelect.options[chSelect.selectedIndex].text : '';
     }
+  }
 
-    try {
-      const topicRes = await fetch(`${API_BASE}/api/curriculum/topic`, {
+  const resourcePayload = {
+    title,
+    author: author || (normCategory === 'textbook' ? 'Faculty Text Team' : 'Faculty Department'),
+    year,
+    subject,
+    category: normCategory,
+    subCategory: category || (normCategory === 'textbook' ? 'Standard Textbooks' : 'Handwritten Notes'),
+    contentType: normCategory === 'textbook' ? 'book' : 'note',
+    size: fileSize,
+    pages,
+    summary,
+    fileUrl,
+    chapterTitle: (normCategory === 'notes') ? chapterTitle : undefined,
+    chapterId: (normCategory === 'notes') ? chapterId : undefined
+  };
+
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/resources`, {
+      method: 'POST',
+      headers: getAdminHeaders(),
+      body: JSON.stringify(resourcePayload)
+    });
+    if (res.ok) {
+      const resData = await res.json();
+      const createdDoc = resData.resource || resData.doc;
+      if (createdDoc) notesData.unshift(createdDoc);
+    } else {
+      // Resilient fallback to /api/notes
+      const legRes = await fetch(`${API_BASE}/api/notes`, {
         method: 'POST',
         headers: getAdminHeaders(),
-        body: JSON.stringify({
-          year,
-          subjectName: subject,
-          chapterId,
-          chapterTitle,
-          title,
-          pages,
-          size: fileSize,
-          fileUrl,
-          summary
-        })
+        body: JSON.stringify(resourcePayload)
       });
-
-      if (topicRes.ok) {
-        const topicData = await topicRes.json();
-        if (topicData.note) notesData.unshift(topicData.note);
+      if (legRes.ok) {
+        const legData = await legRes.json();
+        if (legData.doc) notesData.unshift(legData.doc);
       }
-    } catch (err) {
-      console.error('Error posting topic:', err);
     }
-  } else {
-    // 3. If Standard Textbook: Post to /api/notes
-    const newDoc = {
-      id: 'book_' + Date.now(),
-      contentType: 'book',
-      title,
-      author: author || 'Faculty Text Team',
-      year,
-      subject,
-      category,
-      size: fileSize,
-      pages,
-      downloads: 1,
-      summary: summary || 'Faculty uploaded standard textbook.',
-      fileUrl: fileUrl,
-      bookmarked: false,
-      downloaded: false,
-      currentPage: 1
-    };
-
-    try {
-      const noteRes = await fetch(`${API_BASE}/api/notes`, {
-        method: 'POST',
-        headers: getAdminHeaders(),
-        body: JSON.stringify(newDoc)
-      });
-      if (noteRes.ok) {
-        const resData = await noteRes.json();
-        notesData.unshift(resData.doc || newDoc);
-      }
-    } catch (err) {
-      console.error('Error saving book:', err);
-    }
+  } catch (err) {
+    console.error('Error saving resource:', err);
   }
 
   // Refresh bootstrap data to stay 100% in sync
@@ -1304,7 +1269,8 @@ function openEditNoteModal(docId) {
   document.getElementById('editDocId').value = doc.id;
   document.getElementById('editDocTitle').value = doc.title || '';
   document.getElementById('editDocAuthor').value = doc.author || '';
-  document.getElementById('editDocType').value = doc.contentType || 'book';
+  const isTb = (doc.category === 'textbook' || doc.contentType === 'book');
+  document.getElementById('editDocType').value = isTb ? 'textbook' : 'notes';
   document.getElementById('editDocYear').value = doc.year || '1st Year';
 
   updateEditModalSubjectDropdown();
@@ -1312,7 +1278,7 @@ function openEditNoteModal(docId) {
     document.getElementById('editDocSubject').value = doc.subject;
   }
 
-  document.getElementById('editDocCategory').value = doc.category || 'Standard Textbooks';
+  document.getElementById('editDocCategory').value = doc.subCategory || doc.category || (isTb ? 'Standard Textbooks' : 'Handwritten Notes');
   document.getElementById('editDocPages').value = doc.pages || 45;
   const readsInput = document.getElementById('editDocReads');
   if (readsInput) readsInput.value = doc.reads ?? doc.downloads ?? 0;
@@ -1342,10 +1308,11 @@ async function handleEditNoteSubmit(e) {
   const docId = document.getElementById('editDocId').value;
   const title = document.getElementById('editDocTitle').value.trim();
   const author = document.getElementById('editDocAuthor').value.trim();
-  const contentType = document.getElementById('editDocType').value;
+  const selectedType = document.getElementById('editDocType').value;
+  const category = (selectedType === 'textbook' || selectedType === 'book') ? 'textbook' : 'notes';
+  const subCategory = document.getElementById('editDocCategory').value;
   const year = document.getElementById('editDocYear').value;
   const subject = document.getElementById('editDocSubject').value;
-  const category = document.getElementById('editDocCategory').value;
   const pages = parseInt(document.getElementById('editDocPages').value, 10) || 45;
   const reads = parseInt(document.getElementById('editDocReads')?.value, 10);
   const summary = document.getElementById('editDocSummary').value.trim();
@@ -1378,10 +1345,11 @@ async function handleEditNoteSubmit(e) {
   const updatePayload = {
     title,
     author,
-    contentType,
+    category,
+    subCategory,
+    contentType: category === 'textbook' ? 'book' : 'note',
     year,
     subject,
-    category,
     pages,
     summary
   };
@@ -1393,20 +1361,43 @@ async function handleEditNoteSubmit(e) {
   if (size) updatePayload.size = size;
 
   try {
-    const res = await fetch(`${API_BASE}/api/notes/${docId}`, {
-      method: 'PUT',
+    let res = await fetch(`${API_BASE}/api/admin/resources/${docId}`, {
+      method: 'PATCH',
       headers: getAdminHeaders(),
       body: JSON.stringify(updatePayload)
     });
 
+    if (!res.ok) {
+      res = await fetch(`${API_BASE}/api/notes/${docId}`, {
+        method: 'PUT',
+        headers: getAdminHeaders(),
+        body: JSON.stringify(updatePayload)
+      });
+    }
+
     if (res.ok) {
       const data = await res.json();
-      const updatedDoc = data.doc;
+      const updatedDoc = data.resource || data.doc || updatePayload;
 
       // Update in local notesData array
       const idx = notesData.findIndex(d => String(d.id) === String(docId));
       if (idx !== -1) {
         notesData[idx] = Object.assign({}, notesData[idx], updatedDoc);
+      }
+
+      // Also sync to local if running on localhost
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        fetch(`/api/admin/resources/${docId}`, {
+          method: 'PATCH',
+          headers: getAdminHeaders(),
+          body: JSON.stringify(updatePayload)
+        }).catch(() => {
+          fetch(`/api/notes/${docId}`, {
+            method: 'PUT',
+            headers: getAdminHeaders(),
+            body: JSON.stringify(updatePayload)
+          }).catch(() => {});
+        });
       }
 
       // Also sync to local if running on localhost

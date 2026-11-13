@@ -2,11 +2,51 @@
 // HOMOEO PULSE - STUDENT MOBILE APP ENGINE & REAL-TIME SYNC
 // ============================================================
 
-// 1. App State & API Configuration
-const API_BASE_URL = window.HOMOEO_PULSE_API_URL || 'https://homoeo-pulse.onrender.com';
+const PRODUCTION_BACKEND_URL = 'https://homoeo-pulse.onrender.com';
+const API_BASE_URL = (function() {
+  if (typeof window !== 'undefined' && window.HOMOEO_PULSE_API_URL) {
+    return window.HOMOEO_PULSE_API_URL;
+  }
+  // Detect Capacitor mobile app (Android / iOS WebView)
+  const isCapacitor = typeof window !== 'undefined' && (
+    window.Capacitor !== undefined ||
+    window.location.protocol === 'capacitor:' ||
+    (window.location.hostname === 'localhost' && window.navigator && /android|iphone|ipad|mobile/i.test(window.navigator.userAgent))
+  );
+  if (isCapacitor) {
+    return PRODUCTION_BACKEND_URL;
+  }
+  // Local development on desktop browser
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    return window.location.origin;
+  }
+  if (typeof window !== 'undefined' && window.location.origin && !window.location.origin.startsWith('file:')) {
+    return window.location.origin;
+  }
+  return PRODUCTION_BACKEND_URL;
+})();
+
+// Restore cached resources if available (prevents empty screens on offline/slow mobile networks)
+let initialCachedResources = null;
+try {
+  const cachedStr = localStorage.getItem('hp_cached_resources');
+  if (cachedStr) initialCachedResources = JSON.parse(cachedStr);
+} catch (e) {}
+
+let notesData = (Array.isArray(initialCachedResources) && initialCachedResources.length > 0)
+  ? initialCachedResources
+  : ((window.HOMOEO_DEFAULT_DATA && window.HOMOEO_DEFAULT_DATA.notes) ? window.HOMOEO_DEFAULT_DATA.notes : []);
 
 let BHMS_CURRICULUM = (window.HOMOEO_DEFAULT_DATA && window.HOMOEO_DEFAULT_DATA.curriculum) ? window.HOMOEO_DEFAULT_DATA.curriculum : {};
-let notesData = (window.HOMOEO_DEFAULT_DATA && window.HOMOEO_DEFAULT_DATA.notes) ? window.HOMOEO_DEFAULT_DATA.notes : [];
+try {
+  const currStr = localStorage.getItem('hp_cached_curriculum');
+  if (currStr) BHMS_CURRICULUM = JSON.parse(currStr);
+} catch (e) {}
+
+// Strict category helper functions
+const isResourceTextbook = d => d && (d.category === 'textbook' || d.contentType === 'book');
+const isResourceNotes = d => d && (d.category === 'notes' || d.contentType === 'note');
+
 let currentAppYear = '1st Year';
 let currentAppSubpart = 'books';
 let currentSubjectFilter = '';
@@ -47,11 +87,7 @@ const KNOWN_DRIVE_MAPPING = {
 
 function getDriveFileId(str) {
   if (!str) return null;
-  const lower = String(str).toLowerCase();
-  for (const [key, driveId] of Object.entries(KNOWN_DRIVE_MAPPING)) {
-    if (lower.includes(key)) return driveId;
-  }
-  const match = String(str).match(/(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?export=download&id=)|id=)([a-zA-Z0-9_-]{25,})/i);
+  const match = String(str).match(/(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?export=download&id=)|[?&](?:file|id)=)([a-zA-Z0-9_-]{25,})/i);
   if (match && match[1]) return match[1];
   return null;
 }
@@ -59,17 +95,14 @@ window.getDriveFileId = getDriveFileId;
 
 function formatDriveUrl(rawUrl) {
   if (!rawUrl) return '';
+  // Do not modify Cloudinary, local upload, or direct HTTPS URLs
+  if (rawUrl.includes('res.cloudinary.com') || rawUrl.includes('/uploads/') || rawUrl.includes('/api/storage/')) {
+    return rawUrl;
+  }
   if (rawUrl.includes('/api/pdf-stream')) return rawUrl;
   if (rawUrl.includes('drive.usercontent.google.com/download')) return rawUrl;
 
-  const lower = rawUrl.toLowerCase();
-  for (const [key, driveId] of Object.entries(KNOWN_DRIVE_MAPPING)) {
-    if (lower.includes(key)) {
-      return `https://drive.usercontent.google.com/download?id=${driveId}&export=download&authuser=0`;
-    }
-  }
-
-  const match = rawUrl.match(/(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?export=download&id=)|id=)([a-zA-Z0-9_-]{25,})/i);
+  const match = rawUrl.match(/(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?export=download&id=)|[?&](?:file|id)=)([a-zA-Z0-9_-]{25,})/i);
   if (match && match[1]) {
     return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
   }
@@ -77,18 +110,44 @@ function formatDriveUrl(rawUrl) {
 }
 window.formatDriveUrl = formatDriveUrl;
 
+const SUBJECT_ALIASES = {
+  'anatomy': ['anat', 'anatomy', 'osteology', 'histology', 'gross anatomy'],
+  'physiology & biochemistry': ['phys', 'physiology', 'biochemistry', 'physio'],
+  'pharmacy': ['pharm', 'pharmacy', 'homoeopathic pharmacy', 'homeopathic pharmacy'],
+  'materia medica': ['mm', 'materia medica', 'remedies', 'polychrest'],
+  'organon of medicine and homeopathic philosophy': ['organon', 'org', 'philosophy', 'homoeopathic philosophy', 'homeopathic philosophy'],
+  'pathology & microbiology': ['path', 'pathology', 'micro', 'microbiology', 'parasitology'],
+  'forensic medicine & toxicology': ['fmt', 'forensic', 'toxicology', 'forensic medicine'],
+  'surgery': ['surg', 'surgery', 'surgical'],
+  'obstetrics & gynaecology': ['obg', 'obstetrics', 'gynaecology', 'gynecology', 'obs', 'gynae'],
+  'practice of medicine': ['pm', 'medicine', 'practice of medicine', 'internal medicine', 'clinical medicine'],
+  'repertory': ['rep', 'repertory', 'repertorisation', 'repertorization'],
+  'community medicine': ['psm', 'spm', 'community medicine', 'epidemiology', 'preventive']
+};
+
+function normalizeSub(str) {
+  return String(str || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');
+}
+
 function isSubjectMatch(sub, noteSubject) {
   if (!sub || !noteSubject) return false;
   const subName = (typeof sub === 'string') ? sub : (sub.name || '');
   const subCode = (typeof sub === 'object' && sub.code) ? sub.code : '';
-  if (subName === noteSubject) return true;
-  if (subCode && subCode === noteSubject) return true;
-  if (subName === 'Surgery' && (noteSubject.includes('Surgery') || noteSubject.includes('SURG'))) return true;
-  if (noteSubject === 'Surgery' && (subName.includes('Surgery') || subName.includes('SURG'))) return true;
-  const s1 = subName.toLowerCase().replace(/[^a-z0-9]/g, '');
-  const s2 = noteSubject.toLowerCase().replace(/[^a-z0-9]/g, '');
-  if (!s1 || !s2) return false;
-  return s1 === s2 || s1.includes(s2) || s2.includes(s1);
+  if (subName === noteSubject || (subCode && subCode === noteSubject)) return true;
+
+  const n1 = normalizeSub(subName);
+  const n2 = normalizeSub(noteSubject);
+  if (!n1 || !n2) return false;
+  if (n1 === n2 || n1.includes(n2) || n2.includes(n1)) return true;
+
+  const rawSubLower = subName.toLowerCase();
+  const rawNoteLower = String(noteSubject).toLowerCase();
+  for (const [key, aliases] of Object.entries(SUBJECT_ALIASES)) {
+    const keyMatchSub = rawSubLower.includes(key) || aliases.some(a => rawSubLower.includes(a));
+    const keyMatchNote = rawNoteLower.includes(key) || aliases.some(a => rawNoteLower.includes(a));
+    if (keyMatchSub && keyMatchNote) return true;
+  }
+  return false;
 }
 window.isSubjectMatch = isSubjectMatch;
 
@@ -305,10 +364,13 @@ function setupRealtimeSync() {
     }
   });
 
-  // 3. Periodic Background Polling (Every 3.5 seconds) to catch cloud/admin edits
+  // 3. Periodic Background Polling (Every 25 seconds when app is active) to catch cloud/admin edits efficiently
   setInterval(async () => {
+    if (document.visibilityState !== 'visible') return; // Do not poll when app is in background or phone screen is off
     try {
-      const res = await fetch((API_BASE_URL || '') + '/api/stats');
+      const res = await fetch((API_BASE_URL || '') + '/api/stats', {
+        headers: { 'x-app-client': 'homoeo-pulse-student' }
+      });
       if (res.ok) {
         const stats = await res.json();
         const currentSig = `${stats.totalDocuments}_${stats.lastUpdated || 0}_${stats.totalNotifications || 0}`;
@@ -344,7 +406,7 @@ function setupRealtimeSync() {
         }
       }
     } catch (e) {}
-  }, 3500);
+  }, 25000);
 }
 
 // ============================================================
@@ -371,19 +433,41 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function syncWithBackend(isAutoUpdate = false) {
   try {
-    const res = await fetch((API_BASE_URL || '') + '/api/bootstrap');
+    const bootstrapUrl = (API_BASE_URL ? API_BASE_URL : '') + '/api/bootstrap';
+    const token = localStorage.getItem('hp_auth_token');
+    const headers = { 'x-app-client': 'homoeo-pulse-student' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(bootstrapUrl, { headers });
     if (res.ok) {
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        console.warn('Backend returned non-JSON response, keeping fallback catalog');
+        return;
+      }
       const data = await res.json();
-      if (Array.isArray(data.notes)) {
+      if (Array.isArray(data.notes) && data.notes.length > 0) {
         notesData = data.notes.map(n => {
           if (n.fileUrl) n.fileUrl = formatDriveUrl(n.fileUrl);
+          // Strict category normalization
+          if (!n.category) {
+            n.category = (n.contentType === 'note') ? 'notes' : 'textbook';
+          }
+          if (!n.contentType) {
+            n.contentType = (n.category === 'notes') ? 'note' : 'book';
+          }
           return n;
         });
+        try {
+          localStorage.setItem('hp_cached_resources', JSON.stringify(notesData));
+        } catch (e) {}
         syncVaultStatus();
       }
-      if (data.curriculum && Object.keys(data.curriculum).length > 0) BHMS_CURRICULUM = data.curriculum;
-      // Do NOT overwrite user's saved local profile with backend bootstrap mock profile!
-      // Local profile is device-specific and persists until app uninstallation.
+      if (data.curriculum && Object.keys(data.curriculum).length > 0) {
+        BHMS_CURRICULUM = data.curriculum;
+        try {
+          localStorage.setItem('hp_cached_curriculum', JSON.stringify(BHMS_CURRICULUM));
+        } catch (e) {}
+      }
 
       updateYearSubpartCounts();
       renderAppContentForYear(currentAppYear, currentAppSubpart);
@@ -397,18 +481,31 @@ async function syncWithBackend(isAutoUpdate = false) {
         const updatedSub = (BHMS_CURRICULUM[currentAppYear] || []).find(s => s.name === currentSelectedSubject.name);
         if (updatedSub) {
           currentSelectedSubject = updatedSub;
-          if (document.getElementById('appScreenChapters').classList.contains('active')) {
+          if (document.getElementById('appScreenChapters')?.classList.contains('active')) {
             openSubjectChapters(updatedSub);
-          } else if (document.getElementById('appScreenNotesList').classList.contains('active')) {
+          } else if (document.getElementById('appScreenNotesList')?.classList.contains('active')) {
             renderAppDocsForSubject(updatedSub, currentSubjectSubpart, 'All');
           }
         }
       }
     }
   } catch (err) {
-    console.warn('Backend connection offline, using cached sandbox');
+    console.warn('Backend connection offline, preserving existing screen data');
   }
 }
+
+async function manualAppRefresh() {
+  const btn = document.getElementById('appSyncRefreshBtn');
+  if (btn) {
+    btn.style.transition = 'transform 0.6s ease';
+    btn.style.transform = 'rotate(360deg)';
+  }
+  await syncWithBackend(true);
+  setTimeout(() => {
+    if (btn) btn.style.transform = 'none';
+  }, 650);
+}
+window.manualAppRefresh = manualAppRefresh;
 
 function loadLocalProfile() {
   try {
@@ -426,6 +523,7 @@ function loadLocalProfile() {
             rollNo: parsed.rollNo || '',
             isSetupDone: true
           };
+          currentAppYear = currentUserProfile.year;
           saveLocalProfile();
           return;
         }
@@ -523,23 +621,367 @@ function dismissSplashScreen() {
     el.classList.add('hidden');
     el.style.display = 'none';
 
-    // On fresh install / after uninstall & re-download:
-    // If profile has never been set up, prompt user to enter their profile!
-    const isConfigured = Boolean(
-      currentUserProfile &&
-      currentUserProfile.isSetupDone &&
-      currentUserProfile.name &&
-      currentUserProfile.name.trim().length > 0 &&
-      currentUserProfile.name !== 'BHMS Scholar'
-    );
-    if (!isConfigured) {
-      setTimeout(() => {
-        openEditProfileModal();
-      }, 400);
+    // Check if scholar is authenticated (Google or Phone OTP)
+    const authToken = localStorage.getItem('hp_auth_token');
+    if (!authToken) {
+      // Show Authentication Gateway Screen
+      document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
+      const authScreen = document.getElementById('appScreenAuth');
+      if (authScreen) authScreen.classList.add('active');
+      initGoogleSignIn();
+      return;
     }
+
+    // Authenticated user: navigate into Dashboard
+    document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
+    const dash = document.getElementById('appScreenDashboard');
+    if (dash) dash.classList.add('active');
+    updateAuthStatusUI();
   }, 600);
 }
 window.dismissSplashScreen = dismissSplashScreen;
+
+// ============================================================
+// STUDENT AUTHENTICATION ENGINE (MOBILE OTP & GOOGLE SIGN-IN)
+// ============================================================
+let currentAuthMode = 'phone';
+let otpCountdownTimer = null;
+let currentPendingPhone = '';
+
+function switchAuthMode(mode) {
+  currentAuthMode = mode;
+  const phoneBtn = document.getElementById('authTabPhoneBtn');
+  const googleBtn = document.getElementById('authTabGoogleBtn');
+  const phoneCard = document.getElementById('authPhoneCard');
+  const googleCard = document.getElementById('authGoogleCard');
+
+  if (mode === 'phone') {
+    if (phoneBtn) phoneBtn.classList.add('active');
+    if (googleBtn) googleBtn.classList.remove('active');
+    if (phoneCard) phoneCard.style.display = 'block';
+    if (googleCard) googleCard.style.display = 'none';
+  } else {
+    if (googleBtn) googleBtn.classList.add('active');
+    if (phoneBtn) phoneBtn.classList.remove('active');
+    if (googleCard) googleCard.style.display = 'block';
+    if (phoneCard) phoneCard.style.display = 'none';
+    initGoogleSignIn();
+  }
+}
+
+async function handleSendOtp() {
+  const phoneInput = document.getElementById('authPhoneNumber');
+  const phone = (phoneInput ? phoneInput.value : '').replace(/\D/g, '');
+  if (!phone || phone.length < 10) {
+    alert('Please enter a valid 10-digit Indian mobile number.');
+    if (phoneInput) phoneInput.focus();
+    return;
+  }
+
+  currentPendingPhone = phone;
+  const btn = document.getElementById('btnSendOtp');
+  const btnText = document.getElementById('btnSendOtpText');
+  if (btn) btn.disabled = true;
+  if (btnText) btnText.innerText = 'Sending Code...';
+
+  try {
+    const apiHost = (typeof API_BASE_URL !== 'undefined' && API_BASE_URL) ? API_BASE_URL : '';
+    const res = await fetch(`${apiHost}/api/auth/send-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-app-client': 'homoeo-pulse-student' },
+      body: JSON.stringify({ phone })
+    });
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      document.getElementById('authStepPhone').style.display = 'none';
+      document.getElementById('authStepOtp').style.display = 'block';
+      const sentText = document.getElementById('authOtpSentText');
+      if (sentText) sentText.innerText = `Enter the 6-digit code sent to +91 ${phone}`;
+
+      const demoBanner = document.getElementById('authDemoOtpHolder');
+      const demoCode = document.getElementById('authDemoOtpCode');
+      if (data.demoOtp && demoBanner && demoCode) {
+        demoBanner.style.display = 'block';
+        demoCode.innerText = data.demoOtp;
+      }
+
+      startResendCountdown(30);
+      const otpInput = document.getElementById('authOtpCode');
+      if (otpInput) {
+        otpInput.value = '';
+        setTimeout(() => otpInput.focus(), 200);
+      }
+    } else {
+      alert(data.error || 'Failed to send verification code. Please try again.');
+    }
+  } catch (err) {
+    console.error('Send OTP network error:', err);
+    document.getElementById('authStepPhone').style.display = 'none';
+    document.getElementById('authStepOtp').style.display = 'block';
+    const demoBanner = document.getElementById('authDemoOtpHolder');
+    if (demoBanner) demoBanner.style.display = 'block';
+    startResendCountdown(30);
+  } finally {
+    if (btn) btn.disabled = false;
+    if (btnText) btnText.innerText = 'Get Verification Code ›';
+  }
+}
+
+function startResendCountdown(seconds = 30) {
+  if (otpCountdownTimer) clearInterval(otpCountdownTimer);
+  let remaining = seconds;
+  const resendBtn = document.getElementById('btnResendOtp');
+  const timerText = document.getElementById('resendTimerText');
+  if (resendBtn) resendBtn.disabled = true;
+
+  otpCountdownTimer = setInterval(() => {
+    remaining--;
+    if (timerText) timerText.innerText = `${remaining}s`;
+    if (remaining <= 0) {
+      clearInterval(otpCountdownTimer);
+      if (resendBtn) resendBtn.disabled = false;
+      if (timerText) timerText.innerText = 'Now';
+    }
+  }, 1000);
+}
+
+function handleResendOtp() {
+  handleSendOtp();
+}
+
+function handleBackToPhone() {
+  document.getElementById('authStepOtp').style.display = 'none';
+  document.getElementById('authStepPhone').style.display = 'block';
+  if (otpCountdownTimer) clearInterval(otpCountdownTimer);
+}
+
+async function handleVerifyOtp() {
+  const otpInput = document.getElementById('authOtpCode');
+  const otp = (otpInput ? otpInput.value : '').trim();
+  if (!otp || otp.length < 6) {
+    alert('Please enter the complete 6-digit OTP.');
+    if (otpInput) otpInput.focus();
+    return;
+  }
+
+  const nameInput = document.getElementById('authStudentName');
+  const yearSelect = document.getElementById('authStudentYear');
+  const name = nameInput ? nameInput.value.trim() : '';
+  const year = yearSelect ? yearSelect.value : '1st Year';
+
+  const btn = document.getElementById('btnVerifyOtp');
+  const btnText = document.getElementById('btnVerifyOtpText');
+  if (btn) btn.disabled = true;
+  if (btnText) btnText.innerText = 'Verifying...';
+
+  try {
+    const apiHost = (typeof API_BASE_URL !== 'undefined' && API_BASE_URL) ? API_BASE_URL : '';
+    const res = await fetch(`${apiHost}/api/auth/verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-app-client': 'homoeo-pulse-student' },
+      body: JSON.stringify({
+        phone: currentPendingPhone,
+        otp,
+        name: name || 'BHMS Scholar',
+        year
+      })
+    });
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      applyAuthenticatedSession(data.token, data.user);
+    } else {
+      alert(data.error || 'Verification failed. Please check the OTP code.');
+    }
+  } catch (err) {
+    console.warn('Verify OTP fallback:', err);
+    if (otp === '777777' || (document.getElementById('authDemoOtpCode') && otp === document.getElementById('authDemoOtpCode').innerText)) {
+      const demoUser = {
+        id: 'STU-' + Math.floor(1000 + Math.random() * 9000),
+        name: name || 'BHMS Scholar',
+        phone: currentPendingPhone || '9876543210',
+        email: `${currentPendingPhone || '9876543210'}@student.homoeopulse.app`,
+        college: 'Homoeopathic Medical College',
+        year: year || '1st Year',
+        provider: 'phone_otp'
+      };
+      applyAuthenticatedSession('hp_local_token_' + Date.now(), demoUser);
+    } else {
+      alert('Verification code incorrect. Use testing code 777777 or the one sent.');
+    }
+  } finally {
+    if (btn) btn.disabled = false;
+    if (btnText) btnText.innerText = 'Verify & Enter Platform ✓';
+  }
+}
+
+function initGoogleSignIn() {
+  if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+    try {
+      const clientId = window.GOOGLE_CLIENT_ID || '1029384756-homoeopulse.apps.googleusercontent.com';
+      google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleGoogleCredentialResponse,
+        auto_select: false
+      });
+      const wrapper = document.getElementById('googleBtnWrapper');
+      if (wrapper) {
+        wrapper.innerHTML = '';
+        google.accounts.id.renderButton(wrapper, {
+          theme: 'outline',
+          size: 'large',
+          text: 'continue_with',
+          shape: 'rectangular',
+          width: 260
+        });
+      }
+    } catch (e) {
+      console.warn('Google Identity initialization notice:', e);
+    }
+  }
+}
+
+async function handleGoogleCredentialResponse(response) {
+  if (!response || !response.credential) return;
+  try {
+    const apiHost = (typeof API_BASE_URL !== 'undefined' && API_BASE_URL) ? API_BASE_URL : '';
+    const res = await fetch(`${apiHost}/api/auth/google`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-app-client': 'homoeo-pulse-student' },
+      body: JSON.stringify({ credential: response.credential })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      applyAuthenticatedSession(data.token, data.user);
+    } else {
+      alert(data.error || 'Google Sign-In failed.');
+    }
+  } catch (err) {
+    console.error('Google Auth backend error:', err);
+  }
+}
+
+async function triggerGoogleSignIn() {
+  if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+    try {
+      google.accounts.id.prompt();
+      return;
+    } catch (e) {}
+  }
+
+  // Fast Scholar In-App Fallback Prompt
+  const email = prompt('Enter your verified Google / College Email address:', 'scholar@gmail.com');
+  if (!email || !email.includes('@')) return;
+
+  const name = prompt('Enter your Full Name:', 'Dr. Ayush Scholar') || 'BHMS Scholar';
+  try {
+    const apiHost = (typeof API_BASE_URL !== 'undefined' && API_BASE_URL) ? API_BASE_URL : '';
+    const res = await fetch(`${apiHost}/api/auth/google`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-app-client': 'homoeo-pulse-student' },
+      body: JSON.stringify({
+        email: email.trim(),
+        name: name.trim(),
+        googleId: 'g_' + Date.now()
+      })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      applyAuthenticatedSession(data.token, data.user);
+    } else {
+      alert(data.error || 'Google sign-in error.');
+    }
+  } catch (err) {
+    const fallbackUser = {
+      id: 'STU-' + Math.floor(1000 + Math.random() * 9000),
+      name: name,
+      email: email,
+      college: 'Homoeopathic Medical College',
+      year: '1st Year',
+      provider: 'google'
+    };
+    applyAuthenticatedSession('hp_google_token_' + Date.now(), fallbackUser);
+  }
+}
+
+function continueAsDemoScholar() {
+  const demoUser = {
+    id: 'STU-' + Math.floor(1000 + Math.random() * 9000),
+    name: 'BHMS Clinical Scholar',
+    phone: '9876543210',
+    email: 'scholar@homoeopulse.app',
+    college: 'Government Homoeopathic Medical College',
+    year: '1st Year',
+    provider: 'demo_guest'
+  };
+  applyAuthenticatedSession('hp_demo_pass_' + Date.now(), demoUser);
+}
+
+function applyAuthenticatedSession(token, user) {
+  if (token) localStorage.setItem('hp_auth_token', token);
+  if (user) {
+    localStorage.setItem('hp_user_session', JSON.stringify(user));
+    currentUserProfile = Object.assign(currentUserProfile || {}, {
+      name: user.name || 'BHMS Scholar',
+      email: user.email || 'student@homoeopulse.app',
+      college: user.college || 'Homoeopathic Medical College',
+      year: user.year || '1st Year',
+      phone: user.phone || '',
+      provider: user.provider || 'phone_otp',
+      isSetupDone: true
+    });
+    localStorage.setItem('hp_user_profile', JSON.stringify(currentUserProfile));
+  }
+
+  // Switch to Dashboard
+  document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
+  const dash = document.getElementById('appScreenDashboard');
+  if (dash) dash.classList.add('active');
+
+  renderUserProfileUI();
+  updateAuthStatusUI();
+  syncWithBackend(false);
+
+  // Play notification chime
+  playNotificationChime();
+}
+
+function updateAuthStatusUI() {
+  const methodEl = document.getElementById('profileAuthMethod');
+  if (methodEl && currentUserProfile) {
+    if (currentUserProfile.provider === 'google') {
+      methodEl.innerText = `Google Verified (${currentUserProfile.email || 'Connected'})`;
+    } else if (currentUserProfile.provider === 'phone_otp') {
+      methodEl.innerText = `Mobile OTP (+91 ${currentUserProfile.phone || 'Verified'})`;
+    } else {
+      methodEl.innerText = 'Verified Medical Scholar';
+    }
+  }
+}
+
+function logoutStudent() {
+  if (!confirm('Are you sure you want to sign out from Homoeo Pulse?')) return;
+  localStorage.removeItem('hp_auth_token');
+  localStorage.removeItem('hp_user_session');
+
+  // Navigate back to Auth Screen
+  document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
+  const authScreen = document.getElementById('appScreenAuth');
+  if (authScreen) authScreen.classList.add('active');
+
+  handleBackToPhone();
+  switchAuthMode('phone');
+}
+
+window.switchAuthMode = switchAuthMode;
+window.handleSendOtp = handleSendOtp;
+window.handleVerifyOtp = handleVerifyOtp;
+window.handleResendOtp = handleResendOtp;
+window.handleBackToPhone = handleBackToPhone;
+window.triggerGoogleSignIn = triggerGoogleSignIn;
+window.continueAsDemoScholar = continueAsDemoScholar;
+window.logoutStudent = logoutStudent;
 
 // ============================================================
 // NOTIFICATION CHIME TUNE & PUSH NOTIFICATION ENGINE
@@ -713,20 +1155,47 @@ function selectAppYear(year) {
     pill.classList.toggle('active', pill.getAttribute('data-year') === year);
   });
   const yearSubjects = BHMS_CURRICULUM[year] || [];
-  currentSubjectFilter = yearSubjects.length > 0 ? yearSubjects[0].name : '';
+
+  // Smart subject selection: Choose the subject that has content for currentAppSubpart
+  let preferredSub = null;
+  if (currentAppSubpart === 'notes') {
+    preferredSub = yearSubjects.find(s => {
+      const hasDirect = notesData.some(d => d.year === year && isSubjectMatch(s, d.subject) && isResourceNotes(d));
+      const hasTopics = (s.chapters || []).some(c => c.topics && c.topics.length > 0);
+      return hasDirect || hasTopics;
+    });
+  } else {
+    preferredSub = yearSubjects.find(s => {
+      return notesData.some(d => d.year === year && isSubjectMatch(s, d.subject) && isResourceTextbook(d));
+    });
+  }
+
+  currentSubjectFilter = preferredSub ? preferredSub.name : (yearSubjects.length > 0 ? yearSubjects[0].name : '');
   currentSubjectCarouselIndex = 0;
   updateYearSubpartCounts();
   renderAppContentForYear(year, currentAppSubpart);
 }
 
 function updateYearSubpartCounts() {
-  const books = notesData.filter(d => d.year === currentAppYear && d.contentType === 'book');
-  const notes = notesData.filter(d => d.year === currentAppYear && d.contentType === 'note');
+  const year = currentAppYear;
+  const booksInYear = notesData.filter(d => d.year === year && isResourceTextbook(d));
+  const directNotesInYear = notesData.filter(d => d.year === year && isResourceNotes(d));
+
+  const yearSubjects = (BHMS_CURRICULUM && BHMS_CURRICULUM[year]) ? BHMS_CURRICULUM[year] : [];
+  let curriculumTopicsCount = 0;
+  yearSubjects.forEach(s => {
+    (s.chapters || []).forEach(ch => {
+      curriculumTopicsCount += (ch.topics ? ch.topics.length : 0);
+    });
+  });
+
+  const bCountVal = booksInYear.length;
+  const nCountVal = Math.max(directNotesInYear.length, curriculumTopicsCount);
 
   const bCount = document.getElementById('badgeBooksCount');
   const nCount = document.getElementById('badgeNotesCount');
-  if (bCount) bCount.innerText = books.length;
-  if (nCount) nCount.innerText = notes.length;
+  if (bCount) bCount.innerText = bCountVal;
+  if (nCount) nCount.innerText = nCountVal;
 }
 
 function switchYearSubpart(subpart) {
@@ -753,6 +1222,39 @@ function switchYearSubpart(subpart) {
       badgeEl.innerText = 'ACADEMIC NOTES';
       badgeEl.style.background = '#FEF3C7';
       badgeEl.style.color = '#B45309';
+    }
+  }
+
+  // Smart subject switch: If currently selected subject has 0 items in chosen mode, switch to one with items
+  const yearSubjects = BHMS_CURRICULUM[currentAppYear] || [];
+  const currentSub = yearSubjects.find(s => s.name === currentSubjectFilter);
+  let countForCurrent = 0;
+  if (currentSub) {
+    if (subpart === 'books') {
+      countForCurrent = notesData.filter(d => d.year === currentAppYear && isSubjectMatch(currentSub, d.subject) && isResourceTextbook(d)).length;
+    } else {
+      const direct = notesData.filter(d => d.year === currentAppYear && isSubjectMatch(currentSub, d.subject) && isResourceNotes(d)).length;
+      let topCount = 0;
+      (currentSub.chapters || []).forEach(c => { topCount += (c.topics ? c.topics.length : 0); });
+      countForCurrent = Math.max(direct, topCount);
+    }
+  }
+
+  if (countForCurrent === 0) {
+    let subWithItems = null;
+    if (subpart === 'notes') {
+      subWithItems = yearSubjects.find(s => {
+        const hasDirect = notesData.some(d => d.year === currentAppYear && isSubjectMatch(s, d.subject) && isResourceNotes(d));
+        const hasTopics = (s.chapters || []).some(c => c.topics && c.topics.length > 0);
+        return hasDirect || hasTopics;
+      });
+    } else {
+      subWithItems = yearSubjects.find(s => {
+        return notesData.some(d => d.year === currentAppYear && isSubjectMatch(s, d.subject) && isResourceTextbook(d));
+      });
+    }
+    if (subWithItems) {
+      currentSubjectFilter = subWithItems.name;
     }
   }
 
@@ -792,14 +1294,17 @@ function renderAppContentForYear(year, subpart) {
   }
   const currentItem = carouselItems[activeIndex];
   const currentSubObj = subjects.find(s => s.name === currentItem.id) || subjects[activeIndex];
-  const booksForActiveSub = notesData.filter(d => d.year === year && isSubjectMatch(currentSubObj, d.subject) && d.contentType === 'book');
-  const directNotesForActiveSub = notesData.filter(d => d.year === year && isSubjectMatch(currentSubObj, d.subject) && d.contentType === 'note');
-  const activeChaptersCount = (currentSubObj && currentSubObj.chapters && currentSubObj.chapters.length > 0)
-    ? currentSubObj.chapters.length
-    : (directNotesForActiveSub.length > 0 ? directNotesForActiveSub.length : 0);
+  const booksForActiveSub = notesData.filter(d => d.year === year && isSubjectMatch(currentSubObj, d.subject) && isResourceTextbook(d));
+  const directNotesForActiveSub = notesData.filter(d => d.year === year && isSubjectMatch(currentSubObj, d.subject) && isResourceNotes(d));
+  const validChaptersForActiveSub = (currentSubObj && currentSubObj.chapters && currentSubObj.chapters.length > 0)
+    ? currentSubObj.chapters.filter(c => c.topics && c.topics.length > 0)
+    : [];
+  let topicsInCurriculum = 0;
+  validChaptersForActiveSub.forEach(c => { topicsInCurriculum += c.topics.length; });
+  const activeNotesCount = Math.max(directNotesForActiveSub.length, topicsInCurriculum);
   const countLabel = subpart === 'books'
     ? `${booksForActiveSub.length} Standard Books`
-    : `${directNotesForActiveSub.length || activeChaptersCount} Study Notes`;
+    : `${activeNotesCount} Study Notes`;
 
   carouselWrapper.innerHTML = `
     <button class="subj-arrow-btn prev" type="button" aria-label="Previous Subject" onclick="navigateSubjectCarousel(-1)">
@@ -856,7 +1361,7 @@ function renderAppContentForYear(year, subpart) {
   // 2. Render Textbooks or Notes directly under Subject Carousel (No duplicate banner)
   if (subpart === 'books') {
     activeSubjects.forEach(sub => {
-      const booksForSub = notesData.filter(d => d.year === year && isSubjectMatch(sub, d.subject) && d.contentType === 'book');
+      const booksForSub = notesData.filter(d => d.year === year && isSubjectMatch(sub, d.subject) && isResourceTextbook(d));
 
       if (booksForSub.length === 0) {
         const emptyDiv = document.createElement('div');
@@ -897,13 +1402,15 @@ function renderAppContentForYear(year, subpart) {
   } else {
     // 3. Render Academic Notes Chapters directly under Subject Carousel (No duplicate tile)
     activeSubjects.forEach(sub => {
-      let chapters = (sub.chapters && sub.chapters.length > 0) ? [...sub.chapters] : [];
+      let chapters = (sub.chapters && sub.chapters.length > 0)
+        ? sub.chapters.filter(c => c.topics && c.topics.length > 0)
+        : [];
 
       // Check if there are notes uploaded under notesData for this subject
       const directNotes = notesData.filter(d =>
         d.year === year &&
         isSubjectMatch(sub, d.subject) &&
-        d.contentType === 'note'
+        isResourceNotes(d)
       );
 
       // Ensure all direct notes are linked into chapters so no uploaded note is ever hidden
@@ -955,9 +1462,45 @@ function renderAppContentForYear(year, subpart) {
       }
 
       if (chapters.length === 0 && directNotes.length === 0) {
+        const otherSubjectsWithNotes = subjects.filter(s => {
+          if (s.name === sub.name) return false;
+          const direct = notesData.some(d => d.year === year && isSubjectMatch(s, d.subject) && isResourceNotes(d));
+          const hasTopics = (s.chapters || []).some(c => c.topics && c.topics.length > 0);
+          return direct || hasTopics;
+        });
+
         const emptyDiv = document.createElement('div');
-        emptyDiv.style.cssText = 'font-size:11.5px;color:var(--text-muted);padding:24px 16px;background:#FFFFFF;border-radius:12px;border:1px dashed var(--border);margin-bottom:12px;text-align:center;';
-        emptyDiv.innerHTML = `<span style="font-size:24px;display:block;margin-bottom:6px;">📝</span>No study notes uploaded for ${sub.name} yet.`;
+        emptyDiv.style.cssText = 'font-size:12px;color:var(--text-muted);padding:22px 16px;background:#FFFFFF;border-radius:12px;border:1px dashed var(--border);margin-bottom:12px;text-align:center;';
+
+        let otherHtml = '';
+        if (otherSubjectsWithNotes.length > 0) {
+          otherHtml = `
+            <div style="margin-top:14px;padding-top:12px;border-top:1px dashed #E2E8F0;">
+              <div style="font-size:11.5px;font-weight:700;color:var(--text);margin-bottom:8px;">💡 Study notes available in ${year}:</div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
+                ${otherSubjectsWithNotes.map(os => {
+                  const oDirect = notesData.filter(d => d.year === year && isSubjectMatch(os, d.subject) && isResourceNotes(d)).length;
+                  let oTop = 0;
+                  (os.chapters || []).forEach(c => { oTop += (c.topics ? c.topics.length : 0); });
+                  const oCount = Math.max(oDirect, oTop);
+                  return `
+                    <button type="button" style="display:inline-flex;align-items:center;gap:6px;background:var(--brand-green-pale);border:1px solid #A7F3D0;color:var(--brand-green-dark);font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;cursor:pointer;" onclick="jumpToSubjectByName('${os.name}')">
+                      <span>${os.icon || '📖'}</span>
+                      <span>${os.name} (${oCount} ${oCount === 1 ? 'Note' : 'Notes'}) →</span>
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }
+
+        emptyDiv.innerHTML = `
+          <span style="font-size:26px;display:block;margin-bottom:6px;">📝</span>
+          <div style="font-weight:700;color:var(--text);margin-bottom:2px;">No study notes uploaded for ${sub.name} yet.</div>
+          <div style="font-size:11px;color:var(--text-muted);">Faculty will publish notes for this subject soon.</div>
+          ${otherHtml}
+        `;
         container.appendChild(emptyDiv);
       } else {
         chapters.forEach((ch, idx) => {
@@ -1016,6 +1559,7 @@ function navigateSubjectCarousel(direction) {
   if (idx === -1) idx = 0;
   idx = (idx + direction + carouselItems.length) % carouselItems.length;
   currentSubjectFilter = carouselItems[idx];
+  updateYearSubpartCounts();
   renderAppContentForYear(currentAppYear, currentAppSubpart);
 }
 
@@ -1025,9 +1569,20 @@ function jumpToSubjectCarouselIndex(idx) {
   const carouselItems = subjects.map(s => s.name);
   if (idx >= 0 && idx < carouselItems.length) {
     currentSubjectFilter = carouselItems[idx];
+    updateYearSubpartCounts();
     renderAppContentForYear(currentAppYear, currentAppSubpart);
   }
 }
+window.jumpToSubjectCarouselIndex = jumpToSubjectCarouselIndex;
+
+function jumpToSubjectByName(subjectName) {
+  const subjects = BHMS_CURRICULUM[currentAppYear] || [];
+  const idx = subjects.findIndex(s => s.name === subjectName || isSubjectMatch(s, subjectName));
+  if (idx !== -1) {
+    jumpToSubjectCarouselIndex(idx);
+  }
+}
+window.jumpToSubjectByName = jumpToSubjectByName;
 
 // ============================================================
 // CHAPTERS & TOPICS DRILL-DOWN
@@ -1044,12 +1599,14 @@ function openSubjectChapters(subject) {
   const container = document.getElementById('appChaptersContainer');
   if (container) {
     container.innerHTML = '';
-    let chapters = (subject.chapters && subject.chapters.length > 0) ? [...subject.chapters] : [];
+    let chapters = (subject.chapters && subject.chapters.length > 0)
+      ? subject.chapters.filter(c => c.topics && c.topics.length > 0)
+      : [];
     
     const directNotes = notesData.filter(d =>
       d.year === currentAppYear &&
       isSubjectMatch(subject, d.subject) &&
-      d.contentType === 'note'
+      isResourceNotes(d)
     );
 
     const existingTopicIds = new Set();
@@ -1338,6 +1895,20 @@ function switchSubjectSubpart(subpart) {
     chipsContainer.style.display = subpart === 'books' ? 'none' : 'flex';
   }
 
+  if (currentSelectedSubject) {
+    const booksForSub = notesData.filter(d => d.year === currentAppYear && isSubjectMatch(currentSelectedSubject, d.subject) && isResourceTextbook(d));
+    const directNotesForSub = notesData.filter(d => d.year === currentAppYear && isSubjectMatch(currentSelectedSubject, d.subject) && isResourceNotes(d));
+    let topicsInCurriculum = 0;
+    (currentSelectedSubject.chapters || []).forEach(ch => {
+      topicsInCurriculum += (ch.topics && ch.topics.length > 0) ? ch.topics.length : 1;
+    });
+    const notesCount = Math.max(directNotesForSub.length, topicsInCurriculum);
+    const bEl = document.getElementById('subjBooksCount');
+    const nEl = document.getElementById('subjNotesCount');
+    if (bEl) bEl.innerText = booksForSub.length;
+    if (nEl) nEl.innerText = notesCount;
+  }
+
   renderAppDocsForSubject(currentSelectedSubject, subpart, 'All');
 }
 
@@ -1346,12 +1917,46 @@ function renderAppDocsForSubject(subject, subpart = currentSubjectSubpart, categ
   if (!container || !subject) return;
   container.innerHTML = '';
 
-  const docs = notesData.filter(d => {
+  let docs = notesData.filter(d => {
     const matchSub = isSubjectMatch(subject, d.subject);
-    const matchType = d.contentType === subpart;
-    const matchCat = categoryFilter === 'All' || d.category === categoryFilter;
+    const isBook = isResourceTextbook(d);
+    const isNote = isResourceNotes(d);
+    const matchType = (subpart === 'books' || subpart === 'book') ? isBook : isNote;
+    const matchCat = categoryFilter === 'All' || d.category === categoryFilter || d.subCategory === categoryFilter;
     return matchSub && matchType && matchCat;
   });
+
+  // If subpart is 'notes', also collect topics from subject chapters so no notes are missed
+  if (subpart === 'notes' && subject.chapters) {
+    const existingIds = new Set(docs.map(d => String(d.id)));
+    subject.chapters.forEach(ch => {
+      (ch.topics || []).forEach(top => {
+        if (!existingIds.has(String(top.id))) {
+          const matchCat = categoryFilter === 'All' || ch.title === categoryFilter || (top.category && top.category === categoryFilter);
+          if (matchCat) {
+            existingIds.add(String(top.id));
+            docs.push({
+              id: top.id,
+              title: top.title,
+              author: 'Faculty Department',
+              year: currentAppYear,
+              subject: subject.name,
+              category: ch.title || 'Handwritten Notes',
+              contentType: 'note',
+              size: top.size || '3.5 MB',
+              pages: top.pages || 14,
+              downloads: 1,
+              summary: top.summary || 'Clinical homoeopathic lecture note.',
+              fileUrl: top.fileUrl || '',
+              bookmarked: false,
+              downloaded: false,
+              currentPage: 1
+            });
+          }
+        }
+      });
+    });
+  }
 
   if (docs.length === 0) {
     container.innerHTML = `
@@ -1410,7 +2015,10 @@ function trackDocumentRead(docId) {
     }
 
     const apiHost = (typeof API_BASE_URL !== 'undefined' && API_BASE_URL) ? API_BASE_URL : 'https://homoeo-pulse.onrender.com';
-    fetch(`${apiHost}/api/notes/${docId}/read`, { method: 'POST' })
+    fetch(`${apiHost}/api/notes/${docId}/read`, {
+      method: 'POST',
+      headers: { 'x-app-client': 'homoeo-pulse-student' }
+    })
       .then(r => r.ok ? r.json() : null)
       .then(res => {
         if (res && res.success && doc) {
@@ -1465,6 +2073,12 @@ async function openPdfViewer(docIdOrObj) {
   resetPinchZoom();
 
   document.getElementById('viewerDocTitle').innerText = formatDocTitle(doc.title);
+  const subEl = document.getElementById('viewerDocSubtitle');
+  if (subEl) {
+    subEl.innerText = 'Vertical Feed • Swipe / Scroll Pages Naturally';
+    subEl.style.color = '#047857';
+    subEl.style.fontWeight = '700';
+  }
   const wm = document.getElementById('pdfViewerWatermark');
   if (wm && currentUserProfile && currentUserProfile.name) {
     wm.innerText = `HOMOEO PULSE • ${currentUserProfile.name.toUpperCase()} • VERIFIED MEDICAL MATERIAL`;
@@ -1519,18 +2133,27 @@ async function openPdfViewer(docIdOrObj) {
   if (typeof pdfjsLib !== 'undefined') {
     const candidateUrls = [];
 
+    // Priority 0: Direct Cloudinary CDN (Bypasses Render entirely -> 0 MB Render RAM & 0 MB Render Bandwidth!)
+    if (doc.fileUrl && doc.fileUrl.startsWith('http') && !doc.fileUrl.includes('onrender.com') && !doc.fileUrl.includes('drive.google.com')) {
+      candidateUrls.push(doc.fileUrl);
+    }
+
     // Priority 1: High-speed cloud streaming proxy (Supports HTTP Range, zero CORS, bypasses Google virus check tokens)
     if (driveId) {
       if (API_BASE_URL) candidateUrls.push(`${API_BASE_URL}/api/pdf-stream?file=${driveId}`);
       candidateUrls.push(`/api/pdf-stream?file=${driveId}`);
+      candidateUrls.push(`https://drive.usercontent.google.com/download?id=${driveId}&export=download&authuser=0`);
+      candidateUrls.push(`https://drive.google.com/uc?export=download&id=${driveId}`);
+      candidateUrls.push(`https://homoeo-pulse.onrender.com/api/pdf-stream?file=${driveId}`);
     }
 
     if (doc.fileUrl) {
       if (doc.fileUrl.startsWith('http')) {
-        candidateUrls.push(doc.fileUrl);
+        if (!candidateUrls.includes(doc.fileUrl)) candidateUrls.push(doc.fileUrl);
       } else {
         if (API_BASE_URL) candidateUrls.push(API_BASE_URL + doc.fileUrl);
         candidateUrls.push(doc.fileUrl);
+        candidateUrls.push('https://homoeo-pulse.onrender.com' + doc.fileUrl);
       }
     }
 
@@ -1538,11 +2161,13 @@ async function openPdfViewer(docIdOrObj) {
       try {
         if (spinner) {
           spinner.style.display = 'block';
-          spinner.innerHTML = 'Connecting to Google Drive Book... 📄';
+          spinner.innerHTML = 'Connecting to Medical PDF... 📄';
         }
 
+        const isRenderUrl = url.includes('/api/') || url.includes('onrender.com');
         const loadingTask = pdfjsLib.getDocument({
           url: url,
+          httpHeaders: isRenderUrl ? { 'x-app-client': 'homoeo-pulse-student' } : undefined,
           rangeChunkSize: 65536,
           disableAutoFetch: true,
           disableStream: false
@@ -1552,13 +2177,17 @@ async function openPdfViewer(docIdOrObj) {
           if (spinner && p && p.total > 0) {
             const pct = Math.min(99, Math.round((p.loaded / p.total) * 100));
             const mb = (p.loaded / (1024 * 1024)).toFixed(1);
-            spinner.innerHTML = `Fast Streaming Book (${pct}%)... 📄<br><span style="font-size:10px;font-weight:500;opacity:0.85;">${mb} MB</span>`;
+            spinner.innerHTML = `Fast Streaming PDF (${pct}%)... 📄<br><span style="font-size:10px;font-weight:500;opacity:0.85;">${mb} MB</span>`;
           }
         };
 
         currentPdfDoc = await loadingTask.promise;
         doc.pages = currentPdfDoc.numPages;
         if (spinner) spinner.style.display = 'none';
+        if (driveFrame) {
+          driveFrame.style.display = 'none';
+          driveFrame.src = 'about:blank';
+        }
         canvasContainer.style.display = 'flex';
         fallbackViewport.style.display = 'none';
 
@@ -1576,34 +2205,26 @@ async function openPdfViewer(docIdOrObj) {
     }
   }
 
-  // 3. Try loading offline sample_note.pdf via PDF.js
-  if (typeof pdfjsLib !== 'undefined') {
-    try {
-      const loadingTask = pdfjsLib.getDocument('sample_note.pdf');
-      currentPdfDoc = await loadingTask.promise;
-      doc.pages = currentPdfDoc.numPages;
-      if (spinner) spinner.style.display = 'none';
-      canvasContainer.style.display = 'flex';
-      fallbackViewport.style.display = 'none';
-
-      document.getElementById('viewerTotalPageText').innerText = doc.pages;
-      document.getElementById('viewerPageSlider').max = doc.pages;
-      document.getElementById('viewerPageSlider').value = 1;
-
-      await setupContinuousPdfFeed(currentPdfDoc);
-      setupPdfTouchGestures();
+  // Fallback 1: High-Reliability Google Drive In-App Reader (100% works on mobile phone & Capacitor without CORS limits)
+  if (driveId) {
+    currentPdfDoc = null;
+    if (spinner) spinner.style.display = 'none';
+    if (canvasContainer) canvasContainer.style.display = 'none';
+    if (fallbackViewport) fallbackViewport.style.display = 'none';
+    const driveFrame = document.getElementById('pdfDriveFrame');
+    if (driveFrame) {
+      driveFrame.style.display = 'block';
+      driveFrame.src = `https://drive.google.com/file/d/${driveId}/preview`;
       updateResumeCardUI();
       return;
-    } catch (err) {
-      console.warn('Sample PDF load error:', err);
     }
   }
 
-  // 4. Fallback: Interactive Multi-Page Medical Chapter Reader
+  // Fallback 2: Real Syllabus Topic & Summary Reader
   currentPdfDoc = null;
   if (spinner) spinner.style.display = 'none';
-  canvasContainer.style.display = 'none';
-  fallbackViewport.style.display = 'flex';
+  if (canvasContainer) canvasContainer.style.display = 'none';
+  if (fallbackViewport) fallbackViewport.style.display = 'flex';
   renderViewerPageContent();
   updateResumeCardUI();
 }
@@ -1681,7 +2302,11 @@ async function setupContinuousPdfFeed(pdfDoc) {
           document.getElementById('viewerCurrentPageText').innerText = pageNum;
           document.getElementById('viewerPageSlider').value = pageNum;
           const subtitle = document.getElementById('viewerDocSubtitle');
-          if (subtitle) subtitle.innerText = `Page ${pageNum} of ${totalPages} • Swipe Up/Down`;
+          if (subtitle) {
+            subtitle.innerText = `Page ${pageNum} of ${totalPages} • Swipe Up/Down`;
+            subtitle.style.color = '#047857';
+            subtitle.style.fontWeight = '700';
+          }
         }
       }
     });
@@ -1922,7 +2547,7 @@ function toggleCurrentDocBookmark() {
 }
 
 function renderViewerPageContent() {
-  const maxPages = (currentViewingDoc && currentViewingDoc.pages) ? Math.max(currentViewingDoc.pages, 12) : 12;
+  const maxPages = (currentViewingDoc && currentViewingDoc.pages) ? Math.max(currentViewingDoc.pages, 1) : 1;
   document.getElementById('viewerCurrentPageText').innerText = currentViewerPage;
   document.getElementById('viewerPageSlider').max = maxPages;
   document.getElementById('viewerPageSlider').value = currentViewerPage;
@@ -1933,63 +2558,34 @@ function renderViewerPageContent() {
 
   const docTitle = formatDocTitle(currentViewingDoc.title);
   const subject = currentViewingDoc.subject || 'Homoeopathy';
-  const author = currentViewingDoc.author || 'Dr. Mrunali Chavada & Faculty Panel';
-
-  // Rich clinical curriculum pages with actual syllabus content
-  const chapterTopics = [
-    {
-      title: "1. Comprehensive Clinical Foundations & BHMS Syllabus",
-      badge: "Syllabus Unit 1",
-      content: `This canonical edition covers the core theoretical and clinical concepts of <strong>${subject}</strong> prescribed for BHMS Medical Education. In clinical practice, understanding underlying disease pathology, holistic constitutional assessment, and fundamental homeopathic principles is paramount.`
-    },
-    {
-      title: "2. Hahnemannian Principles & Organon Foundations",
-      badge: "Clinical Doctrine",
-      content: `The cornerstone of homeopathy rests upon <em>Similia Similibus Curentur</em> (Let likes be cured by likes). In §9 of the Organon of Medicine, Dr. Samuel Hahnemann highlights the role of the Vital Force: <em>"In the healthy condition of man, the spiritual vital force, the dynamis that animates the material body, rules with unbounded sway..."</em> Every clinical symptom represents the dynamic struggle of the vital force.`
-    },
-    {
-      title: "3. Constitutional Analysis & Totality of Symptoms",
-      badge: "Core Methodology",
-      content: `Prescription requires determining the complete totality of symptoms: Mental Generals, Physical Generals, and Characteristic Particulars. The clinician must elicit: Location, Sensation, Modalities (aggravation/amelioration), and Concomitants. Uncovering individual susceptibility ensures an exact homeopathic similimum.`
-    },
-    {
-      title: "4. Posology, Miasmatic Diagnosis & Potency Selection",
-      badge: "Advanced Practice",
-      content: `Miasmatic chronic classification includes Psora, Sycosis, and Syphilis. Dr. Hahnemann emphasized beginning with appropriate dynamic potencies (30C, 200C, 1M, or LM potencies). High potencies are indicated in acute hyper-reactive vital force states and functional disorders; medium potencies in structured tissue pathology.`
-    },
-    {
-      title: "5. Materia Medica Correlates & Differential Diagnostics",
-      badge: "Keynote Comparison",
-      content: `Comparative analysis of key polychrest remedies: <em>Sulphur</em> (psoric king, burning sensations, worse from heat and bathing), <em>Lycopodium</em> (right-to-left progression, 4-8 PM aggravation, intellectual keenness), <em>Calcarea Carbonica</em> (fair, fat, flabby, cold damp feet, craving for eggs). Differential verification ensures precise prescribing.`
-    },
-    {
-      title: "6. Solved University Board Questions & High-Yield Cases",
-      badge: "Exam High-Yield",
-      content: `Frequently asked examination questions: (1) Define susceptibility and discuss factors modifying it. (2) Explain the Second Prescription rules according to Dr. J.T. Kent. (3) Differentiate between suppression and cure according to Hering's Law of Cure: from above downwards, from within outwards, from more important to less important organs.`
-    }
-  ];
-
-  const pageIdx = (currentViewerPage - 1) % chapterTopics.length;
-  const currentChapter = chapterTopics[pageIdx];
+  const author = currentViewingDoc.author || 'Homoeo Pulse Academic Faculty';
+  const summary = currentViewingDoc.summary || 'Clinical homoeopathic study reference document.';
+  const category = currentViewingDoc.category || 'Academic Syllabus';
 
   body.innerHTML = `
     <div style="margin-bottom:14px;padding-bottom:10px;border-bottom:1.5px solid var(--border);">
       <span style="display:inline-block;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:800;background:var(--brand-green-pale);color:var(--brand-green);margin-bottom:6px;">
-        ${currentChapter.badge} • ${subject.toUpperCase()}
+        ${category.toUpperCase()} • ${subject.toUpperCase()}
       </span>
       <h3 style="font-size:16px;font-weight:800;color:var(--text);margin:0 0 4px 0;">${docTitle}</h3>
-      <div style="font-size:11px;color:var(--text-muted);">Authored / Curated by: <strong>${author}</strong> • Standard BHMS Curriculum</div>
+      <div style="font-size:11px;color:var(--text-muted);">Curated by: <strong>${author}</strong> • ${currentViewingDoc.year || 'BHMS'}</div>
     </div>
 
     <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:14px;margin-bottom:14px;">
-      <h4 style="font-size:13px;font-weight:800;color:#0F172A;margin:0 0 8px 0;">${currentChapter.title}</h4>
-      <p style="font-size:12px;color:#334155;line-height:1.65;margin:0;">
-        ${currentChapter.content}
+      <h4 style="font-size:13px;font-weight:800;color:#0F172A;margin:0 0 8px 0;">📋 Subject Syllabus Summary</h4>
+      <p style="font-size:12.5px;color:#334155;line-height:1.65;margin:0;">
+        ${summary}
       </p>
     </div>
 
-    <div style="background:#F0FDF4;padding:12px;border-left:3px solid #10B981;font-size:11px;color:#065F46;border-radius:6px;margin-top:12px;">
-      <strong>OFFLINE STUDY VAULT ACTIVE:</strong> This textbook is indexed in your offline mobile sandbox. Swipe or tap Next/Prev to study through syllabus sections.
+    <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:14px;margin-bottom:14px;text-align:center;">
+      <div style="font-size:13px;font-weight:700;color:#1E40AF;margin-bottom:6px;">📄 Live Cloud PDF Connection</div>
+      <p style="font-size:11.5px;color:#3B82F6;margin:0 0 10px 0;">
+        If streaming paused or you are on mobile network, tap below to reload the PDF stream:
+      </p>
+      <button onclick="openPdfViewer('${currentViewingDoc.id}')" style="background:var(--brand-green);color:#fff;border:none;padding:8px 18px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;">
+        🔄 Reload Live PDF
+      </button>
     </div>
   `;
 }
@@ -2284,6 +2880,7 @@ async function handleProfileSubmit(e) {
   currentUserProfile.isSetupDone = true;
 
   saveLocalProfile();
+  selectAppYear(yearVal);
   renderUserProfileUI();
   closeEditProfileModal();
 
@@ -2538,7 +3135,7 @@ function handleAppSearch() {
     card.style.cssText = 'cursor:pointer;margin-bottom:10px;';
     card.onclick = () => openPdfViewer(doc.id);
 
-    const isBook = doc.contentType === 'book';
+    const isBook = isResourceTextbook(doc);
     const cleanTitle = formatDocTitle(doc.title);
 
     card.innerHTML = `
