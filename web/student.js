@@ -621,10 +621,22 @@ function dismissSplashScreen() {
     el.classList.add('hidden');
     el.style.display = 'none';
 
-    // Check if scholar is authenticated (Google or Phone OTP)
-    const authToken = localStorage.getItem('hp_auth_token');
+    // PERMANENT 1-TIME LOGIN LOGIC:
+    // Auto-migrate existing scholars so they NEVER get logged out or asked to re-login on update!
+    let authToken = localStorage.getItem('hp_auth_token');
+    const existingSession = localStorage.getItem('hp_user_session');
+
+    // If student already has a configured profile on their device, keep them logged in permanently!
+    if (!authToken && currentUserProfile && currentUserProfile.isSetupDone && currentUserProfile.name && currentUserProfile.name !== 'BHMS Scholar') {
+      authToken = 'hp_permanent_session_' + Date.now();
+      localStorage.setItem('hp_auth_token', authToken);
+      if (!existingSession) {
+        localStorage.setItem('hp_user_session', JSON.stringify(currentUserProfile));
+      }
+    }
+
     if (!authToken) {
-      // Show Authentication Gateway Screen
+      // First time installation only: Show Authentication Gateway
       document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
       const authScreen = document.getElementById('appScreenAuth');
       if (authScreen) authScreen.classList.add('active');
@@ -632,7 +644,7 @@ function dismissSplashScreen() {
       return;
     }
 
-    // Authenticated user: navigate into Dashboard
+    // Daily Usage: ALWAYS STAY LOGGED IN! Navigate directly to Dashboard without asking for login!
     document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
     const dash = document.getElementById('appScreenDashboard');
     if (dash) dash.classList.add('active');
