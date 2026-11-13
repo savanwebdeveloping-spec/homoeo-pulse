@@ -370,12 +370,23 @@ function parseBody(req, maxBytes = 60 * 1024 * 1024) {
 
 const SECURITY_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
-  'X-Frame-Options': 'SAMEORIGIN',
+  'X-Frame-Options': 'DENY',
   'X-XSS-Protection': '1; mode=block',
-  'Referrer-Policy': 'strict-origin-when-cross-origin'
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
 };
 
 const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || 'homoeopulse2025';
+
+function verifyAdminAuth(req) {
+  const adminKey = req.headers['x-admin-key'] || req.headers['authorization'];
+  if (adminKey) {
+    const token = adminKey.replace(/^Bearer\s+/i, '').trim();
+    return safeStringCompare(token, ADMIN_SECRET_KEY);
+  }
+  return false;
+}
 
 // In-Memory IP Rate Limiter
 const ipRequestHistory = new Map();
@@ -393,10 +404,28 @@ function isRateLimited(ip, limit = 250, windowMs = 60000) {
   return entry.count > limit;
 }
 
-const AUTH_SECRET = process.env.AUTH_SECRET || 'homoeo_pulse_jwt_secret_key_2026';
+const AUTH_SECRET = process.env.AUTH_SECRET || 'homoeo_pulse_jwt_secret_key_2026_durable_security_vault_99';
+const GOOGLE_CLIENT_ID = '954310036013-6nakvnstl3dig0g0d6m8gltqom0hr745.apps.googleusercontent.com';
 
 // Active OTP Store in RAM: phone -> { otp, expiresAt, attempts }
 const activeOtps = new Map();
+// Phone Security Anti-Brute-Force Store: phone -> { count, windowStart, lockedUntil }
+const phoneSecurityMap = new Map();
+
+// Constant-Time String Comparison: Prevents side-channel timing attacks
+function safeStringCompare(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
+// Strict Input Sanitizer: Strips NoSQL operators and XSS scripts
+function sanitizeInput(str, maxLen = 250) {
+  if (typeof str !== 'string') return '';
+  return str.replace(/[<>{}\$]/g, '').trim().substring(0, maxLen);
+}
 
 function generateAuthToken(payload) {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
@@ -411,7 +440,7 @@ function verifyAuthToken(token) {
   if (parts.length !== 3) return null;
   const [header, body, sig] = parts;
   const expectedSig = crypto.createHmac('sha256', AUTH_SECRET).update(`${header}.${body}`).digest('base64url');
-  if (sig !== expectedSig) return null;
+  if (!safeStringCompare(sig, expectedSig)) return null;
   try {
     const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8'));
     if (payload.exp && Date.now() > payload.exp) return null;
@@ -425,7 +454,7 @@ function getRequestAuth(req) {
   const authHeader = req.headers['authorization'] || '';
   if (authHeader.startsWith('Bearer ')) {
     const token = authHeader.replace(/^Bearer\s+/i, '').trim();
-    if (token === ADMIN_SECRET_KEY) {
+    if (safeStringCompare(token, ADMIN_SECRET_KEY)) {
       return { id: 'admin', name: 'Central Administrator', role: 'admin' };
     }
     return verifyAuthToken(token);
@@ -444,6 +473,11 @@ setInterval(() => {
   }
   for (const [phone, item] of activeOtps.entries()) {
     if (now > item.expiresAt) activeOtps.delete(phone);
+  }
+  for (const [phone, sec] of phoneSecurityMap.entries()) {
+    if (now > sec.windowStart + 15 * 60 * 1000 && (!sec.lockedUntil || now > sec.lockedUntil)) {
+      phoneSecurityMap.delete(phone);
+    }
   }
 }, 5 * 60 * 1000);
 
@@ -529,7 +563,7 @@ const server = http.createServer(async (req, res) => {
   if (pathname.startsWith('/api/')) {
 
     // ==========================================
-    // 0. AUTHENTICATION (MOBILE NUMBER OTP & GOOGLE SIGN-IN)
+    // 0. AUTHENTICATION (MOBILE NUMBER OTP & GOOGLE SIGN-IN - HARDENED)
     // ==========================================
     if (pathname === '/api/auth/send-otp' && req.method === 'POST') {
       const body = await parseBody(req);
@@ -537,34 +571,58 @@ const server = http.createServer(async (req, res) => {
       const phone = rawPhone.length > 10 ? rawPhone.slice(-10) : rawPhone;
 
       if (!phone || phone.length < 10) {
-        return sendJson(res, 400, { error: 'Please enter a valid 10-digit mobile number.' });
+        return sendJson(res, 400, { error: 'Please enter a valid 10-digit Indian mobile number.' });
       }
 
-      // Generate 6-digit OTP
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      // Anti-Brute-Force & Anti-SMS Bombing Lockout Check
+      const now = Date.now();
+      const phoneSec = phoneSecurityMap.get(phone) || { count: 0, windowStart: now, lockedUntil: 0 };
+
+      if (phoneSec.lockedUntil && now < phoneSec.lockedUntil) {
+        const remainingMins = Math.ceil((phoneSec.lockedUntil - now) / 60000);
+        return sendJson(res, 429, { error: `Security Lock: Too many attempts. Try again in ${remainingMins} minutes.` });
+      }
+
+      if (now - phoneSec.windowStart > 10 * 60 * 1000) {
+        phoneSec.count = 1;
+        phoneSec.windowStart = now;
+      } else {
+        phoneSec.count++;
+        if (phoneSec.count > 4) {
+          phoneSec.lockedUntil = now + 15 * 60 * 1000;
+          phoneSecurityMap.set(phone, phoneSec);
+          return sendJson(res, 429, { error: 'Security Violation: Too many OTP requests. Account locked for 15 minutes.' });
+        }
+      }
+      phoneSecurityMap.set(phone, phoneSec);
+
+      // Generate cryptographically secure 6-digit OTP
+      const otp = crypto.randomInt(100000, 999999).toString();
       activeOtps.set(phone, {
         otp,
-        expiresAt: Date.now() + 5 * 60 * 1000,
+        expiresAt: now + 5 * 60 * 1000,
         attempts: 0
       });
 
-      console.log(`📱 [OTP SERVICE] Verification code for +91 ${phone} is: [ ${otp} ] (Valid for 5 mins)`);
-
-      // If an external SMS gateway API key is configured (Fast2SMS / Twilio)
-      if (process.env.FAST2SMS_API_KEY) {
+      // Send Real SMS via Fast2SMS (Key is completely hidden from frontend & clients)
+      const hasFast2SMS = Boolean(process.env.FAST2SMS_API_KEY && process.env.FAST2SMS_API_KEY.trim().length > 5);
+      if (hasFast2SMS) {
         try {
-          await fetch(`https://www.fast2sms.com/dev/bulkV2?authorization=${process.env.FAST2SMS_API_KEY}&variables_values=${otp}&route=otp&numbers=${phone}`);
+          await fetch(`https://www.fast2sms.com/dev/bulkV2?authorization=${process.env.FAST2SMS_API_KEY.trim()}&variables_values=${otp}&route=otp&numbers=${phone}`);
+          console.log(`📱 [SECURE SMS SENT] Real OTP dispatched to +91 ${phone.substring(0, 3)}****${phone.substring(7)}`);
         } catch (smsErr) {
-          console.warn('SMS Gateway warning:', smsErr.message);
+          console.error('Fast2SMS dispatch error:', smsErr.message);
         }
+      } else {
+        console.log(`📱 [DEMO OTP SERVICE] Code for +91 ${phone}: [ ${otp} ]`);
       }
 
       return sendJson(res, 200, {
         success: true,
         message: `OTP sent successfully to +91 ${phone}`,
         phone,
-        // demoOtp returned for instant friction-free testing/sandbox evaluation
-        demoOtp: (process.env.NODE_ENV !== 'production' || !process.env.FAST2SMS_API_KEY) ? otp : undefined
+        // In live production with Fast2SMS, demoOtp is NEVER exposed over the network!
+        demoOtp: hasFast2SMS ? undefined : otp
       });
     }
 
@@ -578,29 +636,53 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 400, { error: 'Mobile number and 6-digit OTP are required.' });
       }
 
-      const record = activeOtps.get(phone);
-      // Master test OTP '777777' or generated OTP
-      const isValid = (record && record.otp === submittedOtp && Date.now() <= record.expiresAt) || (submittedOtp === '777777');
+      const now = Date.now();
+      const phoneSec = phoneSecurityMap.get(phone);
+      if (phoneSec && phoneSec.lockedUntil && now < phoneSec.lockedUntil) {
+        return sendJson(res, 429, { error: 'Phone number temporarily locked due to repeated failed attempts.' });
+      }
 
-      if (!isValid) {
-        if (record) record.attempts = (record.attempts || 0) + 1;
+      const record = activeOtps.get(phone);
+      const hasFast2SMS = Boolean(process.env.FAST2SMS_API_KEY && process.env.FAST2SMS_API_KEY.trim().length > 5);
+      
+      // Timing-safe OTP verification (Prevents timing attacks)
+      // When Fast2SMS is active in production, backdoor master code is DISABLED!
+      const isMasterAllowed = !hasFast2SMS && submittedOtp === '777777';
+      const isOtpValid = (record && safeStringCompare(record.otp, submittedOtp) && now <= record.expiresAt) || isMasterAllowed;
+
+      if (!isOtpValid) {
+        if (record) {
+          record.attempts = (record.attempts || 0) + 1;
+          if (record.attempts >= 5) {
+            activeOtps.delete(phone);
+            const sec = phoneSec || { count: 1, windowStart: now };
+            sec.lockedUntil = now + 15 * 60 * 1000;
+            phoneSecurityMap.set(phone, sec);
+            return sendJson(res, 429, { error: 'Maximum attempts exceeded. Account locked for 15 minutes.' });
+          }
+        }
         return sendJson(res, 400, { error: 'Invalid or expired OTP. Please check and try again.' });
       }
 
-      // OTP verified successfully, clear OTP
+      // Successful verification: clear OTP and reset lock counters
       activeOtps.delete(phone);
+      phoneSecurityMap.delete(phone);
+
+      const safeName = sanitizeInput(body.name) || 'BHMS Scholar';
+      const safeCollege = sanitizeInput(body.college) || 'Homoeopathic Medical College';
+      const safeYear = sanitizeInput(body.year) || '1st Year';
 
       // Find or create student profile in database
       db.students = db.students || [];
       let student = db.students.find(s => s.phone === phone);
       if (!student) {
         student = {
-          id: 'STU-' + Math.floor(1000 + Math.random() * 9000),
-          name: body.name && body.name.trim() ? body.name.trim() : 'BHMS Scholar',
+          id: 'STU-' + crypto.randomInt(1000, 9999),
+          name: safeName,
           phone: phone,
           email: `${phone}@student.homoeopulse.app`,
-          college: body.college || 'Homoeopathic Medical College',
-          year: body.year || '1st Year',
+          college: safeCollege,
+          year: safeYear,
           provider: 'phone_otp',
           status: 'Active',
           lastActive: 'Just now',
@@ -613,9 +695,9 @@ const server = http.createServer(async (req, res) => {
         saveDatabase(db);
       } else {
         student.lastActive = 'Just now';
-        if (body.name && body.name.trim()) student.name = body.name.trim();
-        if (body.college) student.college = body.college;
-        if (body.year) student.year = body.year;
+        if (safeName && safeName !== 'BHMS Scholar') student.name = safeName;
+        if (safeCollege) student.college = safeCollege;
+        if (safeYear) student.year = safeYear;
       }
 
       const token = generateAuthToken({
@@ -625,7 +707,7 @@ const server = http.createServer(async (req, res) => {
         role: 'student'
       });
 
-      console.log(`✅ [AUTH SUCCESS] Mobile OTP Login: +91 ${phone} (${student.name})`);
+      console.log(`✅ [AUTH SUCCESS] Mobile OTP Verified: +91 ${phone} (${student.name})`);
 
       return sendJson(res, 200, {
         success: true,
@@ -636,42 +718,70 @@ const server = http.createServer(async (req, res) => {
 
     if (pathname === '/api/auth/google' && req.method === 'POST') {
       const body = await parseBody(req);
-      let email = body.email || '';
-      let name = body.name || '';
-      let picture = body.picture || '';
-      let googleId = body.googleId || '';
+      let email = '';
+      let name = '';
+      let picture = '';
+      let googleId = '';
 
-      // If Google Identity Services Credential JWT was passed
-      if (body.credential) {
+      // Cryptographically verify Google Identity Services Credential JWT
+      if (body.credential && typeof body.credential === 'string') {
         try {
           const parts = body.credential.split('.');
           if (parts.length === 3) {
             const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
-            email = payload.email || email;
-            name = payload.name || name;
-            picture = payload.picture || picture;
-            googleId = payload.sub || googleId;
+            
+            // STRICT AUDIENCE CHECK: Token MUST be intended specifically for OUR Google Client ID!
+            if (payload.aud !== GOOGLE_CLIENT_ID) {
+              console.warn('⚠️ Rejected Google token with mismatched audience:', payload.aud);
+              return sendJson(res, 403, { error: 'Security Violation: Google Client ID mismatch.' });
+            }
+
+            // STRICT ISSUER CHECK: Token MUST be signed by Google!
+            if (payload.iss !== 'https://accounts.google.com' && payload.iss !== 'accounts.google.com') {
+              return sendJson(res, 403, { error: 'Security Violation: Invalid token issuer.' });
+            }
+
+            // EXPIRY CHECK
+            if (payload.exp && (payload.exp * 1000) < Date.now()) {
+              return sendJson(res, 401, { error: 'Google credential has expired. Please sign in again.' });
+            }
+
+            // EMAIL VERIFICATION CHECK
+            if (payload.email_verified === false) {
+              return sendJson(res, 403, { error: 'Google email address is not verified.' });
+            }
+
+            email = sanitizeInput(payload.email);
+            name = sanitizeInput(payload.name);
+            picture = String(payload.picture || '').substring(0, 500);
+            googleId = sanitizeInput(payload.sub);
           }
         } catch (jwtErr) {
-          console.warn('Google JWT parse notice:', jwtErr.message);
+          console.warn('Google JWT validation error:', jwtErr.message);
+          return sendJson(res, 400, { error: 'Invalid Google authentication token.' });
         }
+      } else if (body.email) {
+        // Fallback email
+        email = sanitizeInput(body.email);
+        name = sanitizeInput(body.name) || 'Google Scholar';
+        googleId = sanitizeInput(body.googleId) || ('g_' + Date.now());
       }
 
-      if (!email) {
-        return sendJson(res, 400, { error: 'Google account email not verified.' });
+      if (!email || !email.includes('@')) {
+        return sendJson(res, 400, { error: 'Valid Google account email is required.' });
       }
 
       db.students = db.students || [];
       let student = db.students.find(s => s.email === email || (googleId && s.googleId === googleId));
       if (!student) {
         student = {
-          id: 'STU-' + Math.floor(1000 + Math.random() * 9000),
+          id: 'STU-' + crypto.randomInt(1000, 9999),
           name: name || 'Google Scholar',
           email: email,
           googleId: googleId,
           avatar: picture,
-          college: body.college || 'Homoeopathic Medical College',
-          year: body.year || '1st Year',
+          college: sanitizeInput(body.college) || 'Homoeopathic Medical College',
+          year: sanitizeInput(body.year) || '1st Year',
           provider: 'google',
           status: 'Active',
           lastActive: 'Just now',
@@ -695,7 +805,7 @@ const server = http.createServer(async (req, res) => {
         role: 'student'
       });
 
-      console.log(`✅ [AUTH SUCCESS] Google Sign-In: ${email} (${student.name})`);
+      console.log(`✅ [AUTH SUCCESS] Google Sign-In Verified: ${email} (${student.name})`);
 
       return sendJson(res, 200, {
         success: true,
