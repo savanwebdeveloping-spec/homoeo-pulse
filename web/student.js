@@ -831,7 +831,7 @@ async function handleVerifyOtp() {
 function initGoogleSignIn() {
   if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
     try {
-      const clientId = window.GOOGLE_CLIENT_ID || '1029384756-homoeopulse.apps.googleusercontent.com';
+      const clientId = window.GOOGLE_CLIENT_ID || '954310036013-6nakvnstl3dig0g0d6m8gltqom0hr745.apps.googleusercontent.com';
       google.accounts.id.initialize({
         client_id: clientId,
         callback: handleGoogleCredentialResponse,
