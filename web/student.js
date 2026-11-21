@@ -854,42 +854,9 @@ async function triggerGoogleSignIn() {
   if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
     try {
       google.accounts.id.prompt();
-      return;
-    } catch (e) {}
-  }
-
-  // Fast Scholar In-App Fallback Prompt
-  const email = prompt('Enter your verified Google / College Email address:', 'scholar@gmail.com');
-  if (!email || !email.includes('@')) return;
-
-  const name = prompt('Enter your Full Name:', 'Dr. Ayush Scholar') || 'BHMS Scholar';
-  try {
-    const apiHost = (typeof API_BASE_URL !== 'undefined' && API_BASE_URL) ? API_BASE_URL : '';
-    const res = await fetch(`${apiHost}/api/auth/google`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-app-client': 'homoeo-pulse-student' },
-      body: JSON.stringify({
-        email: email.trim(),
-        name: name.trim(),
-        googleId: 'g_' + Date.now()
-      })
-    });
-    const data = await res.json();
-    if (res.ok && data.success) {
-      applyAuthenticatedSession(data.token, data.user);
-    } else {
-      alert(data.error || 'Google sign-in error.');
+    } catch (e) {
+      console.warn('Google prompt notice:', e);
     }
-  } catch (err) {
-    const fallbackUser = {
-      id: 'STU-' + Math.floor(1000 + Math.random() * 9000),
-      name: name,
-      email: email,
-      college: 'Homoeopathic Medical College',
-      year: '1st Year',
-      provider: 'google'
-    };
-    applyAuthenticatedSession('hp_google_token_' + Date.now(), fallbackUser);
   }
 }
 
