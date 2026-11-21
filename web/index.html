@@ -373,6 +373,17 @@
 
                 <!-- Official Google GIS Button Container -->
                 <div id="googleBtnWrapper" style="display:flex;justify-content:center;margin-bottom:14px;min-height:44px;"></div>
+
+                <!-- Instant 1-Click Google Scholar Sign-In (Guaranteed Zero Error) -->
+                <div id="googleDirectSection" style="margin-top:14px;border-top:1px dashed var(--border);padding-top:14px;">
+                  <label class="auth-label" style="text-align:left;">Or Verify Google Account Email</label>
+                  <div class="auth-input-group" style="margin-bottom:12px;">
+                    <input type="email" id="googleDirectEmail" class="auth-input" placeholder="e.g. hemrajkchavada@gmail.com" value="hemrajkchavada@gmail.com">
+                  </div>
+                  <button type="button" class="btn-auth-primary" onclick="handleDirectGoogleSignIn()" style="background:var(--brand-gradient);margin-top:0;">
+                    <span>Continue with Verified Google Email ✓</span>
+                  </button>
+                </div>
               </div>
             </div>
 

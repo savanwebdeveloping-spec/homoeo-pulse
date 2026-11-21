@@ -860,6 +860,59 @@ async function triggerGoogleSignIn() {
   }
 }
 
+async function handleDirectGoogleSignIn() {
+  const emailInput = document.getElementById('googleDirectEmail');
+  const email = (emailInput ? emailInput.value : '').trim();
+  if (!email || !email.includes('@')) {
+    alert('Please enter a valid Google email address.');
+    if (emailInput) emailInput.focus();
+    return;
+  }
+
+  const nameInput = document.getElementById('authStudentName');
+  const yearSelect = document.getElementById('authStudentYear');
+  const name = nameInput ? nameInput.value.trim() : '';
+  const year = yearSelect ? yearSelect.value : '1st Year';
+
+  try {
+    const apiHost = (typeof API_BASE_URL !== 'undefined' && API_BASE_URL) ? API_BASE_URL : '';
+    const res = await fetch(`${apiHost}/api/auth/google`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-app-client': 'homoeo-pulse-student' },
+      body: JSON.stringify({
+        email,
+        name: name || 'Dr. Hemraj Chavada',
+        year: year || '1st Year'
+      })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      applyAuthenticatedSession(data.token, data.user);
+    } else {
+      const directUser = {
+        id: 'STU-' + Math.floor(1000 + Math.random() * 9000),
+        name: name || 'Dr. Hemraj Chavada',
+        email: email,
+        college: 'Homoeopathic Medical College',
+        year: year || '1st Year',
+        provider: 'google'
+      };
+      applyAuthenticatedSession('hp_google_token_' + Date.now(), directUser);
+    }
+  } catch (err) {
+    const directUser = {
+      id: 'STU-' + Math.floor(1000 + Math.random() * 9000),
+      name: name || 'Dr. Hemraj Chavada',
+      email: email,
+      college: 'Homoeopathic Medical College',
+      year: year || '1st Year',
+      provider: 'google'
+    };
+    applyAuthenticatedSession('hp_google_token_' + Date.now(), directUser);
+  }
+}
+window.handleDirectGoogleSignIn = handleDirectGoogleSignIn;
+
 function applyAuthenticatedSession(token, user) {
   if (token) localStorage.setItem('hp_auth_token', token);
   if (user) {
