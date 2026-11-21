@@ -709,14 +709,7 @@ async function handleSendOtp() {
       document.getElementById('authStepPhone').style.display = 'none';
       document.getElementById('authStepOtp').style.display = 'block';
       const sentText = document.getElementById('authOtpSentText');
-      if (sentText) sentText.innerText = `Enter the 6-digit code sent to +91 ${phone}`;
-
-      const demoBanner = document.getElementById('authDemoOtpHolder');
-      const demoCode = document.getElementById('authDemoOtpCode');
-      if (data.demoOtp && demoBanner && demoCode) {
-        demoBanner.style.display = 'block';
-        demoCode.innerText = data.demoOtp;
-      }
+      if (sentText) sentText.innerText = `Enter the 6-digit code sent via SMS to +91 ${phone}`;
 
       startResendCountdown(30);
       const otpInput = document.getElementById('authOtpCode');
@@ -725,15 +718,11 @@ async function handleSendOtp() {
         setTimeout(() => otpInput.focus(), 200);
       }
     } else {
-      alert(data.error || 'Failed to send verification code. Please try again.');
+      alert(data.error || 'Failed to send SMS OTP. Please check your number and try again.');
     }
   } catch (err) {
     console.error('Send OTP network error:', err);
-    document.getElementById('authStepPhone').style.display = 'none';
-    document.getElementById('authStepOtp').style.display = 'block';
-    const demoBanner = document.getElementById('authDemoOtpHolder');
-    if (demoBanner) demoBanner.style.display = 'block';
-    startResendCountdown(30);
+    alert('Unable to reach server. Please check your internet connection and try again.');
   } finally {
     if (btn) btn.disabled = false;
     if (btnText) btnText.innerText = 'Get Verification Code ›';
@@ -804,24 +793,11 @@ async function handleVerifyOtp() {
     if (res.ok && data.success) {
       applyAuthenticatedSession(data.token, data.user);
     } else {
-      alert(data.error || 'Verification failed. Please check the OTP code.');
+      alert(data.error || 'Verification failed. Please check the 6-digit OTP code sent to your phone.');
     }
   } catch (err) {
-    console.warn('Verify OTP fallback:', err);
-    if (otp === '777777' || (document.getElementById('authDemoOtpCode') && otp === document.getElementById('authDemoOtpCode').innerText)) {
-      const demoUser = {
-        id: 'STU-' + Math.floor(1000 + Math.random() * 9000),
-        name: name || 'BHMS Scholar',
-        phone: currentPendingPhone || '9876543210',
-        email: `${currentPendingPhone || '9876543210'}@student.homoeopulse.app`,
-        college: 'Homoeopathic Medical College',
-        year: year || '1st Year',
-        provider: 'phone_otp'
-      };
-      applyAuthenticatedSession('hp_local_token_' + Date.now(), demoUser);
-    } else {
-      alert('Verification code incorrect. Use testing code 777777 or the one sent.');
-    }
+    console.error('Verify OTP network error:', err);
+    alert('Unable to reach server. Please check your internet connection.');
   } finally {
     if (btn) btn.disabled = false;
     if (btnText) btnText.innerText = 'Verify & Enter Platform ✓';
@@ -917,19 +893,6 @@ async function triggerGoogleSignIn() {
   }
 }
 
-function continueAsDemoScholar() {
-  const demoUser = {
-    id: 'STU-' + Math.floor(1000 + Math.random() * 9000),
-    name: 'BHMS Clinical Scholar',
-    phone: '9876543210',
-    email: 'scholar@homoeopulse.app',
-    college: 'Government Homoeopathic Medical College',
-    year: '1st Year',
-    provider: 'demo_guest'
-  };
-  applyAuthenticatedSession('hp_demo_pass_' + Date.now(), demoUser);
-}
-
 function applyAuthenticatedSession(token, user) {
   if (token) localStorage.setItem('hp_auth_token', token);
   if (user) {
@@ -992,7 +955,6 @@ window.handleVerifyOtp = handleVerifyOtp;
 window.handleResendOtp = handleResendOtp;
 window.handleBackToPhone = handleBackToPhone;
 window.triggerGoogleSignIn = triggerGoogleSignIn;
-window.continueAsDemoScholar = continueAsDemoScholar;
 window.logoutStudent = logoutStudent;
 
 // ============================================================

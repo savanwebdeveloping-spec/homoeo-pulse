@@ -343,11 +343,6 @@
                   <input type="tel" id="authOtpCode" class="auth-input auth-otp-input" placeholder="••••••" maxlength="6" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                 </div>
 
-                <!-- Live Test OTP Hint Banner -->
-                <div id="authDemoOtpHolder" class="auth-demo-otp-banner" style="display:none;">
-                  <span>🔑 Testing Code: <strong id="authDemoOtpCode">123456</strong> (or enter 777777)</span>
-                </div>
-
                 <button type="button" class="btn-auth-primary" id="btnVerifyOtp" onclick="handleVerifyOtp()" style="margin-top:14px;">
                   <span id="btnVerifyOtpText">Verify &amp; Enter Platform ✓</span>
                   <span id="btnVerifyOtpSpinner" class="auth-spinner" style="display:none;"></span>
@@ -390,13 +385,6 @@
                   <span>Continue with Google</span>
                 </button>
               </div>
-            </div>
-
-            <!-- Instant Evaluation / Scholar Access -->
-            <div class="auth-demo-quick">
-              <button type="button" class="auth-guest-btn" onclick="continueAsDemoScholar()">
-                <span>⚡ Quick Test / Scholar Guest Access</span>
-              </button>
             </div>
 
             <div class="auth-disclaimer">
