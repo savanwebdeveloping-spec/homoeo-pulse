@@ -621,34 +621,10 @@ function dismissSplashScreen() {
     el.classList.add('hidden');
     el.style.display = 'none';
 
-    // PERMANENT 1-TIME LOGIN LOGIC:
-    // Auto-migrate existing scholars so they NEVER get logged out or asked to re-login on update!
-    let authToken = localStorage.getItem('hp_auth_token');
-    const existingSession = localStorage.getItem('hp_user_session');
-
-    // If student already has a configured profile on their device, keep them logged in permanently!
-    if (!authToken && currentUserProfile && currentUserProfile.isSetupDone && currentUserProfile.name && currentUserProfile.name !== 'BHMS Scholar') {
-      authToken = 'hp_permanent_session_' + Date.now();
-      localStorage.setItem('hp_auth_token', authToken);
-      if (!existingSession) {
-        localStorage.setItem('hp_user_session', JSON.stringify(currentUserProfile));
-      }
-    }
-
-    if (!authToken) {
-      // First time installation only: Show Authentication Gateway
-      document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
-      const authScreen = document.getElementById('appScreenAuth');
-      if (authScreen) authScreen.classList.add('active');
-      initGoogleSignIn();
-      return;
-    }
-
-    // Daily Usage: ALWAYS STAY LOGGED IN! Navigate directly to Dashboard without asking for login!
+    // DIRECT STUDENT ACCESS: Always navigate directly to Dashboard! Zero login barriers!
     document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
     const dash = document.getElementById('appScreenDashboard');
     if (dash) dash.classList.add('active');
-    updateAuthStatusUI();
   }, 600);
 }
 window.dismissSplashScreen = dismissSplashScreen;

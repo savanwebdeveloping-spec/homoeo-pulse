@@ -388,20 +388,22 @@ function verifyAdminAuth(req) {
   return false;
 }
 
-// In-Memory IP Rate Limiter
+// In-Memory IP Rate Limiter: Blocks aggressive scrapers from exhausting server bandwidth
 const ipRequestHistory = new Map();
-function isRateLimited(ip, limit = 250, windowMs = 60000) {
+function isRateLimited(ip, limit = 60, windowMs = 60000) {
   const now = Date.now();
-  const entry = ipRequestHistory.get(ip) || { count: 0, resetAt: now + windowMs };
-  if (now > entry.resetAt) {
-    entry.count = 1;
-    entry.resetAt = now + windowMs;
+  let entry = ipRequestHistory.get(ip);
+  if (!entry || now > entry.resetAt) {
+    entry = { count: 1, resetAt: now + windowMs };
     ipRequestHistory.set(ip, entry);
     return false;
   }
   entry.count++;
-  ipRequestHistory.set(ip, entry);
-  return entry.count > limit;
+  if (entry.count > limit) {
+    entry.resetAt = now + 10 * 60 * 1000; // Ban aggressive scraper for 10 minutes
+    return true;
+  }
+  return false;
 }
 
 const AUTH_SECRET = process.env.AUTH_SECRET || 'homoeo_pulse_jwt_secret_key_2026_durable_security_vault_99';
@@ -481,8 +483,8 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000);
 
-// Anti-Bot & Scraper Shield Patterns
-const BOT_USER_AGENT_REGEX = /(bytespider|gptbot|chatgpt-user|claudebot|claude-web|anthropic|petalbot|semrushbot|ahrefsbot|mj12bot|dotbot|rogerbot|exabot|screaming frog|zoominfobot|ccbot|dataforseo|censys|shodan|python-requests|aiohttp|scrapy|httpclient)/i;
+// Anti-Bot & Scraper Shield Patterns (Guards against AI crawlers exhausting server bandwidth/credits)
+const BOT_USER_AGENT_REGEX = /(bytespider|gptbot|chatgpt|claudebot|claude|anthropic|petalbot|semrushbot|ahrefsbot|mj12bot|dotbot|rogerbot|exabot|screaming frog|zoominfobot|ccbot|dataforseo|censys|shodan|python-requests|python|aiohttp|scrapy|httpclient|curl|wget|go-http-client|urllib|libwww-perl|perl|nikto|sqlmap|nmap|zgrab|headlesschrome|phantomjs|puppeteer|selenium|facebookexternalhit|amazonbot|yandexbot|baiduspider|bingbot|slurp)/i;
 const EXPLOIT_PATH_REGEX = /(\.env|\.git|wp-login|wp-admin|xmlrpc|phpmyadmin|\.php|\.asp|\.jsp|cgi-bin|\/etc\/passwd)/i;
 
 function sendJson(res, statusCode, data) {
@@ -521,24 +523,29 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 2. Serve robots.txt to instruct crawlers to back off
+  // 2. Serve robots.txt to instruct all AI crawlers and bots to back off completely
   if (pathname === '/robots.txt') {
     res.writeHead(200, { 'Content-Type': 'text/plain; charset=UTF-8' });
-    res.end("User-agent: *\nDisallow: /api/\nDisallow: /uploads/\nDisallow: /admin\n\nUser-agent: GPTBot\nDisallow: /\n\nUser-agent: Bytespider\nDisallow: /\n\nUser-agent: ClaudeBot\nDisallow: /\n");
+    res.end("User-agent: *\nDisallow: /\n\nUser-agent: GPTBot\nDisallow: /\n\nUser-agent: Bytespider\nDisallow: /\n\nUser-agent: ClaudeBot\nDisallow: /\n\nUser-agent: CCBot\nDisallow: /\n");
     return;
   }
 
-  // 3. Block AI Bots and Automated Scrapers from scraping APIs and PDF streams
-  if (BOT_USER_AGENT_REGEX.test(userAgent) && (pathname.startsWith('/api/') || pathname.startsWith('/uploads/'))) {
-    console.warn(`🛡️ Blocked AI Bot/Scraper [${userAgent}] from ${pathname}`);
-    res.writeHead(403, Object.assign({ 'Content-Type': 'application/json' }, SECURITY_HEADERS));
-    res.end(JSON.stringify({ error: 'Automated AI scraping forbidden. Access denied.' }));
-    return;
+  // 3. Block AI Bots, Automated Scrapers, and Headless Tools from draining Render server credits
+  const isBotUser = !userAgent || userAgent.length < 5 || BOT_USER_AGENT_REGEX.test(userAgent);
+  if (isBotUser && (pathname.startsWith('/api/') || pathname.startsWith('/uploads/'))) {
+    const appClientHeader = req.headers['x-app-client'] || req.headers['x-homoeo-client'];
+    if (!appClientHeader || !String(appClientHeader).includes('homoeo')) {
+      console.warn(`🛡️ [AI BOT BLOCKED] Dropped scraper request [${userAgent || 'No-UA'}] from ${pathname}`);
+      res.writeHead(403, Object.assign({ 'Content-Type': 'application/json' }, SECURITY_HEADERS));
+      res.end(JSON.stringify({ error: 'Automated AI scraping and bot access is strictly forbidden.' }));
+      return;
+    }
   }
 
-  // 4. Apply Rate Limiting
+  // 4. Apply Rate Limiting (Prevents credit burn by aggressive scripts)
   if (isRateLimited(clientIp)) {
-    return sendJson(res, 429, { error: 'Too many requests. Please slow down.' });
+    console.warn(`🛡️ [RATE LIMIT] Rate-limited excessive IP: ${clientIp}`);
+    return sendJson(res, 429, { error: 'Excessive requests detected. Rate limit applied.' });
   }
 
   if (pathname.startsWith('/api/') || pathname.endsWith('.html') || pathname === '/') {
