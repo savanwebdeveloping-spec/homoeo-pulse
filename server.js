@@ -645,7 +645,8 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, {
         success: true,
         message: `OTP sent successfully to +91 ${phone}`,
-        phone
+        phone,
+        gateway: smsResult
       });
     }
 
